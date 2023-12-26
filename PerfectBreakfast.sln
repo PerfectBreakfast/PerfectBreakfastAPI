@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34322.80
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfectBreakfast.Domain", "src\PerfectBreakfast.Domain\PerfectBreakfast.Domain.csproj", "{B99CE11A-E953-40B6-831B-3AEBAFABB7F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfectBreakfast.Infrastructure", "src\PerfectBreakfast.Infrastructure\PerfectBreakfast.Infrastructure.csproj", "{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfectBreakfast.Application", "src\PerfectBreakfast.Application\PerfectBreakfast.Application.csproj", "{FB8E7100-EABF-4C20-B427-7032D1F5F726}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfectBreakfast.API", "src\PerfectBreakfast.API\PerfectBreakfast.API.csproj", "{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B99CE11A-E953-40B6-831B-3AEBAFABB7F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B99CE11A-E953-40B6-831B-3AEBAFABB7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B99CE11A-E953-40B6-831B-3AEBAFABB7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B99CE11A-E953-40B6-831B-3AEBAFABB7F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB8E7100-EABF-4C20-B427-7032D1F5F726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB8E7100-EABF-4C20-B427-7032D1F5F726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB8E7100-EABF-4C20-B427-7032D1F5F726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB8E7100-EABF-4C20-B427-7032D1F5F726}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B99CE11A-E953-40B6-831B-3AEBAFABB7F5} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
+		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
+		{FB8E7100-EABF-4C20-B427-7032D1F5F726} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
+		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CDEE646A-F461-4AE2-90AE-2C1EBF7FC847}
+	EndGlobalSection
+EndGlobal
