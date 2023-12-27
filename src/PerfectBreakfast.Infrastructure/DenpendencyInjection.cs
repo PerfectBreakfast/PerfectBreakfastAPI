@@ -16,6 +16,7 @@ public static class DenpendencyInjection
         services.AddScoped<ICurrentTime, CurrentTime>();
 
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICompanyService, CompanyService>();
         
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options => {

@@ -20,7 +20,7 @@ public class UnitOfWork : IUnitOfWork
     }
     
     public IUserRepository UserRepository => new UserRepository(_dbContext,_currentTime,_claimsService);
-
+    public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
     
 
     public async Task<int> SaveChangeAsync()
