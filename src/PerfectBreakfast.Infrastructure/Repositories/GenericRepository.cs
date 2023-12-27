@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -18,12 +20,13 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             _timeService = timeService;
             _claimsService = claimsService;
         }
-        //public override Task<List<TEntity>> GetAllAsync() => _dbSet.ToListAsync();
 
-        public override async Task<TEntity?> GetByIdAsync(Guid id)
+        public override async Task<TEntity> GetByIdAsync(Guid id,params Expression<Func<TEntity, object>>[] includeProperties)
         {
-            var result = await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
+            var result = await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
             // todo should throw exception when not found
+            if (result == null)
+                throw new NotFoundIdException($"Not Found by ID: [{id}] of [{typeof(TEntity).Name}]");
             return result;
         }
 
@@ -69,14 +72,19 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             _dbSet.UpdateRange(entities);
         }
 
-        public async Task<Pagination<TEntity>> ToPagination(int pageIndex = 0, int pageSize = 10)
+        public async Task<Pagination<TEntity>> ToPagination(int pageIndex = 0, int pageSize = 10, Expression<Func<TEntity, bool>>? predicate = null)
         {
             var itemCount = await _dbSet.CountAsync();
-            var items = await _dbSet.OrderByDescending(x => x.CreationDate)
-                                    .Skip(pageIndex * pageSize)
-                                    .Take(pageSize)
-                                    .AsNoTracking()
-                                    .ToListAsync();
+            IQueryable<TEntity> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
+            if (predicate != null) 
+            {
+                itemsQuery = itemsQuery.Where(predicate); 
+            }
+            var items = await itemsQuery
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync();
             
             var result = new Pagination<TEntity>()
             {
@@ -85,7 +93,6 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
                 TotalItemsCount = itemCount,
                 Items = items,
             };
-
             return result;
         }
 
