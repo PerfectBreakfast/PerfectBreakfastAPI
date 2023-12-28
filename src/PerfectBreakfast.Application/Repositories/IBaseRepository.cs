@@ -6,7 +6,7 @@ public interface IBaseRepository<TEntity> where TEntity : class
 {
     Task<List<TEntity>> GetAllAsync();
     Task<TEntity> GetByIdAsync(Guid id,params Expression<Func<TEntity, object>>[] includeProperties);
-    Task AddAsync(TEntity entity);
+    Task<TEntity> AddAsync(TEntity entity);
     void Update(TEntity entity);
     void UpdateRange(List<TEntity> entities);
     void SoftRemove(TEntity entity);

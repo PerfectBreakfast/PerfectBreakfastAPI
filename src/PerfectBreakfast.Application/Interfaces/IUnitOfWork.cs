@@ -5,8 +5,12 @@ namespace PerfectBreakfast.Application.Interfaces;
 
 public interface IUnitOfWork
 {
-    public IUserRepository UserRepository { get; }
-    public ICompanyRepository CompanyRepository { get; }
     public Task<int> SaveChangeAsync();
     Task<IDbContextTransaction> BeginTransactionAsync();
+    public IUserRepository UserRepository { get; }
+    public ICompanyRepository CompanyRepository { get; }
+    public ISupplierRepository SupplierRepository { get; }
+    public IDeliveryUnitRepository DeliveryUnitRepository { get; }
+    public IManagementUnitRepository ManagementUnitRepository { get; }
+    
 }

@@ -14,9 +14,6 @@ public static class DenpendencyInjection
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
-
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ICompanyService, CompanyService>();
         
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options => {
@@ -32,6 +29,13 @@ public static class DenpendencyInjection
         config.Scan(Assembly.GetExecutingAssembly());
         services.AddSingleton(config);
         services.AddScoped<IMapper, ServiceMapper>();
+        
+        // register service here
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IDeliveryUnitService, DeliveryUnitService>();
+        services.AddScoped<IManagementUnitService, ManagementUnitService>();
 
         return services;
     }
