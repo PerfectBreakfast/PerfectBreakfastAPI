@@ -34,13 +34,29 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id)
+    public async Task<OperationResult<CompanyResponse>> Delete(Guid id)
     {
         var result = new OperationResult<CompanyResponse>();
         try
         {
             var com = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
             com.IsDeleted = true;
+            _unitOfWork.CompanyRepository.SoftRemove(com);
+            await _unitOfWork.SaveChangeAsync();
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id)
+    {
+        var result = new OperationResult<CompanyResponse>();
+        try
+        {
+            var com = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
             _unitOfWork.CompanyRepository.SoftRemove(com);
             await _unitOfWork.SaveChangeAsync();
         }
@@ -73,6 +89,21 @@ public class CompanyService : ICompanyService
         {
             var com = await _unitOfWork.CompanyRepository.GetByIdAsync(companyId);
             result.Payload = _mapper.Map<CompanyResponse>(com);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<CompanyResponse>>> GetCompanyPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<CompanyResponse>>();
+        try
+        {
+            var users = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize);
+            result.Payload = _mapper.Map<Pagination<CompanyResponse>>(users);
         }
         catch (Exception e)
         {
