@@ -81,22 +81,22 @@ public class UserService : IUserService
             var user = _mapper.Map<User>(requestModel);
 
             // check User workspace to generate code
-            //if (user.CompanyId.HasValue)
-            //{
-            //    user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
-            //}
-            //else if (user.DeliveryUnitId.HasValue)
-            //{
-            //    user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
-            //}
-            //else if (user.ManagementUnitId.HasValue)
-            //{
-            //    user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
-            //}
-            //else if (user.SupplierId.HasValue)
-            //{
-            //    user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
-            //}
+            if (user.CompanyId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
+            }
+            else if (user.DeliveryUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+            }
+            else if (user.ManagementUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+            }
+            else if (user.SupplierId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
+            }
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveChangeAsync();
         }
