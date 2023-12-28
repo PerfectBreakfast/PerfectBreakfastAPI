@@ -18,12 +18,6 @@ public class UnitOfWork : IUnitOfWork
         _currentTime = currentTime;
         _claimsService = claimsService;
     }
-    
-    public IUserRepository UserRepository => new UserRepository(_dbContext,_currentTime,_claimsService);
-    public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
-    public IRoleRepository RoleRepository => new RoleRepository(_dbContext,_currentTime, _claimsService);
-    
-
     public async Task<int> SaveChangeAsync()
     {
         return await _dbContext.SaveChangesAsync();
@@ -33,4 +27,12 @@ public class UnitOfWork : IUnitOfWork
     {
         return await _dbContext.Database.BeginTransactionAsync();
     }
+    
+    public IUserRepository UserRepository => new UserRepository(_dbContext,_currentTime,_claimsService);
+    public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
+    public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
+    public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);
+    public IManagementUnitRepository ManagementUnitRepository => new ManagementUnitRepository(_dbContext, _currentTime, _claimsService);
+    public IRoleRepository RoleRepository => new RoleRepository(_dbContext, _currentTime, _claimsService);
+
 }

@@ -13,12 +13,7 @@ public static class DenpendencyInjection
     public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<ICurrentTime, CurrentTime>();
-
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ICompanyService, CompanyService>();
-        services.AddScoped<IRoleService, RoleService>();
-        
+        services.AddScoped<ICurrentTime, CurrentTime>();        
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options => {
             options.UseMySql(
@@ -33,6 +28,14 @@ public static class DenpendencyInjection
         config.Scan(Assembly.GetExecutingAssembly());
         services.AddSingleton(config);
         services.AddScoped<IMapper, ServiceMapper>();
+        
+        // register service here
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IDeliveryUnitService, DeliveryUnitService>();
+        services.AddScoped<IManagementUnitService, ManagementUnitService>();
+        services.AddScoped<IRoleService, RoleService>();
 
         return services;
     }

@@ -25,7 +25,7 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
+    public async Task<OperationResult<List<UserResponse>>> GetUsers()
     {
         var result = new OperationResult<List<UserResponse>>();
         try
@@ -56,7 +56,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> GetUserById(Guid id)
+    public async Task<OperationResult<UserResponse>> GetUser(Guid id)
     {
         var result = new OperationResult<UserResponse>();
         try
@@ -68,6 +68,40 @@ public class UserService : IUserService
         {
             result.AddError(ErrorCode.NotFound,e.Message);
         }*/
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> CreateUser(CreateUserRequestModel requestModel)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var user = _mapper.Map<User>(requestModel);
+            
+            // check User workspace to generate code
+            if (user.CompanyId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
+            }
+            else if (user.DeliveryUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+            }
+            else if (user.ManagementUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+            }
+            else if (user.SupplierId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
+            }
+            await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.SaveChangeAsync();
+        }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
