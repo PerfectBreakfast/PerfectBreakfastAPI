@@ -36,7 +36,6 @@ public static class DenpendencyInjection
         services.AddScoped<IDeliveryUnitService, DeliveryUnitService>();
         services.AddScoped<IManagementUnitService, ManagementUnitService>();
         services.AddScoped<IRoleService, RoleService>();
-
         return services;
     }
 }

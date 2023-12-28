@@ -49,7 +49,13 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     {
         _dbSet.UpdateRange(entities);
     }
-        
+
+    public TEntity Remove(TEntity entity)
+    {
+        _dbSet.Remove(entity);
+        return entity;
+    }
+
     public virtual void UpdateRange(List<TEntity> entities)
     {
         _dbSet.UpdateRange(entities);

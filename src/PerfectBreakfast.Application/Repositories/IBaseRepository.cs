@@ -12,6 +12,7 @@ public interface IBaseRepository<TEntity> where TEntity : class
     void SoftRemove(TEntity entity);
     Task AddRangeAsync(List<TEntity> entities);
     void SoftRemoveRange(List<TEntity> entities);
+    TEntity Remove(TEntity entity);
     public IQueryable<TEntity> FindAll(params Expression<Func<TEntity, object>>[]? includeProperties);
     public IQueryable<TEntity> FindAll(Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[]? includeProperties);
     Task<TEntity?> FindSingleAsync(Expression<Func<TEntity, bool>>? predicate, params Expression<Func<TEntity, object>>[]? includeProperties);

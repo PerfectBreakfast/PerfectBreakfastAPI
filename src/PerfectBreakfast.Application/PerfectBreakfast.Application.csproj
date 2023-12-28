@@ -11,7 +11,6 @@
     <Folder Include="Models\RoleModels\Request\" />
     <Folder Include="Models\DeliveryUnitModels\Request\" />
     <Folder Include="Models\ManagementUnitModels\Request\" />
-    <Folder Include="Models\SupplierModels\Request\" />
   </ItemGroup>
 
   <ItemGroup>

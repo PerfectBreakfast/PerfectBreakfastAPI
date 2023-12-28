@@ -1,8 +1,7 @@
-namespace PerfectBreakfast.Application.Models.SupplierModels.Response;
+namespace PerfectBreakfast.Application.Models.SupplierModels.Request;
 
-public record SupplierResponse
+public record CreateSupplierRequestModel
 {
-    public Guid Id { get; set; }
     public string Name { get; set; } 
     public string Address { get; set; } 
     public double? Longitude { get; set; } 
