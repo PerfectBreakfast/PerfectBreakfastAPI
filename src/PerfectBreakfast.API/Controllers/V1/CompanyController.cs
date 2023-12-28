@@ -49,4 +49,18 @@ public class CompanyController : BaseController
         var response = await _companyService.DeleteCompany(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetCompanyPagination(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _companyService.GetCompanyPaginationAsync(pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpDelete("delete/{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var response = await _companyService.Delete(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
