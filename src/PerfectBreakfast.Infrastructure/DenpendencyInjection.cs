@@ -13,8 +13,7 @@ public static class DenpendencyInjection
     public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<ICurrentTime, CurrentTime>();
-        
+        services.AddScoped<ICurrentTime, CurrentTime>();        
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options => {
             options.UseMySql(
@@ -36,6 +35,7 @@ public static class DenpendencyInjection
         services.AddScoped<ISupplierService, SupplierService>();
         services.AddScoped<IDeliveryUnitService, DeliveryUnitService>();
         services.AddScoped<IManagementUnitService, ManagementUnitService>();
+        services.AddScoped<IRoleService, RoleService>();
 
         return services;
     }

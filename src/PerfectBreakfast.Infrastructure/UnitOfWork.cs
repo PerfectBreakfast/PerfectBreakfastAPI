@@ -33,6 +33,6 @@ public class UnitOfWork : IUnitOfWork
     public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
     public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);
     public IManagementUnitRepository ManagementUnitRepository => new ManagementUnitRepository(_dbContext, _currentTime, _claimsService);
-    
+    public IRoleRepository RoleRepository => new RoleRepository(_dbContext, _currentTime, _claimsService);
 
 }

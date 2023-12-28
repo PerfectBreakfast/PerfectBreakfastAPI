@@ -12,5 +12,6 @@ public interface IUnitOfWork
     public ISupplierRepository SupplierRepository { get; }
     public IDeliveryUnitRepository DeliveryUnitRepository { get; }
     public IManagementUnitRepository ManagementUnitRepository { get; }
+    public IRoleRepository RoleRepository { get; }
     
 }
