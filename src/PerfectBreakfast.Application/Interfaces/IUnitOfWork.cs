@@ -13,5 +13,6 @@ public interface IUnitOfWork
     public IDeliveryUnitRepository DeliveryUnitRepository { get; }
     public IManagementUnitRepository ManagementUnitRepository { get; }
     public IRoleRepository RoleRepository { get; }
+    public ICategoryRepository CategoryRepository { get; }
     
 }
