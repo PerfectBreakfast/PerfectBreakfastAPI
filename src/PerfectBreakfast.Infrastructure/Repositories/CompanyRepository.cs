@@ -4,9 +4,9 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
-public class CompanyRepository : GenericRepository<Company>,ICompanyRepository
+public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
 {
-    public CompanyRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) 
+    public CompanyRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
         : base(context, timeService, claimsService)
     {
     }
