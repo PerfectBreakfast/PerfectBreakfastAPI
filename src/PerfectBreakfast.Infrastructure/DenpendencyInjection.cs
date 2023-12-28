@@ -17,6 +17,7 @@ public static class DenpendencyInjection
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<IRoleService, RoleService>();
         
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options => {
