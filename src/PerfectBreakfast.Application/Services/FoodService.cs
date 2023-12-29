@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,21 @@ namespace PerfectBreakfast.Application.Services
             {
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 result.Payload = _mapper.Map<FoodResponse>(food);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<Pagination<FoodResponse>>> GetFoodPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        {
+            var result = new OperationResult<Pagination<FoodResponse>>();
+            try
+            {
+                var foods = await _unitOfWork.FoodRepository.ToPagination(pageIndex, pageSize);
+                result.Payload = _mapper.Map<Pagination<FoodResponse>>(foods);
             }
             catch (Exception e)
             {

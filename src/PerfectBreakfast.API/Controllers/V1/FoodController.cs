@@ -50,5 +50,12 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _foodService.RemoveFood(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+
+        [HttpGet("pagination")]
+        public async Task<IActionResult> GetFoodPagination(int pageIndex = 0, int pageSize = 10)
+        {
+            var response = await _foodService.GetFoodPaginationAsync(pageIndex, pageSize);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }
