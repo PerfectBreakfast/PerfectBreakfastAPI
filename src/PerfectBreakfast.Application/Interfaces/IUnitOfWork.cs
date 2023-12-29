@@ -16,4 +16,7 @@ public interface IUnitOfWork
     public ICategoryRepository CategoryRepository { get; }
     public IFoodRepository FoodRepository { get; }
     
+    public IMenuRepository MenuRepository { get; }
+    public IPaymentMethodRepository PaymentMethodRepository { get; }
+
 }
