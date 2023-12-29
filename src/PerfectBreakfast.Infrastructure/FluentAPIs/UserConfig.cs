@@ -8,11 +8,7 @@ public class UserConfig : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Id).ValueGeneratedOnAdd();
-        builder.Property(x => x.Email).IsRequired().HasMaxLength(50);
-        builder.Property(x => x.FullName).IsRequired().HasMaxLength(50);
-
+        
         builder.HasOne(c => c.Company)
             .WithMany(u => u.Workers)
             .HasForeignKey(pk => pk.CompanyId);

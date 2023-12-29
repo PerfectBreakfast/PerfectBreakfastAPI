@@ -5,6 +5,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,6 +14,8 @@ using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.API.Services;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Infrastructure;
 
 namespace PerfectBreakfast.API;
 
@@ -104,12 +107,13 @@ public static class DependencyInjection
                 }
             });
             
+            
             // using System.Reflection;
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
         //==================================================================================================================================
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        /*services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -120,7 +124,12 @@ public static class DependencyInjection
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
-            });
+            });*/
+        services.AddAuthentication();
+        //==================================================================================================================================
+        services.AddIdentityApiEndpoints<User>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
         //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();

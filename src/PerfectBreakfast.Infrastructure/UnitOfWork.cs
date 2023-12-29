@@ -28,7 +28,7 @@ public class UnitOfWork : IUnitOfWork
         return await _dbContext.Database.BeginTransactionAsync();
     }
     
-    public IUserRepository UserRepository => new UserRepository(_dbContext,_currentTime,_claimsService);
+    //public IUserRepository UserRepository => new UserRepository(_dbContext,_currentTime,_claimsService);
     public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
     public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
     public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);

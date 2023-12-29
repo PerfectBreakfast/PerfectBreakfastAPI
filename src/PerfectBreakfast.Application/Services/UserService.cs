@@ -28,8 +28,8 @@ public class UserService : IUserService
         var result = new OperationResult<List<UserResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<UserResponse>>(users);
+            /*var users = await _unitOfWork.UserRepository.GetAllAsync();
+            result.Payload = _mapper.Map<List<UserResponse>>(users);*/
         }
         catch (Exception e)
         {
@@ -44,8 +44,8 @@ public class UserService : IUserService
         var result = new OperationResult<Pagination<UserResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<UserResponse>>(users);
+            /*var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize);
+            result.Payload = _mapper.Map<Pagination<UserResponse>>(users);*/
         }
         catch (Exception e)
         {
@@ -59,8 +59,8 @@ public class UserService : IUserService
         var result = new OperationResult<UserResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            result.Payload = _mapper.Map<UserResponse>(user);
+            /*var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            result.Payload = _mapper.Map<UserResponse>(user);*/
         }
         /*catch (NotFoundIdException e)
         {
@@ -81,7 +81,7 @@ public class UserService : IUserService
             var user = _mapper.Map<User>(requestModel);
 
             // check User workspace to generate code
-            if (user.CompanyId.HasValue)
+            /*if (user.CompanyId.HasValue)
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
             }
@@ -97,7 +97,7 @@ public class UserService : IUserService
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
             }
-            await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.UserRepository.AddAsync(user);*/
             await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception e)
