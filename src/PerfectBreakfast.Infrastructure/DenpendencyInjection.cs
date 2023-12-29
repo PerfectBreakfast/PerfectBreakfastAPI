@@ -37,7 +37,7 @@ public static class DenpendencyInjection
         services.AddScoped<IManagementUnitService, ManagementUnitService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IFoodService, CategoryService>();
+        services.AddScoped<IFoodService, FoodService>();
         return services;
     }
 }
