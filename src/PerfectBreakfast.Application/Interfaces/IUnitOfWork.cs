@@ -14,5 +14,6 @@ public interface IUnitOfWork
     public IManagementUnitRepository ManagementUnitRepository { get; }
     public IRoleRepository RoleRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
+    public IFoodRepository FoodRepository { get; }
     
 }
