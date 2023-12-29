@@ -34,6 +34,9 @@ public class UnitOfWork : IUnitOfWork
     public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);
     public IManagementUnitRepository ManagementUnitRepository => new ManagementUnitRepository(_dbContext, _currentTime, _claimsService);
     public IRoleRepository RoleRepository => new RoleRepository(_dbContext, _currentTime, _claimsService);
+    public ICategoryRepository CategoryRepository => new CategoryRepository(_dbContext, _currentTime, _claimsService);
+    public IFoodRepository FoodRepository => new FoodRepository(_dbContext, _currentTime, _claimsService);
+
     public IMenuRepository MenuRepository => new MenuRepository(_dbContext, _currentTime, _claimsService);
     public IPaymentMethodRepository PaymentMethodRepository => new PaymentMethodRepository(_dbContext, _currentTime, _claimsService);
 }
