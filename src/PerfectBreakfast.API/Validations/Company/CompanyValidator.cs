@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using PerfectBreakfast.Application.Models.CompanyModels.Request;
 
-namespace PerfectBreakfast.API.Validations.User
+namespace PerfectBreakfast.API.Validations.Company
 {
     public class CompanyValidator : AbstractValidator<CompanyRequest>
     {
