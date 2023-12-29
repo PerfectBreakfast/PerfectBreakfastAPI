@@ -14,7 +14,6 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Request
         public string Image { get; set; } = string.Empty;
 
         //relationship
-        public Guid? CategoryId { get; set; }
-        public Category? Category { get; set; }
+        //public Category? Category { get; set; }
     }
 }
