@@ -8,6 +8,7 @@ public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
 {
     public void Configure(EntityTypeBuilder<OrderHistory> builder)
     {
+        builder.ToTable("OrderHistory");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
 

@@ -5,9 +5,9 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
-public class UserRepository : GenericRepository<User>, IUserRepository
+public class UserRepository //: GenericRepository<User>, IUserRepository
 {
-    public UserRepository(AppDbContext context,ICurrentTime currentTime, IClaimsService claimsService) 
+    /*public UserRepository(AppDbContext context,ICurrentTime currentTime, IClaimsService claimsService) 
         : base(context,currentTime,claimsService)
     {
         
@@ -43,5 +43,5 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             .Where(u => u.SupplierId == supplierId)
             .MaxAsync(u => (int?)u.Code) ?? 0;
         return supplierCode + 1;
-    }
+    }*/
 }

@@ -14,6 +14,5 @@ public class MapsterConfig : IRegister
         config.NewConfig<User, UserResponse>();
         config.NewConfig<Food,FoodResponse>();
         config.NewConfig<Category, CategoryResponse>();
-        config.NewConfig<Role,RoleResponse>();
     }
 }

@@ -8,6 +8,7 @@ public class SupplyAssignmentConfig : IEntityTypeConfiguration<SupplyAssignment>
 {
     public void Configure(EntityTypeBuilder<SupplyAssignment> builder)
     {
+        builder.ToTable("SupplyAssignment");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         

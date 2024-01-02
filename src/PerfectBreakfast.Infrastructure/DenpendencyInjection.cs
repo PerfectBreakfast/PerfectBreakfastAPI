@@ -14,6 +14,7 @@ public static class DenpendencyInjection
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
+        services.AddScoped<JWTService>();
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>
         {
