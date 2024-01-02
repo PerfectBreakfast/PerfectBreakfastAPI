@@ -1,8 +1,12 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -11,16 +15,94 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly AppConfiguration _appConfiguration;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
+    private readonly IClaimsService _claimsService;
+    private readonly JWTService _jwtService;
+    //private readonly IUserStore<User> _userStore;
+    //private readonly IUserEmailStore<User> _userEmailStore;
 
-    public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+    public UserService(IUnitOfWork unitOfWork, IMapper mapper
+        ,UserManager<User> userManager,SignInManager<User> signInManager
+        ,AppConfiguration appConfiguration,IClaimsService claimsService
+        ,JWTService jwtService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _appConfiguration = appConfiguration;
+        _claimsService = claimsService;
+        _jwtService = jwtService;
     }
 
-    public Task<OperationResult<UserLoginResponse>> Login(LoginRequest query)
+    public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
     {
-        throw new NotImplementedException();
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            
+            var user = await _userManager.FindByNameAsync(request.Email);
+            if (user is null)
+            {
+                result.AddError(ErrorCode.UnAuthorize,"wrong email");
+                return result;
+            }
+            var isSuccess = await _signInManager
+                .CheckPasswordSignInAsync(user, request.Password,false);
+            if (!isSuccess.Succeeded)
+            {
+                if (isSuccess.IsNotAllowed)
+                {
+                    result.AddError(ErrorCode.UnAuthorize,"need confirm account");
+                    return result;
+                }
+                result.AddError(ErrorCode.UnAuthorize,"wrong pass");
+                return result;
+            }
+
+            var token = await _jwtService.CreateJWT(user);
+            result.Payload = new UserLoginResponse(token);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<IdentityResult>> SignUp(SignUpModel request)
+    {
+        var result = new OperationResult<IdentityResult>();
+        try
+        {
+            var user = _mapper.Map<User>(request);
+            user.UserName = request.Email;
+            user.EmailConfirmed = true;
+            result.Payload = await _userManager.CreateAsync(user,request.Password);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserLoginResponse>> RefreshUserToken()
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var user = await _userManager.FindByIdAsync(_claimsService.GetCurrentUserId.ToString());
+            var token = await _jwtService.CreateJWT(user);
+            result.Payload = new UserLoginResponse(token);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
     }
 
     public async Task<OperationResult<List<UserResponse>>> GetUsers()
@@ -30,6 +112,8 @@ public class UserService : IUserService
         {
             /*var users = await _unitOfWork.UserRepository.GetAllAsync();
             result.Payload = _mapper.Map<List<UserResponse>>(users);*/
+            var users = await _userManager.Users.ToListAsync();
+            result.Payload = _mapper.Map<List<UserResponse>>(users);
         }
         catch (Exception e)
         {

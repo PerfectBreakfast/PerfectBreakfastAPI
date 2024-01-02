@@ -8,6 +8,7 @@ public class MenuFoodConfig : IEntityTypeConfiguration<MenuFood>
 {
     public void Configure(EntityTypeBuilder<MenuFood> builder)
     {
+        builder.ToTable("MenuFood");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
 

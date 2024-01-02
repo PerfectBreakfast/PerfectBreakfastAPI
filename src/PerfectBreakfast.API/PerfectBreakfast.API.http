@@ -1,20 +1,21 @@
 @PerfectBreakfast.API_HostAddress = http://localhost:5198
 
-POST {{PerfectBreakfast.API_HostAddress}}/account/login
+POST {{PerfectBreakfast.API_HostAddress}}/account/signin
 Accept: application/json
 Content-Type: application/json
 
 {
   "email": "viethungdev23@gmail.com",
-  "password": "Abc@123"
+  "password": "123456"
 }
 ###
 
-POST {{PerfectBreakfast.API_HostAddress}}/account/register
+POST {{PerfectBreakfast.API_HostAddress}}/account/signup
 Accept: application/json
 Content-Type: application/json
 
 {
   "email": "viethungdev23@gmail.com",
-  "password": "Abc@123"
+  "password": "123456",
+  "phoneNumber": "0395746139"
 }

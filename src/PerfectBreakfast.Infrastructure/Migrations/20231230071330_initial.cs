@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PerfectBreakfast.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,7 +34,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Categories",
+                name: "Category",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -52,12 +52,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.PrimaryKey("PK_Category", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Companies",
+                name: "Company",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -79,12 +79,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Companies", x => x.Id);
+                    table.PrimaryKey("PK_Company", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "DeliveryUnits",
+                name: "DeliveryUnit",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -104,12 +104,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeliveryUnits", x => x.Id);
+                    table.PrimaryKey("PK_DeliveryUnit", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ManagementUnits",
+                name: "ManagementUnit",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -129,12 +129,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ManagementUnits", x => x.Id);
+                    table.PrimaryKey("PK_ManagementUnit", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Menus",
+                name: "Menu",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -150,33 +150,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Menus", x => x.Id);
+                    table.PrimaryKey("PK_Menu", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Roles",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreationDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    ModificationDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    ModificationBy = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    DeletionDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeleteBy = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Roles", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Suppliers",
+                name: "Supplier",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -196,7 +175,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Suppliers", x => x.Id);
+                    table.PrimaryKey("PK_Supplier", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -225,7 +204,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Foods",
+                name: "Food",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -245,17 +224,17 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Foods", x => x.Id);
+                    table.PrimaryKey("PK_Food", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Foods_Categories_CategoryId",
+                        name: "FK_Food_Category_CategoryId",
                         column: x => x.CategoryId,
-                        principalTable: "Categories",
+                        principalTable: "Category",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "DeliveryAssignments",
+                name: "DeliveryAssignment",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -271,16 +250,16 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeliveryAssignments", x => x.Id);
+                    table.PrimaryKey("PK_DeliveryAssignment", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DeliveryAssignments_DeliveryUnits_DeliveryUnitId",
+                        name: "FK_DeliveryAssignment_DeliveryUnit_DeliveryUnitId",
                         column: x => x.DeliveryUnitId,
-                        principalTable: "DeliveryUnits",
+                        principalTable: "DeliveryUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_DeliveryAssignments_ManagementUnits_ManagementUnitId",
+                        name: "FK_DeliveryAssignment_ManagementUnit_ManagementUnitId",
                         column: x => x.ManagementUnitId,
-                        principalTable: "ManagementUnits",
+                        principalTable: "ManagementUnit",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -295,7 +274,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     DeliveryUnitId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ManagementUnitId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     SupplierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    RoleId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -323,35 +301,30 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_Companies_CompanyId",
+                        name: "FK_AspNetUsers_Company_CompanyId",
                         column: x => x.CompanyId,
-                        principalTable: "Companies",
+                        principalTable: "Company",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_DeliveryUnits_DeliveryUnitId",
+                        name: "FK_AspNetUsers_DeliveryUnit_DeliveryUnitId",
                         column: x => x.DeliveryUnitId,
-                        principalTable: "DeliveryUnits",
+                        principalTable: "DeliveryUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_ManagementUnits_ManagementUnitId",
+                        name: "FK_AspNetUsers_ManagementUnit_ManagementUnitId",
                         column: x => x.ManagementUnitId,
-                        principalTable: "ManagementUnits",
+                        principalTable: "ManagementUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_Roles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Suppliers_SupplierId",
+                        name: "FK_AspNetUsers_Supplier_SupplierId",
                         column: x => x.SupplierId,
-                        principalTable: "Suppliers",
+                        principalTable: "Supplier",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SupplyAssignments",
+                name: "SupplyAssignment",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -367,22 +340,22 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SupplyAssignments", x => x.Id);
+                    table.PrimaryKey("PK_SupplyAssignment", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SupplyAssignments_ManagementUnits_ManagementUnitId",
+                        name: "FK_SupplyAssignment_ManagementUnit_ManagementUnitId",
                         column: x => x.ManagementUnitId,
-                        principalTable: "ManagementUnits",
+                        principalTable: "ManagementUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_SupplyAssignments_Suppliers_SupplierId",
+                        name: "FK_SupplyAssignment_Supplier_SupplierId",
                         column: x => x.SupplierId,
-                        principalTable: "Suppliers",
+                        principalTable: "Supplier",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "MenuFoods",
+                name: "MenuFood",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -398,17 +371,17 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MenuFoods", x => x.Id);
+                    table.PrimaryKey("PK_MenuFood", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MenuFoods_Foods_FoodId",
+                        name: "FK_MenuFood_Food_FoodId",
                         column: x => x.FoodId,
-                        principalTable: "Foods",
+                        principalTable: "Food",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MenuFoods_Menus_MenuId",
+                        name: "FK_MenuFood_Menu_MenuId",
                         column: x => x.MenuId,
-                        principalTable: "Menus",
+                        principalTable: "Menu",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -512,7 +485,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Orders",
+                name: "Order",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -535,37 +508,37 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.PrimaryKey("PK_Order", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_ShipperId",
+                        name: "FK_Order_AspNetUsers_ShipperId",
                         column: x => x.ShipperId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_WorkerId",
+                        name: "FK_Order_AspNetUsers_WorkerId",
                         column: x => x.WorkerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Orders_DeliveryUnits_DeliveryUnitId",
+                        name: "FK_Order_DeliveryUnit_DeliveryUnitId",
                         column: x => x.DeliveryUnitId,
-                        principalTable: "DeliveryUnits",
+                        principalTable: "DeliveryUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Orders_ManagementUnits_ManagementUnitId",
+                        name: "FK_Order_ManagementUnit_ManagementUnitId",
                         column: x => x.ManagementUnitId,
-                        principalTable: "ManagementUnits",
+                        principalTable: "ManagementUnit",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Orders_Suppliers_SupplierId",
+                        name: "FK_Order_Supplier_SupplierId",
                         column: x => x.SupplierId,
-                        principalTable: "Suppliers",
+                        principalTable: "Supplier",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "OrderDetails",
+                name: "OrderDetail",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -583,22 +556,22 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderDetails", x => x.Id);
+                    table.PrimaryKey("PK_OrderDetail", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Foods_FoodId",
+                        name: "FK_OrderDetail_Food_FoodId",
                         column: x => x.FoodId,
-                        principalTable: "Foods",
+                        principalTable: "Food",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Orders_OrderId",
+                        name: "FK_OrderDetail_Order_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Orders",
+                        principalTable: "Order",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "OrderHistories",
+                name: "OrderHistory",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -616,22 +589,22 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderHistories", x => x.Id);
+                    table.PrimaryKey("PK_OrderHistory", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrderHistories_AspNetUsers_UserId",
+                        name: "FK_OrderHistory_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_OrderHistories_Orders_OrderId",
+                        name: "FK_OrderHistory_Order_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Orders",
+                        principalTable: "Order",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "PaymentMethods",
+                name: "PaymentMethod",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -648,11 +621,11 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentMethods", x => x.Id);
+                    table.PrimaryKey("PK_PaymentMethod", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PaymentMethods_Orders_OrderId",
+                        name: "FK_PaymentMethod_Order_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Orders",
+                        principalTable: "Order",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -704,11 +677,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 column: "ManagementUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_RoleId",
-                table: "AspNetUsers",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_SupplierId",
                 table: "AspNetUsers",
                 column: "SupplierId");
@@ -720,89 +688,89 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeliveryAssignments_DeliveryUnitId",
-                table: "DeliveryAssignments",
+                name: "IX_DeliveryAssignment_DeliveryUnitId",
+                table: "DeliveryAssignment",
                 column: "DeliveryUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeliveryAssignments_ManagementUnitId",
-                table: "DeliveryAssignments",
+                name: "IX_DeliveryAssignment_ManagementUnitId",
+                table: "DeliveryAssignment",
                 column: "ManagementUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Foods_CategoryId",
-                table: "Foods",
+                name: "IX_Food_CategoryId",
+                table: "Food",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MenuFoods_FoodId",
-                table: "MenuFoods",
+                name: "IX_MenuFood_FoodId",
+                table: "MenuFood",
                 column: "FoodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MenuFoods_MenuId",
-                table: "MenuFoods",
+                name: "IX_MenuFood_MenuId",
+                table: "MenuFood",
                 column: "MenuId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_FoodId",
-                table: "OrderDetails",
-                column: "FoodId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_OrderId",
-                table: "OrderDetails",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderHistories_OrderId",
-                table: "OrderHistories",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderHistories_UserId",
-                table: "OrderHistories",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_DeliveryUnitId",
-                table: "Orders",
+                name: "IX_Order_DeliveryUnitId",
+                table: "Order",
                 column: "DeliveryUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_ManagementUnitId",
-                table: "Orders",
+                name: "IX_Order_ManagementUnitId",
+                table: "Order",
                 column: "ManagementUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_ShipperId",
-                table: "Orders",
+                name: "IX_Order_ShipperId",
+                table: "Order",
                 column: "ShipperId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_SupplierId",
-                table: "Orders",
+                name: "IX_Order_SupplierId",
+                table: "Order",
                 column: "SupplierId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_WorkerId",
-                table: "Orders",
+                name: "IX_Order_WorkerId",
+                table: "Order",
                 column: "WorkerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentMethods_OrderId",
-                table: "PaymentMethods",
+                name: "IX_OrderDetail_FoodId",
+                table: "OrderDetail",
+                column: "FoodId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetail_OrderId",
+                table: "OrderDetail",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderHistory_OrderId",
+                table: "OrderHistory",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderHistory_UserId",
+                table: "OrderHistory",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentMethod_OrderId",
+                table: "PaymentMethod",
                 column: "OrderId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SupplyAssignments_ManagementUnitId",
-                table: "SupplyAssignments",
+                name: "IX_SupplyAssignment_ManagementUnitId",
+                table: "SupplyAssignment",
                 column: "ManagementUnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SupplyAssignments_SupplierId",
-                table: "SupplyAssignments",
+                name: "IX_SupplyAssignment_SupplierId",
+                table: "SupplyAssignment",
                 column: "SupplierId");
         }
 
@@ -825,55 +793,52 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DeliveryAssignments");
+                name: "DeliveryAssignment");
 
             migrationBuilder.DropTable(
-                name: "MenuFoods");
+                name: "MenuFood");
 
             migrationBuilder.DropTable(
-                name: "OrderDetails");
+                name: "OrderDetail");
 
             migrationBuilder.DropTable(
-                name: "OrderHistories");
+                name: "OrderHistory");
 
             migrationBuilder.DropTable(
-                name: "PaymentMethods");
+                name: "PaymentMethod");
 
             migrationBuilder.DropTable(
-                name: "SupplyAssignments");
+                name: "SupplyAssignment");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Menus");
+                name: "Menu");
 
             migrationBuilder.DropTable(
-                name: "Foods");
+                name: "Food");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "Order");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Category");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Companies");
+                name: "Company");
 
             migrationBuilder.DropTable(
-                name: "DeliveryUnits");
+                name: "DeliveryUnit");
 
             migrationBuilder.DropTable(
-                name: "ManagementUnits");
+                name: "ManagementUnit");
 
             migrationBuilder.DropTable(
-                name: "Roles");
-
-            migrationBuilder.DropTable(
-                name: "Suppliers");
+                name: "Supplier");
         }
     }
 }

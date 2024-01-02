@@ -13,8 +13,8 @@ public class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>,Guid,
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
+    //public DbSet<User> Users { get; set; }
+    //public DbSet<Role> Roles { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<DeliveryUnit> DeliveryUnits { get; set; }
@@ -34,5 +34,33 @@ public class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>,Guid,
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable(name: "User");
+        });
+        modelBuilder.Entity<IdentityRole<Guid>>(entity =>
+        {
+            entity.ToTable(name: "Role");
+        });
+        modelBuilder.Entity<IdentityUserRole<Guid>>(entity =>
+        {
+            entity.ToTable(name: "UserRoles");
+        });
+        modelBuilder.Entity<IdentityUserClaim<Guid>>(entity =>
+        {
+            entity.ToTable(name: "UserClaims");
+        });
+        modelBuilder.Entity<IdentityUserLogin<Guid>>(entity =>
+        {
+            entity.ToTable(name: "UserLogins");
+        });
+        modelBuilder.Entity<IdentityRoleClaim<Guid>>(entity =>
+        {
+            entity.ToTable(name: "RoleClaims");
+        });
+        modelBuilder.Entity<IdentityUserToken<Guid>>(entity =>
+        {
+            entity.ToTable(name: "UserTokens");
+        });
     }
 }

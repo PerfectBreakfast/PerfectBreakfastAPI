@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PerfectBreakfast.Application.Repositories
 {
-    public interface IRoleRepository: IGenericRepository<Role>
+    public interface IRoleRepository//: IGenericRepository<Role>
     {
     }
 }

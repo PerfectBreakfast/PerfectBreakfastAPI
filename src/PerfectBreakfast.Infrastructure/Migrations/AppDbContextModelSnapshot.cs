@@ -43,7 +43,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("Role", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -65,7 +65,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -87,7 +87,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -108,7 +108,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -123,7 +123,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -142,7 +142,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Category", b =>
@@ -183,7 +183,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Company", b =>
@@ -234,7 +234,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Company", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.DeliveryAssignment", b =>
@@ -276,7 +276,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("ManagementUnitId");
 
-                    b.ToTable("DeliveryAssignments");
+                    b.ToTable("DeliveryAssignment", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.DeliveryUnit", b =>
@@ -324,7 +324,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DeliveryUnits");
+                    b.ToTable("DeliveryUnit", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Food", b =>
@@ -373,7 +373,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Foods");
+                    b.ToTable("Food", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.ManagementUnit", b =>
@@ -421,7 +421,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ManagementUnits");
+                    b.ToTable("ManagementUnit", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Menu", b =>
@@ -458,7 +458,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Menus");
+                    b.ToTable("Menu", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MenuFood", b =>
@@ -500,7 +500,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("MenuId");
 
-                    b.ToTable("MenuFoods");
+                    b.ToTable("MenuFood", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Order", b =>
@@ -567,7 +567,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Order", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.OrderDetail", b =>
@@ -615,7 +615,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetail", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.OrderHistory", b =>
@@ -663,7 +663,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("OrderHistories");
+                    b.ToTable("OrderHistory", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.PaymentMethod", b =>
@@ -705,43 +705,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("OrderId")
                         .IsUnique();
 
-                    b.ToTable("PaymentMethods");
-                });
-
-            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Role", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid?>("DeleteBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<Guid?>("ModificationBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
+                    b.ToTable("PaymentMethod", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Supplier", b =>
@@ -789,7 +753,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Supplier", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.SupplyAssignment", b =>
@@ -831,7 +795,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("SupplyAssignments");
+                    b.ToTable("SupplyAssignment", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.User", b =>
@@ -889,9 +853,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid?>("RoleId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -920,11 +881,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("RoleId");
-
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1122,10 +1081,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .WithMany("Users")
                         .HasForeignKey("ManagementUnitId");
 
-                    b.HasOne("PerfectBreakfast.Domain.Entities.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId");
-
                     b.HasOne("PerfectBreakfast.Domain.Entities.Supplier", "Supplier")
                         .WithMany("Users")
                         .HasForeignKey("SupplierId");
@@ -1135,8 +1090,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("DeliveryUnit");
 
                     b.Navigation("ManagementUnit");
-
-                    b.Navigation("Role");
 
                     b.Navigation("Supplier");
                 });
@@ -1190,11 +1143,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("OrderHistories");
 
                     b.Navigation("PaymentMethod");
-                });
-
-            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Supplier", b =>

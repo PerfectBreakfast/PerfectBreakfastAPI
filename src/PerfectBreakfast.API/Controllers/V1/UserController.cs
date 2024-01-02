@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Commons;
@@ -25,7 +26,7 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    [HttpGet("{id}")]
+    [HttpGet("{id}"),Authorize]
     public async Task<IActionResult> GetUser(Guid id)
     {
         var response = await _userService.GetUser(id);

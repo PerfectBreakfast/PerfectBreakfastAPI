@@ -40,8 +40,7 @@ public class CompanyService : ICompanyService
         try
         {
             var com = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
-            com.IsDeleted = true;
-            _unitOfWork.CompanyRepository.SoftRemove(com);
+            _unitOfWork.CompanyRepository.Remove(com);
             await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception e)
@@ -102,8 +101,8 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<Pagination<CompanyResponse>>();
         try
         {
-            var users = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<CompanyResponse>>(users);
+            var com = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize);
+            result.Payload = _mapper.Map<Pagination<CompanyResponse>>(com);
         }
         catch (Exception e)
         {

@@ -8,6 +8,7 @@ public class SupplierConfig: IEntityTypeConfiguration<Supplier>
 {
     public void Configure(EntityTypeBuilder<Supplier> builder)
     {
+        builder.ToTable("Supplier");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);

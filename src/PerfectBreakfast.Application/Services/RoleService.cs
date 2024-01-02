@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -31,8 +33,8 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<List<RoleResponse>>();
             try
             {
-                var com = await _unitOfWork.RoleRepository.GetAllAsync();
-                result.Payload = _mapper.Map<List<RoleResponse>>(com);
+                /*var roles = await _roleManager.Roles.ToListAsync();
+                result.Payload = _mapper.Map<List<RoleResponse>>(roles);*/
             }
             catch (Exception e)
             {
@@ -45,8 +47,8 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<RoleResponse>();
             try
             {
-                var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
-                result.Payload = _mapper.Map<RoleResponse>(role);
+                /*var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
+                result.Payload = _mapper.Map<RoleResponse>(role);*/
             }
             /*catch (NotFoundIdException e)
             {
@@ -64,13 +66,13 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 // map model to Entity
-                var role = _mapper.Map<Role>(requestModel);
+                /*var role = _mapper.Map<Role>(requestModel);
                 // Add to DB
                 var entity = await _unitOfWork.RoleRepository.AddAsync(role);
                 // save change 
                 await _unitOfWork.SaveChangeAsync();
                 // map model to response
-                result.Payload = _mapper.Map<RoleResponse>(entity);
+                result.Payload = _mapper.Map<RoleResponse>(entity);*/
             }
             catch (Exception e)
             {
@@ -85,14 +87,14 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 // find supplier by ID
-                var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
+                /*var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
                 // map from requestModel => supplier
                 _mapper.Map(requestModel, role);
                 // update
                 _unitOfWork.RoleRepository.Update(role);
                 // saveChange
                 await _unitOfWork.SaveChangeAsync();
-                result.Payload = _mapper.Map<RoleResponse>(role);
+                result.Payload = _mapper.Map<RoleResponse>(role);*/
             }
             catch (Exception e)
             {
@@ -106,13 +108,13 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 // find supplier by ID
-                var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
+                /*var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
                 // Remove
                 var entity = _unitOfWork.RoleRepository.Remove(role);
                 // saveChange
                 await _unitOfWork.SaveChangeAsync();
                 // map entity to SupplierResponse
-                result.Payload = _mapper.Map<RoleResponse>(entity);
+                result.Payload = _mapper.Map<RoleResponse>(entity);*/
             }
             catch (Exception e)
             {

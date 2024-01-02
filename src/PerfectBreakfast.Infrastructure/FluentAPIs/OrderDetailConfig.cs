@@ -8,6 +8,7 @@ public class OrderDetailConfig : IEntityTypeConfiguration<OrderDetail>
 {
     public void Configure(EntityTypeBuilder<OrderDetail> builder)
     {
+        builder.ToTable("OrderDetail");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");

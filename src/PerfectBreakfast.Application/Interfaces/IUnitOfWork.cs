@@ -12,7 +12,11 @@ public interface IUnitOfWork
     public ISupplierRepository SupplierRepository { get; }
     public IDeliveryUnitRepository DeliveryUnitRepository { get; }
     public IManagementUnitRepository ManagementUnitRepository { get; }
-    public IRoleRepository RoleRepository { get; }
+    //public IRoleRepository RoleRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
+    public IFoodRepository FoodRepository { get; }
     
+    public IMenuRepository MenuRepository { get; }
+    public IPaymentMethodRepository PaymentMethodRepository { get; }
+
 }
