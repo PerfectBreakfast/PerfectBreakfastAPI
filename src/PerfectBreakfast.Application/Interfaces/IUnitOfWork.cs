@@ -3,7 +3,7 @@ using PerfectBreakfast.Application.Repositories;
 
 namespace PerfectBreakfast.Application.Interfaces;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IDisposable
 {
     public Task<int> SaveChangeAsync();
     Task<IDbContextTransaction> BeginTransactionAsync();
