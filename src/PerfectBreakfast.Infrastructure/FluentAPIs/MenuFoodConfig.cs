@@ -19,5 +19,9 @@ public class MenuFoodConfig : IEntityTypeConfiguration<MenuFood>
         builder.HasOne(x => x.Food)
             .WithMany(x => x.MenuFoods)
             .HasForeignKey(fk => fk.FoodId);
+        
+        builder.HasOne(x => x.Combo)
+            .WithMany(x => x.MenuFoods)
+            .HasForeignKey(fk => fk.ComboId);
     }
 }
