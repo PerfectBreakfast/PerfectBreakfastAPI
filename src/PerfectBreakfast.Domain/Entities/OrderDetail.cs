@@ -7,7 +7,9 @@ public class OrderDetail : BaseEntity
     
     public Guid? OrderId { get; set; }
     public Guid? FoodId { get; set; }
+    public Guid? ComboId { get; set; }
     
     public Order? Order { get; set; }
     public Food? Food { get; set; }
+    public Combo? Combo { get; set; }
 }
