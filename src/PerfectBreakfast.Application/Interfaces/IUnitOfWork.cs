@@ -18,5 +18,6 @@ public interface IUnitOfWork : IDisposable
     
     public IMenuRepository MenuRepository { get; }
     public IPaymentMethodRepository PaymentMethodRepository { get; }
+    
 
 }
