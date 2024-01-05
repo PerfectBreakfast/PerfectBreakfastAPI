@@ -20,13 +20,14 @@ public class UserService : IUserService
     private readonly SignInManager<User> _signInManager;
     private readonly IClaimsService _claimsService;
     private readonly JWTService _jwtService;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     //private readonly IUserStore<User> _userStore;
     //private readonly IUserEmailStore<User> _userEmailStore;
 
     public UserService(IUnitOfWork unitOfWork, IMapper mapper
         ,UserManager<User> userManager,SignInManager<User> signInManager
         ,AppConfiguration appConfiguration,IClaimsService claimsService
-        ,JWTService jwtService)
+        ,JWTService jwtService,RoleManager<IdentityRole<Guid>> roleManager)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -35,6 +36,7 @@ public class UserService : IUserService
         _appConfiguration = appConfiguration;
         _claimsService = claimsService;
         _jwtService = jwtService;
+        _roleManager = roleManager;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
