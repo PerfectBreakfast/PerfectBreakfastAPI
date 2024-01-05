@@ -1,8 +1,8 @@
 ﻿namespace PerfectBreakfast.Application.Models.MenuModels.Request
 {
-    public record UpdateMenuRequest
+    public record CreateMenuFoodRequest
     {
-        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public List<MenuFoodRequest?> MenuFoodRequests { get; set; }
     }
 }

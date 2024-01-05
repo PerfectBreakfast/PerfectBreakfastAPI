@@ -1,6 +1,8 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.ComboModels.Response;
+using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Request;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -18,12 +20,14 @@ namespace PerfectBreakfast.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<MenuResponse>> CreateMenu(MenuRequest menuRequest)
+        public async Task<OperationResult<MenuResponse>> CreateMenu(CreateMenuFoodRequest createMenuFoodRequest)
         {
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = _mapper.Map<Menu>(menuRequest);
+                var menu = _mapper.Map<Menu>(createMenuFoodRequest);
+                var menuFood = _mapper.Map<ICollection<MenuFood?>>(createMenuFoodRequest.MenuFoodRequests);
+                menu.MenuFoods = menuFood;
                 await _unitOfWork.MenuRepository.AddAsync(menu);
                 await _unitOfWork.SaveChangeAsync();
             }
@@ -71,8 +75,38 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id);
-                result.Payload = _mapper.Map<MenuResponse>(menu);
+                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByIdAsync(id);
+
+                // Lấy danh sách Food từ Menu
+                var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
+                var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
+
+                // Lấy danh sách Combo từ Menu
+                var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
+                var comboResponses = new List<ComboResponse>();
+
+                // Duyệt qua từng Combo để lấy thông tin chi tiết
+                foreach (var combo in comboEntities)
+                {
+                    var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
+
+                    // Lấy danh sách Food từ Combo
+                    var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
+
+                    // Ánh xạ Combo chi tiết sang DTO
+                    var comboResponse = _mapper.Map<ComboResponse>(detailedCombo);
+                    comboResponse.FoodResponses = foodResponsesInCombo;
+
+                    comboResponses.Add(comboResponse);
+                }
+
+                // Ánh xạ Menu chi tiết sang DTO
+                var menuResponse = _mapper.Map<MenuResponse>(menu);
+                menuResponse.FoodResponses = foodResponses;
+                menuResponse.ComboResponses = comboResponses;
+
+                result.Payload = menuResponse;
             }
             catch (Exception e)
             {

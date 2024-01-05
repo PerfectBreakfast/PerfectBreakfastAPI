@@ -1,12 +1,12 @@
-﻿using System.Reflection;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Domain.Entities;
+using System.Reflection;
 
 namespace PerfectBreakfast.Infrastructure;
 
-public class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>,Guid,
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid,
     IdentityUserClaim<Guid>, IdentityUserRole<Guid>,
     IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
 {
@@ -29,7 +29,7 @@ public class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>,Guid,
     public DbSet<DeliveryAssignment> DeliveryAssignments { get; set; }
     public DbSet<SupplyAssignment> SupplyAssignments { get; set; }
     public DbSet<MenuFood> MenuFoods { get; set; }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

@@ -42,6 +42,7 @@ public static class DenpendencyInjection
         services.AddScoped<IFoodService, FoodService>();
         services.AddScoped<IMenuService, MenuService>();
         services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+        services.AddScoped<IComboService, ComboService>();
         return services;
     }
 }
