@@ -13,5 +13,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, MenuRequest menuRequest);
         public Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<MenuResponse>> Delete(Guid id);
+        public Task<OperationResult<MenuResponse>> CreateMenuAndCombo(CreateMenuAndComboRequest createMenuAndComboRequest);
     }
 }

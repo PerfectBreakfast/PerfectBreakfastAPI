@@ -38,6 +38,38 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
+        public async Task<OperationResult<MenuResponse>> CreateMenuAndCombo(CreateMenuAndComboRequest createMenuAndComboRequest)
+        {
+            var result = new OperationResult<MenuResponse>();
+            try
+            {
+                var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
+                var menuEntity = await _unitOfWork.MenuRepository.AddAsync(menu);
+                var menuFoods = _mapper.Map<ICollection<MenuFood?>>(createMenuAndComboRequest.CreateMenuFoodRequest.MenuFoodRequests);
+                foreach (var item in createMenuAndComboRequest.CreateComboRequests)
+                {
+                    var combo = _mapper.Map<Combo>(item);
+                    var comboFood = _mapper.Map<ICollection<ComboFood?>>(item.ComboFoodRequests);
+                    combo.ComboFoods = comboFood;
+                    var comboEntity = await _unitOfWork.ComboRepository.AddAsync(combo);
+                    MenuFood menuFood = new()
+                    {
+                        MenuId = menuEntity.Id,
+                        ComboId = comboEntity.Id
+                    };
+                    menuFoods.Add(menuFood);
+                }
+                menu.MenuFoods = menuFoods;
+
+                await _unitOfWork.SaveChangeAsync();
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<MenuResponse>> Delete(Guid id)
         {
             var result = new OperationResult<MenuResponse>();
@@ -105,7 +137,6 @@ namespace PerfectBreakfast.Application.Services
                 var menuResponse = _mapper.Map<MenuResponse>(menu);
                 menuResponse.FoodResponses = foodResponses;
                 menuResponse.ComboResponses = comboResponses;
-
                 result.Payload = menuResponse;
             }
             catch (Exception e)
