@@ -14,10 +14,12 @@ public class SupplierCommissionRateConfig : IEntityTypeConfiguration<SupplierCom
         
         builder.HasOne(x => x.Supplier)
             .WithMany(x => x.SupplierCommissionRates)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.SupplierId);
 
         builder.HasOne(x => x.Food)
             .WithMany(x => x.SupplierCommissionRates)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.FoodId);
     }
 }

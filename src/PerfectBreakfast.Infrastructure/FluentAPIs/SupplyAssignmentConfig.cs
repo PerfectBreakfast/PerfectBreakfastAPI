@@ -14,10 +14,12 @@ public class SupplyAssignmentConfig : IEntityTypeConfiguration<SupplyAssignment>
         
         builder.HasOne(x => x.Supplier)
             .WithMany(x => x.SupplyAssignments)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.SupplierId);
 
         builder.HasOne(x => x.ManagementUnit)
             .WithMany(x => x.SupplyAssignments)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.ManagementUnitId);
     }
 }
