@@ -43,26 +43,6 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                /*var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
-                var menuEntity = await _unitOfWork.MenuRepository.AddAsync(menu);
-                var menuFoods = _mapper.Map<ICollection<MenuFood?>>(createMenuAndComboRequest.CreateMenuFoodRequest.MenuFoodRequests);
-                foreach (var item in createMenuAndComboRequest.CreateComboRequests)
-                {
-                    var combo = _mapper.Map<Combo>(item);
-                    var comboFood = _mapper.Map<ICollection<ComboFood?>>(item.ComboFoodRequests);
-                    combo.ComboFoods = comboFood;
-                    var comboEntity = await _unitOfWork.ComboRepository.AddAsync(combo);
-                    MenuFood menuFood = new()
-                    {
-                        MenuId = menuEntity.Id,
-                        ComboId = comboEntity.Id
-                    };
-                    menuFoods.Add(menuFood);
-                }
-                menu.MenuFoods = menuFoods;
-
-                await _unitOfWork.SaveChangeAsync();*/
-
                 var menu = _mapper.Map<Menu>(createMenuAndComboRequest);
                 var list = new List<MenuFood>();
                 foreach (var mf in createMenuAndComboRequest.MenuFoodRequests)
@@ -154,6 +134,10 @@ namespace PerfectBreakfast.Application.Services
                 // Duyệt qua từng Combo để lấy thông tin chi tiết
                 foreach (var combo in comboEntities)
                 {
+                    if (combo == null)
+                    {
+                        continue;
+                    }
                     var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
 
                     // Lấy danh sách Food từ Combo
