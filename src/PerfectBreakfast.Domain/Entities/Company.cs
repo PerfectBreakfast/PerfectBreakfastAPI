@@ -8,5 +8,13 @@ public class Company : BaseEntity
     public string Address { get; set; } = string.Empty;
     public TimeOnly? StartWorkHour { get; set; }
     
+    // relationship
+    public Guid? ManagementUnitId { get; set; }
+    public Guid? DeliveryUnitId { get; set; }
+    
+    public ManagementUnit? ManagementUnit { get; set; }
+    public DeliveryUnit? DeliveryUnit { get; set; }
+    
     public ICollection<User?> Workers { get; set; }
+    public ICollection<DailyOrder?> DailyOrders { get; set; }
 }

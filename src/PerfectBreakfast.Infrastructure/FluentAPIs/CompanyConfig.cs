@@ -14,5 +14,13 @@ public class CompanyConfig : IEntityTypeConfiguration<Company>
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Email).HasMaxLength(50);
         builder.Property(x => x.Address).HasMaxLength(300);
+        
+        builder.HasOne(x => x.ManagementUnit)
+            .WithMany(x => x.Companies)
+            .HasForeignKey(fk => fk.ManagementUnitId);
+        
+        builder.HasOne(x => x.DeliveryUnit)
+            .WithMany(x => x.Companies)
+            .HasForeignKey(fk => fk.DeliveryUnitId);
     }
 }
