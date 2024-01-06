@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace PerfectBreakfast.Domain.Entities;
 
 public class Supplier : BaseEntity
@@ -10,4 +12,5 @@ public class Supplier : BaseEntity
     public ICollection<User?> Users { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
     public ICollection<SupplyAssignment?> SupplyAssignments { get; set; }
+    public ICollection<SupplierCommissionRate?> SupplierCommissionRates { get; set; }
 }

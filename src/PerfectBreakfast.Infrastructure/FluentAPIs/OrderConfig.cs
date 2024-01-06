@@ -17,21 +17,13 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
             .WithMany(ur => ur.OrdersWorker)
             .HasForeignKey(pk => pk.WorkerId);
         
-        builder.HasOne(r => r.Shipper)
-            .WithMany(ur => ur.OrdersShipper)
-            .HasForeignKey(pk => pk.ShipperId);
-        
-        builder.HasOne(r => r.DeliveryUnit)
+        builder.HasOne(r => r.DailyOrder)
             .WithMany(ur => ur.Orders)
-            .HasForeignKey(pk => pk.DeliveryUnitId);
+            .HasForeignKey(pk => pk.DailyOrderId);
         
         builder.HasOne(r => r.ManagementUnit)
             .WithMany(ur => ur.Orders)
             .HasForeignKey(pk => pk.ManagementUnitId);
-        
-        builder.HasOne(r => r.Supplier)
-            .WithMany(ur => ur.Orders)
-            .HasForeignKey(pk => pk.SupplierId);
 
         builder.HasOne(x => x.PaymentMethod)
             .WithOne(x => x.Order)
