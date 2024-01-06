@@ -1,4 +1,5 @@
-﻿using PerfectBreakfast.Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
 
@@ -12,5 +13,17 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         }
 
         //to do
+
+        public async Task<Menu> GetMenuFoodByIdAsync(Guid id)
+        {
+            var u = await _dbSet.Where(c => c.Id == id)
+                .Include(c => c.MenuFoods)
+                    .ThenInclude(mf => mf.Combo)
+                .Include(f => f.MenuFoods)
+                    .ThenInclude(mf => mf.Food)
+                .FirstOrDefaultAsync();
+            return u;
+        }
+
     }
 }

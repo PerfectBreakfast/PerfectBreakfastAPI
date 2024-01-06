@@ -1,12 +1,12 @@
-﻿using System.Reflection;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Domain.Entities;
+using System.Reflection;
 
 namespace PerfectBreakfast.Infrastructure;
 
-public class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>,Guid,
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid,
     IdentityUserClaim<Guid>, IdentityUserRole<Guid>,
     IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
 {

@@ -1,16 +1,9 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
-using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PerfectBreakfast.Application.Services
 {
