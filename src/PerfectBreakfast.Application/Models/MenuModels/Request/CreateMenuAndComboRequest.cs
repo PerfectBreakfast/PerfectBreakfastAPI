@@ -1,10 +1,8 @@
-﻿using PerfectBreakfast.Application.Models.ComboModels.Request;
-
-namespace PerfectBreakfast.Application.Models.MenuModels.Request
+﻿namespace PerfectBreakfast.Application.Models.MenuModels.Request
 {
     public record CreateMenuAndComboRequest
     {
-        public CreateMenuFoodRequest CreateMenuFoodRequest { get; set; }
-        public List<CreateComboRequest> CreateComboRequests { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<MenuFoodRequests> MenuFoodRequests { get; set; }
     }
 }

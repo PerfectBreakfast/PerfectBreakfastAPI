@@ -43,25 +43,56 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
-                var menuEntity = await _unitOfWork.MenuRepository.AddAsync(menu);
-                var menuFoods = _mapper.Map<ICollection<MenuFood?>>(createMenuAndComboRequest.CreateMenuFoodRequest.MenuFoodRequests);
-                foreach (var item in createMenuAndComboRequest.CreateComboRequests)
-                {
-                    var combo = _mapper.Map<Combo>(item);
-                    var comboFood = _mapper.Map<ICollection<ComboFood?>>(item.ComboFoodRequests);
-                    combo.ComboFoods = comboFood;
-                    var comboEntity = await _unitOfWork.ComboRepository.AddAsync(combo);
-                    MenuFood menuFood = new()
-                    {
-                        MenuId = menuEntity.Id,
-                        ComboId = comboEntity.Id
-                    };
-                    menuFoods.Add(menuFood);
-                }
-                menu.MenuFoods = menuFoods;
+                //var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
+                //var menuEntity = await _unitOfWork.MenuRepository.AddAsync(menu);
+                //var menuFoods = _mapper.Map<ICollection<MenuFood?>>(createMenuAndComboRequest.CreateMenuFoodRequest.MenuFoodRequests);
+                //foreach (var item in createMenuAndComboRequest.CreateComboRequests)
+                //{
+                //    var combo = _mapper.Map<Combo>(item);
+                //    var comboFood = _mapper.Map<ICollection<ComboFood?>>(item.ComboFoodRequests);
+                //    combo.ComboFoods = comboFood;
+                //    var comboEntity = await _unitOfWork.ComboRepository.AddAsync(combo);
+                //    MenuFood menuFood = new()
+                //    {
+                //        MenuId = menuEntity.Id,
+                //        ComboId = comboEntity.Id
+                //    };
+                //    menuFoods.Add(menuFood);
+                //}
+                //menu.MenuFoods = menuFoods;
 
+                //await _unitOfWork.SaveChangeAsync();
+                var menu = _mapper.Map<Menu>(createMenuAndComboRequest);
+                var list = new List<MenuFood>();
+                foreach (var mf in createMenuAndComboRequest.MenuFoodRequests)
+                {
+                    var menuFood = mf.ComboId is not null
+                        ? new MenuFood { ComboId = mf.ComboId }
+                        : mf.FoodId is not null
+                            ? new MenuFood { FoodId = mf.FoodId }
+                            : mf.CreateComboRequest is not null
+                                ? new MenuFood
+                                {
+                                    Combo = new Combo
+                                    {
+                                        Name = mf.CreateComboRequest.Name,
+                                        Content = mf.CreateComboRequest.Content,
+                                        ComboFoods = mf.CreateComboRequest.ComboFoodRequests
+                                            .Select(cf => new ComboFood { FoodId = cf.FoodId })
+                                            .ToList()
+                                    }
+                                }
+                                : null;
+
+                    if (menuFood != null)
+                    {
+                        list.Add(menuFood);
+                    }
+                }
+                menu.MenuFoods = list;
+                var entity = await _unitOfWork.MenuRepository.AddAsync(menu);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<MenuResponse>(entity);
             }
             catch (Exception e)
             {
