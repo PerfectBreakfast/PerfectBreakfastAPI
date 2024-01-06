@@ -68,7 +68,7 @@ namespace PerfectBreakfast.Application.Services
                 foreach (var mf in createMenuAndComboRequest.MenuFoodRequests)
                 {
                     var menuFood = mf.ComboId is not null
-                        ? new MenuFood { ComboId = mf.ComboId }
+                        ? new MenuFood { ComboId = (Guid)mf.ComboId }
                         : mf.FoodId is not null
                             ? new MenuFood { FoodId = mf.FoodId }
                             : mf.CreateComboRequest is not null
