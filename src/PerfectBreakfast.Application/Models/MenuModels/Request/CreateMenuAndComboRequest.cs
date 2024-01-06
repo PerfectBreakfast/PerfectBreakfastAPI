@@ -2,7 +2,7 @@
 {
     public record CreateMenuAndComboRequest
     {
-        public string Name { get; set; } = string.Empty;
-        public List<MenuFoodRequests> MenuFoodRequests { get; set; }
+        public string Name { get; set; }
+        public List<MenuFoodRequest?> MenuFoodRequests { get; set; }
     }
 }

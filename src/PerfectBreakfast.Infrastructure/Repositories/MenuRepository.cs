@@ -16,12 +16,13 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<Menu> GetMenuFoodByIdAsync(Guid id)
         {
-            return await _dbSet.Where(c => c.Id == id)
-                            .Include(c => c.MenuFoods)
-                            .ThenInclude(mf => mf.Food)
-                            .ThenInclude(f => f.MenuFoods)
-                            .ThenInclude(mf => mf.Combo)
-                            .FirstOrDefaultAsync();
+            var u = await _dbSet.Where(c => c.Id == id)
+                .Include(c => c.MenuFoods)
+                    .ThenInclude(mf => mf.Combo)
+                .Include(f => f.MenuFoods)
+                    .ThenInclude(mf => mf.Food)
+                .FirstOrDefaultAsync();
+            return u;
         }
 
     }
