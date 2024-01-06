@@ -4,7 +4,7 @@ namespace PerfectBreakfast.Application.Models.MenuModels.Request
 {
     public record CreateMenuAndComboRequest
     {
-        public CreateMenuFoodRequest CreateMenuFoodRequest { get; set; }
-        public List<CreateComboRequest> CreateComboRequests { get; set; }
+        public string Name { get; set; }
+        public List<MenuFoodRequest?> MenuFoodRequests { get; set; }
     }
 }

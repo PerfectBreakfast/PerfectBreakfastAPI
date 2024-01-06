@@ -1,6 +1,7 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.ComboModels.Request;
 using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Request;
@@ -43,7 +44,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
+                /*var menu = _mapper.Map<Menu>(createMenuAndComboRequest.CreateMenuFoodRequest);
                 var menuEntity = await _unitOfWork.MenuRepository.AddAsync(menu);
                 var menuFoods = _mapper.Map<ICollection<MenuFood?>>(createMenuAndComboRequest.CreateMenuFoodRequest.MenuFoodRequests);
                 foreach (var item in createMenuAndComboRequest.CreateComboRequests)
@@ -61,7 +62,39 @@ namespace PerfectBreakfast.Application.Services
                 }
                 menu.MenuFoods = menuFoods;
 
+                await _unitOfWork.SaveChangeAsync();*/
+
+                var menu = _mapper.Map<Menu>(createMenuAndComboRequest);
+                var list = new List<MenuFood>();
+                foreach (var mf in createMenuAndComboRequest.MenuFoodRequests)
+                {
+                    var menuFood = mf.ComboId is not null
+                        ? new MenuFood { ComboId = mf.ComboId }
+                        : mf.FoodId is not null
+                            ? new MenuFood { FoodId = mf.FoodId }
+                            : mf.CreateComboRequest is not null
+                                ? new MenuFood
+                                {
+                                    Combo = new Combo
+                                    {
+                                        Name = mf.CreateComboRequest.Name,
+                                        Content = mf.CreateComboRequest.Content,
+                                        ComboFoods = mf.CreateComboRequest.ComboFoodRequests
+                                            .Select(cf => new ComboFood { FoodId = cf.FoodId })
+                                            .ToList()
+                                    }
+                                }
+                                : null;
+
+                    if (menuFood != null)
+                    {
+                        list.Add(menuFood);
+                    }
+                }
+                menu.MenuFoods = list;
+                var entity = await _unitOfWork.MenuRepository.AddAsync(menu);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<MenuResponse>(entity);
             }
             catch (Exception e)
             {
@@ -109,6 +142,8 @@ namespace PerfectBreakfast.Application.Services
             {
                 var menu = await _unitOfWork.MenuRepository.GetMenuFoodByIdAsync(id);
 
+                //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
+                
                 // Lấy danh sách Food từ Menu
                 var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
                 var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
