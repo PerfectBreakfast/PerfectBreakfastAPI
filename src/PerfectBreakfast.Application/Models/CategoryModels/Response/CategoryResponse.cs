@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace PerfectBreakfast.Application.Models.CategoryModels.Response
 {
-    public class CategoryResponse
+    public record CategoryResponse
     {
+        public Guid? Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Image { get; set; } = string.Empty;
     }
