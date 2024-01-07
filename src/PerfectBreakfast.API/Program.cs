@@ -14,7 +14,7 @@ var app = builder.Build();
 
 //app.MapGroup("/account").MapIdentityApi<User>();
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
