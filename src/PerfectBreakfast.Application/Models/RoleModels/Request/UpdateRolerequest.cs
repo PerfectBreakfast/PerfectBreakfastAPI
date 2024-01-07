@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PerfectBreakfast.Application.Models.RoleModels.Request
 {
-    public class UpdateRolerequest
+    public record UpdateRolerequest
     {
         public string Name { get; set; } = string.Empty;
     }

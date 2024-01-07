@@ -1,6 +1,6 @@
 ﻿namespace PerfectBreakfast.Application.Models.FoodModels.Response
 {
-    public class FoodResponse
+    public record FoodResponse
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
