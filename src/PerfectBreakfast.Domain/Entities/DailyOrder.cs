@@ -1,4 +1,5 @@
 using System.Collections;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Domain.Entities;
 
@@ -7,7 +8,7 @@ public class DailyOrder : BaseEntity
     public decimal? TotalPrice { get; set; }
     public int? OrderQuantity { get; set; }
     public DateOnly BookingDate { get; set; }
-    public string Status {get; set; }
+    public DailyOrderStatus Status {get; set; }
     
     // relationship
     public Guid? CompanyId { get; set; }

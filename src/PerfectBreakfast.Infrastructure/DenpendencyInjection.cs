@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Services;
 using System.Reflection;
+using PerfectBreakfast.Application.Repositories;
+using PerfectBreakfast.Infrastructure.MailServices;
+using PerfectBreakfast.Infrastructure.Repositories;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -14,7 +17,9 @@ public static class DenpendencyInjection
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
-        services.AddScoped<JWTService>();
+        services.AddTransient<JWTService>();
+        services.AddTransient<IMailService, MailService>();
+        services.AddScoped<IUserRepository, UserRepository>();
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>
         {
