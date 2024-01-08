@@ -6,7 +6,6 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
-using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
