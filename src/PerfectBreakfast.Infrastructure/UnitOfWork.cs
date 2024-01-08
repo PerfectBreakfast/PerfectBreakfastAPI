@@ -43,4 +43,6 @@ public class UnitOfWork : IUnitOfWork
     public IMenuRepository MenuRepository => new MenuRepository(_dbContext, _currentTime, _claimsService);
     public IPaymentMethodRepository PaymentMethodRepository => new PaymentMethodRepository(_dbContext, _currentTime, _claimsService);
     public IComboRepository ComboRepository => new ComboRepository(_dbContext, _currentTime, _claimsService);
+
+    public IDailyOrderRepository DaylyOrderRepository => new DailyOrderRepository(_dbContext, _currentTime, _claimsService);
 }
