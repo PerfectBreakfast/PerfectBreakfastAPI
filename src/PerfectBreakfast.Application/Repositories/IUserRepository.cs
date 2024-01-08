@@ -2,7 +2,7 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Repositories;
 
-public interface IUserRepository //: IGenericRepository<User>
+public interface IUserRepository 
 {
     public Task<int> CalculateCompanyCode(Guid companyId);
     public Task<int> CalculateDeliveryUnitCode(Guid deliveryUnitId);

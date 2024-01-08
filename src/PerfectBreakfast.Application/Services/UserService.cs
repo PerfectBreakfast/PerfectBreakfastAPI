@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
+using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -20,13 +21,16 @@ public class UserService : IUserService
     private readonly IClaimsService _claimsService;
     private readonly JWTService _jwtService;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+
+    private readonly IUserRepository _userRepository;
     //private readonly IUserStore<User> _userStore;
     //private readonly IUserEmailStore<User> _userEmailStore;
 
     public UserService(IUnitOfWork unitOfWork, IMapper mapper
         ,UserManager<User> userManager,SignInManager<User> signInManager
         ,AppConfiguration appConfiguration,IClaimsService claimsService
-        ,JWTService jwtService,RoleManager<IdentityRole<Guid>> roleManager)
+        ,JWTService jwtService,RoleManager<IdentityRole<Guid>> roleManager
+        ,IUserRepository userRepository)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -36,6 +40,7 @@ public class UserService : IUserService
         _claimsService = claimsService;
         _jwtService = jwtService;
         _roleManager = roleManager;
+        _userRepository = userRepository;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
@@ -79,6 +84,23 @@ public class UserService : IUserService
         try
         {
             var user = _mapper.Map<User>(request);
+            // check User workspace to generate code
+            if (user.CompanyId.HasValue)
+            {
+                user.Code = await _userRepository.CalculateCompanyCode(user.CompanyId.Value);
+            }
+            else if (user.DeliveryUnitId.HasValue)
+            {
+                user.Code = await _userRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+            }
+            else if (user.ManagementUnitId.HasValue)
+            {
+                user.Code = await _userRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+            }
+            else if (user.SupplierId.HasValue)
+            {
+                user.Code = await _userRepository.CalculateSupplierCode(user.SupplierId.Value);
+            }
             user.UserName = request.Email;
             user.EmailConfirmed = true;
             result.Payload = await _userManager.CreateAsync(user,request.Password);
