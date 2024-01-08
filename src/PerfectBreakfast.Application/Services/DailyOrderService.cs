@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Request;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -24,7 +25,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var dailyOrder = _mapper.Map<DailyOrder>(dailyOrderRequest);
-                dailyOrder.Status = "Pending";
+                dailyOrder.Status = DailyOrderStatus.Pending;
                 dailyOrder.OrderQuantity = 0;
                 dailyOrder.TotalPrice = 0;
                 await _unitOfWork.DaylyOrderRepository.AddAsync(dailyOrder);
@@ -73,7 +74,6 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var dailyOrder = _mapper.Map<DailyOrder>(updateDailyOrderRequest);
-                dailyOrder.Status = "Fulfilled";
                 _unitOfWork.DaylyOrderRepository.Update(dailyOrder);
                 await _unitOfWork.SaveChangeAsync();
             }
