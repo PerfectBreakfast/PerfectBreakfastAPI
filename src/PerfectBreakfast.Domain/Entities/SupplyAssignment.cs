@@ -1,6 +1,6 @@
 namespace PerfectBreakfast.Domain.Entities;
 
-public class SupplyAssignment : BaseEntity
+public class SupplyAssignment 
 {
     public Guid? SupplierId { get; set; }
     public Guid? ManagementUnitId { get; set; }

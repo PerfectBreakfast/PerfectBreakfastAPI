@@ -1084,40 +1084,13 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.SupplyAssignment", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid?>("DeleteBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<Guid?>("ManagementUnitId")
                         .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("ModificationBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid?>("SupplierId")
                         .HasColumnType("char(36)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ManagementUnitId");
+                    b.HasKey("ManagementUnitId", "SupplierId");
 
                     b.HasIndex("SupplierId");
 
@@ -1502,12 +1475,14 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasOne("PerfectBreakfast.Domain.Entities.ManagementUnit", "ManagementUnit")
                         .WithMany("SupplyAssignments")
                         .HasForeignKey("ManagementUnitId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("PerfectBreakfast.Domain.Entities.Supplier", "Supplier")
                         .WithMany("SupplyAssignments")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ManagementUnit");
 
