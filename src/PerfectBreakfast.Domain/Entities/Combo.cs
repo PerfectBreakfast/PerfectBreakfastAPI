@@ -4,6 +4,7 @@ public class Combo : BaseEntity
 {
     public string Name { get; set; }
     public string Content { get; set; }
+    public string? Image { get; set; }
     
     // relationship
     public ICollection<ComboFood?> ComboFoods { get; set; }
