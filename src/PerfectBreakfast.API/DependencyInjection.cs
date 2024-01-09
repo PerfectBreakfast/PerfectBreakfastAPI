@@ -148,7 +148,7 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = false;
                 
                 // for email configuration
-                options.SignIn.RequireConfirmedEmail = true;
+                //options.SignIn.RequireConfirmedEmail = true;
             })
             .AddRoles<IdentityRole<Guid>>()   // be able to add role
             .AddRoleManager<RoleManager<IdentityRole<Guid>>>()  // be able to make use of Role Manager

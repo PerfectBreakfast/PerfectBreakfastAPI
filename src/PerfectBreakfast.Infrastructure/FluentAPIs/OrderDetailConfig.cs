@@ -15,6 +15,7 @@ public class OrderDetailConfig : IEntityTypeConfiguration<OrderDetail>
 
         builder.HasOne(x => x.Order)
             .WithMany(x => x.OrderDetails)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.OrderId);
         
         builder.HasOne(x => x.Food)

@@ -9,8 +9,8 @@ public class OrderHistory : BaseEntity
     public OrderStatus OrderStatus { get; set; }
     
     public Guid? UserId { get; set; }
-    public Guid? OrderId { get; set; }
+    public Guid? DailyOrderId { get; set; }
     
     public User? User { get; set; }
-    public Order? Order { get; set; }
+    public DailyOrder? DailyOrder { get; set; }
 }

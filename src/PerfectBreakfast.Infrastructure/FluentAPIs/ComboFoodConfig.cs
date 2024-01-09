@@ -14,6 +14,7 @@ public class ComboFoodConfig : IEntityTypeConfiguration<ComboFood>
         
         builder.HasOne(x => x.Combo)
             .WithMany(x => x.ComboFoods)
+            .OnDelete(DeleteBehavior.Cascade)
             .HasForeignKey(fk => fk.ComboId);
         
         builder.HasOne(x => x.Food)

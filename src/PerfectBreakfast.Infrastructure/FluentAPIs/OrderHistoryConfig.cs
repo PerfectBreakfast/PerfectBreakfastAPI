@@ -16,8 +16,8 @@ public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
             .WithMany(x => x.OrderHistories)
             .HasForeignKey(fk => fk.UserId);
         
-        builder.HasOne(x => x.Order)
+        builder.HasOne(x => x.DailyOrder)
             .WithMany(x => x.OrderHistories)
-            .HasForeignKey(fk => fk.OrderId);
+            .HasForeignKey(fk => fk.DailyOrderId);
     }
 }

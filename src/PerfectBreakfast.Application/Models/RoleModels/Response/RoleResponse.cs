@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace PerfectBreakfast.Application.Models.RoleModels.Response
 {
-    public class RoleResponse
+    public record RoleResponse
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 }

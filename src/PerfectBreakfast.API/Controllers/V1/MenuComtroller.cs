@@ -30,9 +30,9 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMenu(MenuRequest menuRequest)
+        public async Task<IActionResult> CreateMenu(CreateMenuFoodRequest createMenuFoodRequest)
         {
-            var response = await _menuService.CreateMenu(menuRequest);
+            var response = await _menuService.CreateMenu(createMenuFoodRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
@@ -61,6 +61,13 @@ namespace PerfectBreakfast.API.Controllers.V1
         public async Task<IActionResult> Delete(Guid id)
         {
             var response = await _menuService.Delete(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
+
+        [HttpPost("CreateMenu")]
+        public async Task<IActionResult> CreateMenuAndCombo(CreateMenuAndComboRequest createMenuAndComboRequest)
+        {
+            var response = await _menuService.CreateMenuAndCombo(createMenuAndComboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }

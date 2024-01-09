@@ -31,8 +31,4 @@
     <ProjectReference Include="..\PerfectBreakfast.Infrastructure\PerfectBreakfast.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Filters\" />
-  </ItemGroup>
-
 </Project>
