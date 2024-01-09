@@ -59,21 +59,6 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<CategoryResponse>> GetCategoryById(Guid categoryId)
-        {
-            var result = new OperationResult<CategoryResponse>();
-            try
-            {
-                var categories = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
-                result.Payload = _mapper.Map<CategoryResponse>(categories);
-            }
-            catch (Exception e)
-            {
-                result.AddUnknownError(e.Message);
-            }
-            return result;
-        }
-
         public async Task<OperationResult<CategoryResponse>> RemoveCategory(Guid categoryId)
         {
             var result = new OperationResult<CategoryResponse>();

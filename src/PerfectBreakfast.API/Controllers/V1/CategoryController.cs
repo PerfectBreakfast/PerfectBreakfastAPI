@@ -7,7 +7,7 @@ using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
-    [Route("api/v{version:apiVersion}/caterogys")]
+    [Route("api/v{version:apiVersion}/categories")]
     public class CategoryController : BaseController
     {
 
@@ -24,12 +24,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryId(Guid id)
-        {
-            var response = await _categoryService.GetCategoryById(id);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        }
+        
 
         [HttpPost]
         public async Task<IActionResult> CreateCategory(CreateCategoryRequest requestModel)
