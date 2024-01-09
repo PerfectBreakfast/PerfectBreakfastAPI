@@ -1,3 +1,6 @@
+using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
+using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+
 namespace PerfectBreakfast.Application.Models.CompanyModels.Response;
 
 public record CompanyResponse
@@ -8,4 +11,6 @@ public record CompanyResponse
     public string Email { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public bool IsDeleted { get; set; }
+    public ManagementUnitResponseModel? ManagementUnitResponseModel { get; set; }
+    public DeliveryUnitResponseModel? DeliveryUnitResponseModel { get; set; }
 }
