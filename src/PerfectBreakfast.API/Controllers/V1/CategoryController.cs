@@ -7,7 +7,7 @@ using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
-    [Route("api/v{version:apiVersion}/categorys")]
+    [Route("api/v{version:apiVersion}/categories")]
     public class CategoryController : BaseController
     {
 
