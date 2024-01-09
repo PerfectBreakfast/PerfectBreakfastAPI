@@ -20,6 +20,11 @@ namespace PerfectBreakfast.API.Validations.Company
             RuleFor(p => p.PhoneNumber).NotEmpty().WithMessage("Phone cannot be empty")
                 .NotNull().WithMessage("Phone cannot be null")
                 .MaximumLength(20);
+            RuleFor(p => p.ManagementUnitId).NotEmpty().WithMessage("Management Unit Id cannot be empty")
+               .NotNull().WithMessage("Management Unit Id cannot be null");
+
+            RuleFor(p => p.DeliveryUnitId).NotEmpty().WithMessage("Delivery Unit Id cannot be empty")
+               .NotNull().WithMessage("Delivery Unit Id cannot be null");
         }
     }
 }

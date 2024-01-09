@@ -8,5 +8,7 @@
         public string Email { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
+        public Guid? ManagementUnitId { get; set; }
+        public Guid? DeliveryUnitId { get; set; }
     }
 }

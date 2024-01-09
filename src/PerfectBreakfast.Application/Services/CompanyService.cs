@@ -3,6 +3,8 @@ using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CompanyModels.Request;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
+using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
+using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -86,8 +88,13 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var com = await _unitOfWork.CompanyRepository.GetByIdAsync(companyId);
-            result.Payload = _mapper.Map<CompanyResponse>(com);
+            var companyEntity = await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.DeliveryUnit, c => c.ManagementUnit);
+            var managerUnit = _mapper.Map<ManagementUnitResponseModel>(companyEntity.ManagementUnit);
+            var deliveryUnit = _mapper.Map<DeliveryUnitResponseModel>(companyEntity.DeliveryUnit);
+            var company = _mapper.Map<CompanyResponse>(companyEntity);
+            company.DeliveryUnitResponseModel = deliveryUnit;
+            company.ManagementUnitResponseModel = managerUnit;
+            result.Payload = company;
         }
         catch (Exception e)
         {
