@@ -5,6 +5,7 @@ namespace PerfectBreakfast.Domain.Entities;
 public class User : IdentityUser<Guid>
 {
     public int Code { get; set; } 
+    public DateTime CreationDate { get; set; }
     
     // relationship 
     public Guid? CompanyId { get; set; }
