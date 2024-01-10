@@ -19,7 +19,6 @@ public static class DenpendencyInjection
         services.AddScoped<ICurrentTime, CurrentTime>();
         services.AddTransient<JWTService>();
         services.AddTransient<IMailService, MailService>();
-        services.AddScoped<IUserRepository, UserRepository>();
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>
         {

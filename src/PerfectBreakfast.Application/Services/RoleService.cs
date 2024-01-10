@@ -4,7 +4,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.CustomExceptions;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -12,20 +12,18 @@ namespace PerfectBreakfast.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-        public RoleService(IUnitOfWork unitOfWork, IMapper mapper,RoleManager<IdentityRole<Guid>> roleManager)
+        public RoleService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _roleManager = roleManager;
         }
         public async Task<OperationResult<List<RoleResponse>>> GetAllRoles()
         {
             var result = new OperationResult<List<RoleResponse>>();
             try
             {
-                var roles = await _roleManager.Roles.ToListAsync();
+                var roles = await _unitOfWork.RoleRepository.GetAllAsync();
                 result.Payload = _mapper.Map<List<RoleResponse>>(roles);
             }
             catch (Exception e)
@@ -39,13 +37,12 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<RoleResponse>();
             try
             {
-                var role = await _roleManager.FindByIdAsync(id.ToString());
-                if (role is null)
-                {
-                    result.AddError(ErrorCode.NotFound,$"Not found by Id: {id}");
-                    return result;
-                }
+                var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
                 result.Payload = _mapper.Map<RoleResponse>(role);
+            }
+            catch (NotFoundIdException e)
+            {
+                result.AddError(ErrorCode.NotFound,e.Message);
             }
             catch (Exception e)
             {
@@ -53,13 +50,13 @@ namespace PerfectBreakfast.Application.Services
             }
             return result;
         }
-        public async Task<OperationResult<RoleResponse>> CreateRole(CreatRoleRequest requestModel)
+        public async Task<OperationResult<bool>> CreateRole(CreatRoleRequest requestModel)
         {
-            var result = new OperationResult<RoleResponse>();
+            var result = new OperationResult<bool>();
             try
             {
                 var role = new IdentityRole<Guid>(requestModel.Name);
-                var entity = await _roleManager.CreateAsync(role);
+                result.Payload = await _unitOfWork.RoleRepository.AddAsync(role);
             }
             catch (Exception e)
             {
@@ -68,26 +65,19 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<RoleResponse>> UpdateRole(Guid roleId, UpdateRolerequest requestModel)
+        public async Task<OperationResult<bool>> UpdateRole(Guid roleId, UpdateRolerequest requestModel)
         {
-            var result = new OperationResult<RoleResponse>();
+            var result = new OperationResult<bool>();
             try
             {
                 // find supplier by ID
-                var role = await _roleManager.FindByIdAsync(roleId.ToString());
-                if (role is null)
-                {
-                    result.AddError(ErrorCode.NotFound,$"Not found by Id: {roleId}");
-                    return result;
-                }
+                var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
                 _mapper.Map(requestModel, role);
-                var isSuccess = await _roleManager.UpdateAsync(role);
-                if (!isSuccess.Succeeded)
-                {
-                    result.AddError(ErrorCode.ServerError,$"Update not success");
-                    return result;
-                }
-                result.Payload = _mapper.Map<RoleResponse>(role);
+                result.Payload = await _unitOfWork.RoleRepository.Update(role);
+            }
+            catch (NotFoundIdException e)
+            {
+                result.AddError(ErrorCode.NotFound,e.Message);
             }
             catch (Exception e)
             {
@@ -95,25 +85,19 @@ namespace PerfectBreakfast.Application.Services
             }
             return result;
         }
-        public async Task<OperationResult<RoleResponse>> RemoveRole(Guid roleId)
+        
+        public async Task<OperationResult<bool>> RemoveRole(Guid roleId)
         {
-            var result = new OperationResult<RoleResponse>();
+            var result = new OperationResult<bool>();
             try
             {
                 // find supplier by ID
-                var role = await _roleManager.FindByIdAsync(roleId.ToString());
-                if (role is null)
-                {
-                    result.AddError(ErrorCode.NotFound,$"Not found by Id: {roleId}");
-                    return result;
-                }
-                var isSuccess = await _roleManager.DeleteAsync(role);
-                if (!isSuccess.Succeeded)
-                {
-                    result.AddError(ErrorCode.ServerError,$"Delete not success");
-                    return result;
-                }
-                result.Payload = _mapper.Map<RoleResponse>(role);
+                var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
+                result.Payload = await _unitOfWork.RoleRepository.Delete(role);
+            }
+            catch (NotFoundIdException e)
+            {
+                result.AddError(ErrorCode.NotFound,e.Message);
             }
             catch (Exception e)
             {

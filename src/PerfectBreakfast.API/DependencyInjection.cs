@@ -149,6 +149,12 @@ public static class DependencyInjection
                 
                 // for email configuration
                 //options.SignIn.RequireConfirmedEmail = true;
+                
+                // Cấu hình về User.
+                options.User.AllowedUserNameCharacters = // các ký tự đặt tên user
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = true;  // Email là duy nhất
+
             })
             .AddRoles<IdentityRole<Guid>>()   // be able to add role
             .AddRoleManager<RoleManager<IdentityRole<Guid>>>()  // be able to make use of Role Manager
