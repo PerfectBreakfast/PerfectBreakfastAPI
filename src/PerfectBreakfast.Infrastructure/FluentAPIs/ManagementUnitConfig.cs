@@ -8,6 +8,7 @@ public class ManagementUnitConfig : IEntityTypeConfiguration<ManagementUnit>
 {
     public void Configure(EntityTypeBuilder<ManagementUnit> builder)
     {
+        builder.ToTable("ManagementUnit");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);

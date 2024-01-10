@@ -1,8 +1,8 @@
-using System.Linq.Expressions;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -13,19 +13,112 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IClaimsService _claimsService;
+    private readonly JWTService _jwtService;
+    private readonly ICurrentTime _currentTime;
 
-    public UserService(IUnitOfWork unitOfWork,IMapper mapper)
+    public UserService(IUnitOfWork unitOfWork
+        ,IMapper mapper
+        ,IClaimsService claimsService
+        ,JWTService jwtService
+        ,ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-    }
-    
-    public Task<OperationResult<UserLoginResponse>> Login(LoginRequest query)
-    {
-        throw new NotImplementedException();
+        _claimsService = claimsService;
+        _jwtService = jwtService;
+        _currentTime = currentTime;
     }
 
-    public async Task<OperationResult<List<UserResponse>>> GetAllUsers()
+    public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.FindSingleAsync(x => x.UserName == request.Email);
+            if (user is null)
+            {
+                result.AddError(ErrorCode.UnAuthorize,"wrong email");
+                return result;
+            }
+            var isSuccess = await _unitOfWork.UserRepository
+                .CheckPasswordSignin(user, request.Password,false);
+            if (!isSuccess.Succeeded)
+            {
+                if (isSuccess.IsNotAllowed)
+                {
+                    result.AddError(ErrorCode.UnAuthorize,"need confirm account");
+                    return result;
+                }
+                result.AddError(ErrorCode.UnAuthorize,"wrong pass");
+                return result;
+            }
+
+            var token = await _jwtService.CreateJWT(user);
+            result.Payload = new UserLoginResponse(token);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> SignUp(SignUpModel request)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var user = _mapper.Map<User>(request);
+            if(!request.RoleId.HasValue)
+                
+            // check User workspace to generate code
+            if (user.CompanyId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
+            }
+            else if (user.DeliveryUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+            }
+            else if (user.ManagementUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+            }
+            else if (user.SupplierId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
+            }
+            user.UserName = request.Email;
+            user.EmailConfirmed = true;
+            user.CreationDate = _currentTime.GetCurrentTime();
+
+            result.Payload = await _unitOfWork.UserRepository.AddAsync(user, request.Password);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserLoginResponse>> RefreshUserToken()
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(_claimsService.GetCurrentUserId);
+            var token = await _jwtService.CreateJWT(user);
+            result.Payload = new UserLoginResponse(token); 
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<UserResponse>>> GetUsers()
     {
         var result = new OperationResult<List<UserResponse>>();
         try
@@ -37,7 +130,6 @@ public class UserService : IUserService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
@@ -46,7 +138,7 @@ public class UserService : IUserService
         var result = new OperationResult<Pagination<UserResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex,pageSize);
+            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize);
             result.Payload = _mapper.Map<Pagination<UserResponse>>(users);
         }
         catch (Exception e)
@@ -56,7 +148,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> GetUserById(Guid id)
+    public async Task<OperationResult<UserResponse>> GetUser(Guid id)
     {
         var result = new OperationResult<UserResponse>();
         try
@@ -64,10 +156,44 @@ public class UserService : IUserService
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             result.Payload = _mapper.Map<UserResponse>(user);
         }
-        /*catch (NotFoundIdException e)
+        catch (NotFoundIdException e)
         {
             result.AddError(ErrorCode.NotFound,e.Message);
-        }*/
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<UserResponse>> CreateUser(CreateUserRequestModel requestModel)
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var user = _mapper.Map<User>(requestModel);
+
+            // check User workspace to generate code
+            /*if (user.CompanyId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
+            }
+            else if (user.DeliveryUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+            }
+            else if (user.ManagementUnitId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+            }
+            else if (user.SupplierId.HasValue)
+            {
+                user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
+            }
+            await _unitOfWork.UserRepository.AddAsync(user);*/
+            await _unitOfWork.SaveChangeAsync();
+        }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);

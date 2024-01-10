@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Commons;
@@ -19,16 +20,16 @@ public class UserController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> GetUsers()
     {
-        var response = await _userService.GetAllUsers();
+        var response = await _userService.GetUsers();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(Guid id)
+    [HttpGet("{id}"),Authorize]
+    public async Task<IActionResult> GetUser(Guid id)
     {
-        var response = await _userService.GetUserById(id);
+        var response = await _userService.GetUser(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -36,6 +37,13 @@ public class UserController : BaseController
     public async Task<IActionResult> GetUserPagination(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _userService.GetUserPaginationAsync(pageIndex,pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateUser(CreateUserRequestModel requestModel)
+    {
+        var response = await _userService.CreateUser(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

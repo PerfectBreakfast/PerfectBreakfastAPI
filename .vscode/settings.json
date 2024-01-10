@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "202.92.4.186",
+            "driver": "MySQL",
+            "connectString": "Server=202.92.4.186;Port=3308;uid=root;pwd=Viethung3900@;database=pbDB;",
+            "name": "haha",
+            "database": "pbDB",
+            "username": "root"
+        }
+    ]
+}

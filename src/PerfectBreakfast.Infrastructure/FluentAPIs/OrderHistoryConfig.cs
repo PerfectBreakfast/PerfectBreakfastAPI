@@ -8,6 +8,7 @@ public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
 {
     public void Configure(EntityTypeBuilder<OrderHistory> builder)
     {
+        builder.ToTable("OrderHistory");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
 
@@ -15,8 +16,8 @@ public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
             .WithMany(x => x.OrderHistories)
             .HasForeignKey(fk => fk.UserId);
         
-        builder.HasOne(x => x.Order)
+        builder.HasOne(x => x.DailyOrder)
             .WithMany(x => x.OrderHistories)
-            .HasForeignKey(fk => fk.OrderId);
+            .HasForeignKey(fk => fk.DailyOrderId);
     }
 }

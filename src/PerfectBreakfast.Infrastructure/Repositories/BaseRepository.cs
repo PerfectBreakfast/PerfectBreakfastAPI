@@ -24,9 +24,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         return result;
     }
 
-    public virtual async Task AddAsync(TEntity entity)
+    public virtual async Task<TEntity> AddAsync(TEntity entity)
     {
         await _dbSet.AddAsync(entity);
+        return entity;
     }
 
     public virtual void SoftRemove(TEntity entity)
@@ -48,7 +49,13 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     {
         _dbSet.UpdateRange(entities);
     }
-        
+
+    public TEntity Remove(TEntity entity)
+    {
+        _dbSet.Remove(entity);
+        return entity;
+    }
+
     public virtual void UpdateRange(List<TEntity> entities)
     {
         _dbSet.UpdateRange(entities);

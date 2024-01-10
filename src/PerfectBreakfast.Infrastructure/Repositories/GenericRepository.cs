@@ -30,11 +30,12 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             return result;
         }
 
-        public override async Task AddAsync(TEntity entity)
+        public override async Task<TEntity> AddAsync(TEntity entity)
         {
             entity.CreationDate = _timeService.GetCurrentTime();
             entity.CreatedBy = _claimsService.GetCurrentUserId;
             await _dbSet.AddAsync(entity);
+            return entity;
         }
 
         public override void SoftRemove(TEntity entity)

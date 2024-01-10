@@ -5,6 +5,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,6 +14,8 @@ using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.API.Services;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Infrastructure;
 
 namespace PerfectBreakfast.API;
 
@@ -104,23 +107,71 @@ public static class DependencyInjection
                 }
             });
             
+            
             // using System.Reflection;
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
         });
         //==================================================================================================================================
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+        // be able to Authenticate users by using JWT
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                ValidAudience = jwtSettings.Audience,
+                ValidIssuer = jwtSettings.Issuer,
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+            };
+        });
+        //==================================================================================================================================
+        /*services.AddIdentityApiEndpoints<User>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();*/
+        // 2 ways
+        services.AddIdentityCore<User>(options =>
+            {
+                // password configuration
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                
+                // for email configuration
+                //options.SignIn.RequireConfirmedEmail = true;
+                
+                // Cấu hình về User.
+                options.User.AllowedUserNameCharacters = // các ký tự đặt tên user
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = true;  // Email là duy nhất
+
+            })
+            .AddRoles<IdentityRole<Guid>>()   // be able to add role
+            .AddRoleManager<RoleManager<IdentityRole<Guid>>>()  // be able to make use of Role Manager
+            .AddEntityFrameworkStores<AppDbContext>()  // providing out context
+            .AddSignInManager<SignInManager<User>>()  // make use of signin manager
+            .AddUserManager<UserManager<User>>()  // make use of User Manager to create users
+            .AddDefaultTokenProviders();  // be able to create tokens for email confirmation
+        //==================================================================================================================================
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin()  // custom Origin here 
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
             });
+        });
         //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();

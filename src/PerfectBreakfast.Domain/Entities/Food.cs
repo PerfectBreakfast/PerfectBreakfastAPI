@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace PerfectBreakfast.Domain.Entities;
 
 public class Food : BaseEntity
@@ -12,4 +14,7 @@ public class Food : BaseEntity
     
     public ICollection<MenuFood?> MenuFoods { get; set; }
     public ICollection<OrderDetail?> OrderDetails { get; set; }
+    public ICollection<ComboFood?> ComboFoods { get; set; }
+    public ICollection<SupplierCommissionRate?> SupplierCommissionRates { get; set; }
+    public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
 }
