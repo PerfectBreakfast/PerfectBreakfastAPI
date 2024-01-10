@@ -35,15 +35,14 @@ public class CompanyController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPut("update/{id}")]
-    public async Task<IActionResult> UpdateCompany(Guid id, UpdateCompanyRequest updateCompanyRequest)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCompany(Guid id, CompanyRequest companyRequest)
     {
-        updateCompanyRequest.Id = id;
-        var response = await _companyService.UpdateCompany(updateCompanyRequest);
+        var response = await _companyService.UpdateCompany(id, companyRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPut("delete/{id}")]
+    [HttpPut("{id}/company_status")]
     public async Task<IActionResult> DeleteCompany(Guid id)
     {
         var response = await _companyService.DeleteCompany(id);
@@ -57,7 +56,7 @@ public class CompanyController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpDelete("delete/{id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _companyService.Delete(id);

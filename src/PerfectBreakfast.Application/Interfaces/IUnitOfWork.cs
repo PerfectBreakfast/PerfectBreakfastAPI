@@ -19,6 +19,6 @@ public interface IUnitOfWork : IDisposable
     public IMenuRepository MenuRepository { get; }
     public IPaymentMethodRepository PaymentMethodRepository { get; }
     public IComboRepository ComboRepository { get; }
-    public IDailyOrderRepository DaylyOrderRepository { get; }
+    public IDailyOrderRepository DailyOrderRepository { get; }
 
 }

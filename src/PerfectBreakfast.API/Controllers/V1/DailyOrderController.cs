@@ -44,10 +44,10 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// API For Supper Admin
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
-        public async Task<IActionResult> UpdateDailyOrer(UpdateDailyOrderRequest updateDailyOrderRequest)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDailyOrer(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
         {
-            var response = await _dailyOrderService.UpdateDailyOrder(updateDailyOrderRequest);
+            var response = await _dailyOrderService.UpdateDailyOrder(id, updateDailyOrderRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }

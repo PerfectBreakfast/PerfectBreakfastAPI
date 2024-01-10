@@ -1,5 +1,6 @@
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CompanyModels.Request;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
@@ -28,6 +29,7 @@ public class CompanyService : ICompanyService
             var company = _mapper.Map<Company>(companyRequest);
             await _unitOfWork.CompanyRepository.AddAsync(company);
             await _unitOfWork.SaveChangeAsync();
+            result.Payload = _mapper.Map<CompanyResponse>(company);
         }
         catch (Exception e)
         {
@@ -45,6 +47,10 @@ public class CompanyService : ICompanyService
             _unitOfWork.CompanyRepository.Remove(com);
             await _unitOfWork.SaveChangeAsync();
         }
+        catch (NotFoundIdException)
+        {
+            result.AddUnknownError("Id is not exsit");
+        }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
@@ -60,6 +66,10 @@ public class CompanyService : ICompanyService
             var com = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
             _unitOfWork.CompanyRepository.SoftRemove(com);
             await _unitOfWork.SaveChangeAsync();
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddUnknownError("Id is not exsit");
         }
         catch (Exception e)
         {
@@ -89,11 +99,16 @@ public class CompanyService : ICompanyService
         try
         {
             var companyEntity = await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.DeliveryUnit, c => c.ManagementUnit);
+            if (companyEntity is null)
+            {
+                result.AddUnknownError("Id is not exsit");
+                return result;
+            }
             var managerUnit = _mapper.Map<ManagementUnitResponseModel>(companyEntity.ManagementUnit);
             var deliveryUnit = _mapper.Map<DeliveryUnitResponseModel>(companyEntity.DeliveryUnit);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
-            company.DeliveryUnitResponseModel = deliveryUnit;
-            company.ManagementUnitResponseModel = managerUnit;
+            company.DeliveryUnit = deliveryUnit;
+            company.ManagementUnit = managerUnit;
             result.Payload = company;
         }
         catch (Exception e)
@@ -118,14 +133,19 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<CompanyResponse>> UpdateCompany(UpdateCompanyRequest updateCompanyRequest)
+    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid Id, CompanyRequest companyRequest)
     {
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var company = _mapper.Map<Company>(updateCompanyRequest);
+            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(Id);
+            _mapper.Map(companyRequest, company);
             _unitOfWork.CompanyRepository.Update(company);
             await _unitOfWork.SaveChangeAsync();
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddUnknownError("Id is not exsit");
         }
         catch (Exception e)
         {
