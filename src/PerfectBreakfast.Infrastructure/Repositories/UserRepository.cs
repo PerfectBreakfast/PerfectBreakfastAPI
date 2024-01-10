@@ -23,12 +23,22 @@ public class UserRepository : IUserRepository
         return await _userManager.Users.ToListAsync();
     }
 
+    public async Task<bool> AddToRole(User user, string role)
+    {
+        var result = await _userManager.AddToRoleAsync(user, role);
+        return result.Succeeded;
+    }
+
     public async Task<bool> AddAsync(User user, string password)
     {
         var result = await _userManager.CreateAsync(user, password);
-        if (!result.Succeeded)
-            return false;
-        return true;
+        return result.Succeeded;
+    }
+
+    public async Task<bool> Update(User user)
+    {
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded;
     }
 
     public async Task<User> GetByIdAsync(Guid id, params Expression<Func<User, object>>[] includeProperties)

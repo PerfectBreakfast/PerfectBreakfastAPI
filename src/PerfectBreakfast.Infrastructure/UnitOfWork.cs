@@ -12,10 +12,8 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _dbContext;
     private readonly ICurrentTime _currentTime;
     private readonly IClaimsService _claimsService;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     public UnitOfWork(AppDbContext dbContext, ICurrentTime currentTime
         , IClaimsService claimsService,UserManager<User> userManager
         ,SignInManager<User> signInManager,RoleManager<IdentityRole<Guid>> roleManager)
@@ -23,9 +21,8 @@ public class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
         _currentTime = currentTime;
         _claimsService = claimsService;
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _roleManager = roleManager;
+        _userRepository = new UserRepository(userManager, signInManager);
+        _roleRepository = new RoleRepository(roleManager);
     }
     public async Task<int> SaveChangeAsync()
     {
@@ -42,8 +39,8 @@ public class UnitOfWork : IUnitOfWork
         _dbContext.Dispose();
     }
 
-    public IUserRepository UserRepository => new UserRepository(_userManager,_signInManager);
-    public IRoleRepository RoleRepository => new RoleRepository(_roleManager);
+    public IUserRepository UserRepository => _userRepository;
+    public IRoleRepository RoleRepository => _roleRepository;
     public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
     public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
     public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);

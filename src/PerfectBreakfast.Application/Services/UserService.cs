@@ -70,7 +70,6 @@ public class UserService : IUserService
         try
         {
             var user = _mapper.Map<User>(request);
-            if(!request.RoleId.HasValue)
                 
             // check User workspace to generate code
             if (user.CompanyId.HasValue)
@@ -92,8 +91,12 @@ public class UserService : IUserService
             user.UserName = request.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
-
-            result.Payload = await _unitOfWork.UserRepository.AddAsync(user, request.Password);
+            var a = await _unitOfWork.UserRepository.AddAsync(user, request.Password);
+            if (!request.RoleId.HasValue && user.CompanyId.HasValue)
+            {
+                var u = await _unitOfWork.UserRepository.AddToRole(user, "CUSTOMER");
+            }
+            result.Payload = a;
         }
         catch (Exception e)
         {
@@ -193,6 +196,22 @@ public class UserService : IUserService
             }
             await _unitOfWork.UserRepository.AddAsync(user);*/
             await _unitOfWork.SaveChangeAsync();
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> UpdateUser(Guid id,UpdateUserRequestModel requestModel)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            _mapper.Map(requestModel, user);
+            result.Payload = await _unitOfWork.UserRepository.Update(user);
         }
         catch (Exception e)
         {

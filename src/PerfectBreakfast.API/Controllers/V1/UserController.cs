@@ -46,4 +46,11 @@ public class UserController : BaseController
         var response = await _userService.CreateUser(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(Guid id,UpdateUserRequestModel requestModel)
+    {
+        var response = await _userService.UpdateUser(id,requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
