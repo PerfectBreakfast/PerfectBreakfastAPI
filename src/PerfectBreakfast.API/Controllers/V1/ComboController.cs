@@ -43,7 +43,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("{id}/combo_status")]
+        [HttpPut("{id}/combo-status")]
         public async Task<IActionResult> DeleteCombo(Guid id)
         {
             var response = await _comboService.DeleteCombo(id);

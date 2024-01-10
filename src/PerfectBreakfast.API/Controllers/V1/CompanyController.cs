@@ -42,7 +42,7 @@ public class CompanyController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPut("{id}/company_status")]
+    [HttpPut("{id}/company-status")]
     public async Task<IActionResult> DeleteCompany(Guid id)
     {
         var response = await _companyService.DeleteCompany(id);

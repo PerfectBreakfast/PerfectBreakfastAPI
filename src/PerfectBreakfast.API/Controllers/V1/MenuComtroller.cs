@@ -43,7 +43,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("{id}/menu_status")]
+        [HttpPut("{id}/menu-status")]
         public async Task<IActionResult> DeleteMenu(Guid id)
         {
             var response = await _menuService.DeleteMenu(id);
