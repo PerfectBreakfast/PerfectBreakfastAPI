@@ -1,5 +1,6 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Request;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
@@ -28,8 +29,9 @@ namespace PerfectBreakfast.Application.Services
                 dailyOrder.Status = DailyOrderStatus.Pending;
                 dailyOrder.OrderQuantity = 0;
                 dailyOrder.TotalPrice = 0;
-                await _unitOfWork.DaylyOrderRepository.AddAsync(dailyOrder);
+                await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrder);
             }
             catch (Exception e)
             {
@@ -43,7 +45,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<Pagination<DailyOrderResponse>>();
             try
             {
-                var pagination = await _unitOfWork.DaylyOrderRepository.ToPagination(pageIndex, pageSize);
+                var pagination = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize);
                 result.Payload = _mapper.Map<Pagination<DailyOrderResponse>>(pagination);
             }
             catch (Exception e)
@@ -58,7 +60,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<List<DailyOrderResponse>>();
             try
             {
-                var dailyOrders = await _unitOfWork.DaylyOrderRepository.GetAllAsync();
+                var dailyOrders = await _unitOfWork.DailyOrderRepository.GetAllAsync();
                 result.Payload = _mapper.Map<List<DailyOrderResponse>>(dailyOrders);
             }
             catch (Exception e)
@@ -68,14 +70,19 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<DailyOrderResponse>> UpdateDailyOrder(UpdateDailyOrderRequest updateDailyOrderRequest)
+        public async Task<OperationResult<DailyOrderResponse>> UpdateDailyOrder(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
         {
             var result = new OperationResult<DailyOrderResponse>();
             try
             {
-                var dailyOrder = _mapper.Map<DailyOrder>(updateDailyOrderRequest);
-                _unitOfWork.DaylyOrderRepository.Update(dailyOrder);
+                var dailyOrderEntity = await _unitOfWork.DailyOrderRepository.GetByIdAsync(id);
+                _mapper.Map(updateDailyOrderRequest, dailyOrderEntity);
+                _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                 await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
             }
             catch (Exception e)
             {

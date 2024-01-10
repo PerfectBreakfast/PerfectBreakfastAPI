@@ -1,7 +1,7 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Request;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
@@ -30,6 +30,7 @@ namespace PerfectBreakfast.Application.Services
                 menu.MenuFoods = menuFood;
                 await _unitOfWork.MenuRepository.AddAsync(menu);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<MenuResponse>(menu);
             }
             catch (Exception e)
             {
@@ -91,6 +92,10 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.MenuRepository.Remove(menu);
                 await _unitOfWork.SaveChangeAsync();
             }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
@@ -107,6 +112,10 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.MenuRepository.SoftRemove(menu);
                 await _unitOfWork.SaveChangeAsync();
             }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
@@ -120,16 +129,20 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var menu = await _unitOfWork.MenuRepository.GetMenuFoodByIdAsync(id);
-
+                if (menu is null)
+                {
+                    result.AddUnknownError("Id is not exsit");
+                    return result;
+                }
                 //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
 
                 // Lấy danh sách Food từ Menu
                 var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
-                var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
+                var foodResponses = _mapper.Map<List<ComboAndFoodResponse?>>(foodEntities);
 
                 // Lấy danh sách Combo từ Menu
                 var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
-                var comboResponses = new List<ComboResponse>();
+                var comboResponses = new List<ComboAndFoodResponse>();
 
                 // Duyệt qua từng Combo để lấy thông tin chi tiết
                 foreach (var combo in comboEntities)
@@ -145,7 +158,7 @@ namespace PerfectBreakfast.Application.Services
                     var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
 
                     // Ánh xạ Combo chi tiết sang DTO
-                    var comboResponse = _mapper.Map<ComboResponse>(detailedCombo);
+                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
                     comboResponse.FoodResponses = foodResponsesInCombo;
 
                     comboResponses.Add(comboResponse);
@@ -153,8 +166,8 @@ namespace PerfectBreakfast.Application.Services
 
                 // Ánh xạ Menu chi tiết sang DTO
                 var menuResponse = _mapper.Map<MenuResponse>(menu);
-                menuResponse.FoodResponses = foodResponses;
-                menuResponse.ComboResponses = comboResponses;
+                menuResponse.ComboFoodResponses = foodResponses;
+                menuResponse.ComboFoodResponses = comboResponses;
                 result.Payload = menuResponse;
             }
             catch (Exception e)
@@ -199,10 +212,14 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = _mapper.Map<Menu>(menuRequest);
-                menu.Id = id;
-                _unitOfWork.MenuRepository.Update(menu);
+                var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
+                _mapper.Map(menuRequest, menuEntity);
+                _unitOfWork.MenuRepository.Update(menuEntity);
                 await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
             }
             catch (Exception e)
             {

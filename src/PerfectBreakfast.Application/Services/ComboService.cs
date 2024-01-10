@@ -1,5 +1,6 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ComboModels.Request;
 using PerfectBreakfast.Application.Models.ComboModels.Response;
@@ -29,6 +30,7 @@ namespace PerfectBreakfast.Application.Services
                 combo.ComboFoods = comboFood;
                 await _unitOfWork.ComboRepository.AddAsync(combo);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<ComboResponse>(combo);
             }
             catch (Exception e)
             {
@@ -47,6 +49,10 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.ComboRepository.Remove(combo);
                 await _unitOfWork.SaveChangeAsync();
             }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
@@ -63,6 +69,10 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.ComboRepository.SoftRemove(combo);
                 await _unitOfWork.SaveChangeAsync();
             }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
@@ -76,6 +86,11 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(id);
+                if (combo is null)
+                {
+                    result.AddUnknownError("Id is not exsit");
+                    return result;
+                }
                 var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
                 var listComboFood = _mapper.Map<List<FoodResponse?>>(foodEntities);
                 var co = _mapper.Map<ComboResponse>(combo);
@@ -124,10 +139,15 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<ComboResponse>();
             try
             {
-                var combo = _mapper.Map<Combo>(comboRequest);
-                combo.Id = id;
-                _unitOfWork.ComboRepository.Update(combo);
+                var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
+                _mapper.Map(comboRequest, comboEntity);
+                _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<ComboResponse>(comboEntity);
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
             }
             catch (Exception e)
             {

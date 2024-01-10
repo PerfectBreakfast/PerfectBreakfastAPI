@@ -54,5 +54,5 @@ public class UnitOfWork : IUnitOfWork
     public IPaymentMethodRepository PaymentMethodRepository => new PaymentMethodRepository(_dbContext, _currentTime, _claimsService);
     public IComboRepository ComboRepository => new ComboRepository(_dbContext, _currentTime, _claimsService);
 
-    public IDailyOrderRepository DaylyOrderRepository => new DailyOrderRepository(_dbContext, _currentTime, _claimsService);
+    public IDailyOrderRepository DailyOrderRepository => new DailyOrderRepository(_dbContext, _currentTime, _claimsService);
 }
