@@ -6,11 +6,11 @@ using PerfectBreakfast.Application.Models.MenuModels.Request;
 namespace PerfectBreakfast.API.Controllers.V1
 {
     [Route("api/v{version:apiVersion}/menus")]
-    public class MenuComtroller : BaseController
+    public class MenuController : BaseController
     {
         private readonly IMenuService _menuService;
 
-        public MenuComtroller(IMenuService menuService)
+        public MenuController(IMenuService menuService)
         {
             _menuService = menuService;
         }

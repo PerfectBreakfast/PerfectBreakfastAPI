@@ -86,6 +86,26 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
+        public async Task<OperationResult<OrderResponse>> DeleteOrder(Guid id)
+        {
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                _unitOfWork.OrderRepository.SoftRemove(order);
+                await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<OrderResponse>> GetOrder(Guid id)
         {
             var result = new OperationResult<OrderResponse>();
@@ -97,7 +117,25 @@ namespace PerfectBreakfast.Application.Services
                     result.AddUnknownError("Id is not exsit");
                     return result;
                 }
-                result.Payload = _mapper.Map<OrderResponse>(order);
+                var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
+                var or = _mapper.Map<OrderResponse>(order);
+                or.orderDetails = orderDetails;
+                result.Payload = or;
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<Pagination<OrderResponse>>> GetOrderPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        {
+            var result = new OperationResult<Pagination<OrderResponse>>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.ToPagination(pageIndex, pageSize);
+                result.Payload = _mapper.Map<Pagination<OrderResponse>>(order);
             }
             catch (Exception e)
             {
@@ -121,6 +159,25 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-
+        public async Task<OperationResult<OrderResponse>> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)
+        {
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                _mapper.Map(updateOrderRequest, order);
+                _unitOfWork.OrderRepository.Update(order);
+                await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
     }
 }
