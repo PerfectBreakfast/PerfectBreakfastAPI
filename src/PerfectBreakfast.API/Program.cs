@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration.Get<AppConfiguration>();
 builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection);
-builder.Services.AddWebAPIService(configuration.JwtSettings);
+builder.Services.AddWebAPIService(configuration);
 builder.Services.AddSingleton(configuration);
 
 var app = builder.Build();

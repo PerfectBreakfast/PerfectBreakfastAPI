@@ -8,6 +8,7 @@ using System.Reflection;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Repositories;
+using PerfectBreakfast.Infrastructure.Payments;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -48,6 +49,7 @@ public static class DenpendencyInjection
         services.AddScoped<IPaymentMethodService, PaymentMethodService>();
         services.AddScoped<IComboService, ComboService>();
         services.AddScoped<IDailyOrderService, DailyOrderService>();
+        services.AddScoped<IPayOSService, PayOSService>();
         return services;
     }
 }

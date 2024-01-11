@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using PerfectBreakfast.API.Contracts.Commons;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.API.Services;
@@ -21,7 +22,7 @@ namespace PerfectBreakfast.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddWebAPIService(this IServiceCollection services,JwtSettings jwtSettings )
+    public static IServiceCollection AddWebAPIService(this IServiceCollection services,AppConfiguration appConfiguration)
     {
         // ************ Config fluent validation but need to update new ways to handle this **************
         //==================================================================================================================================
@@ -128,9 +129,9 @@ public static class DependencyInjection
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ValidateIssuerSigningKey = true,
-                ValidAudience = jwtSettings.Audience,
-                ValidIssuer = jwtSettings.Issuer,
-                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                ValidAudience = appConfiguration.JwtSettings.Audience,
+                ValidIssuer = appConfiguration.JwtSettings.Issuer,
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(appConfiguration.JwtSettings.SecretKey))
             };
         });
         //==================================================================================================================================
@@ -172,6 +173,9 @@ public static class DependencyInjection
                     .AllowAnyMethod();
             });
         });
+        //==================================================================================================================================
+        PayOS payOS = new PayOS(appConfiguration.PayOSSettings.ClientId,appConfiguration.PayOSSettings.ApiId,appConfiguration.PayOSSettings.CheckSumKey);
+        services.AddSingleton(payOS);
         //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();
