@@ -1,6 +1,6 @@
 namespace PerfectBreakfast.Application.Utils;
 
-public static class Ramdom
+public static class Random
 {
     public static int GenerateCode()
     {
