@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Infrastructure.MailServices;
+using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
 
 namespace PerfectBreakfast.Infrastructure;
@@ -46,6 +47,7 @@ public static class DenpendencyInjection
         services.AddScoped<IPaymentMethodService, PaymentMethodService>();
         services.AddScoped<IComboService, ComboService>();
         services.AddScoped<IDailyOrderService, DailyOrderService>();
+        services.AddScoped<IPayOSService, PayOSService>();
         services.AddScoped<IOrderService, OrderService>();
         return services;
     }
