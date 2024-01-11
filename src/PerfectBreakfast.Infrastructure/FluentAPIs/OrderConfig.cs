@@ -13,7 +13,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
-        builder.Property(x => x.OrderCode).ValueGeneratedOnAdd().UseMySqlIdentityColumn();
+        builder.HasIndex(x => x.OrderCode).IsUnique();
         
         builder.HasOne(r => r.Worker)
             .WithMany(ur => ur.OrdersWorker)
