@@ -15,8 +15,8 @@ public class UnitOfWork : IUnitOfWork
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     public UnitOfWork(AppDbContext dbContext, ICurrentTime currentTime
-        , IClaimsService claimsService,UserManager<User> userManager
-        ,SignInManager<User> signInManager,RoleManager<IdentityRole<Guid>> roleManager)
+        , IClaimsService claimsService, UserManager<User> userManager
+        , SignInManager<User> signInManager, RoleManager<IdentityRole<Guid>> roleManager)
     {
         _dbContext = dbContext;
         _currentTime = currentTime;
@@ -50,6 +50,6 @@ public class UnitOfWork : IUnitOfWork
     public IMenuRepository MenuRepository => new MenuRepository(_dbContext, _currentTime, _claimsService);
     public IPaymentMethodRepository PaymentMethodRepository => new PaymentMethodRepository(_dbContext, _currentTime, _claimsService);
     public IComboRepository ComboRepository => new ComboRepository(_dbContext, _currentTime, _claimsService);
-
     public IDailyOrderRepository DailyOrderRepository => new DailyOrderRepository(_dbContext, _currentTime, _claimsService);
+    public IOrderRepository OrderRepository => new OrderRepository(_dbContext, _currentTime, _claimsService);
 }

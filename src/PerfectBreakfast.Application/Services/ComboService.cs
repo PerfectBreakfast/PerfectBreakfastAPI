@@ -92,9 +92,11 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
                 var listComboFood = _mapper.Map<List<FoodResponse?>>(foodEntities);
                 var co = _mapper.Map<ComboResponse>(combo);
                 co.FoodResponses = listComboFood;
+                co.comboPrice = totalFoodPrice;
                 result.Payload = co;
             }
             catch (Exception e)
