@@ -143,7 +143,6 @@ namespace PerfectBreakfast.Application.Services
                 // Lấy danh sách Combo từ Menu
                 var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
                 var comboResponses = new List<ComboAndFoodResponse>();
-
                 // Duyệt qua từng Combo để lấy thông tin chi tiết
                 foreach (var combo in comboEntities)
                 {
@@ -156,11 +155,12 @@ namespace PerfectBreakfast.Application.Services
                     // Lấy danh sách Food từ Combo
                     var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
                     var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
-
+                    decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
                     // Ánh xạ Combo chi tiết sang DTO
                     var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
                     comboResponse.FoodResponses = foodResponsesInCombo;
-
+                    comboResponse.Price = totalFoodPrice;
+                    comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
                     comboResponses.Add(comboResponse);
                 }
 

@@ -64,6 +64,8 @@ namespace PerfectBreakfast.Application.Services
                     }
                 }
                 decimal totalPrice = orderDetail.Sum(detail => detail.Quantity * detail.UnitPrice);
+                int orderCode = Utils.Random.GenerateCode();
+                order.OrderCode = orderCode;
                 order.WorkerId = userId;
                 order.OrderStatus = OrderStatus.Pending;
                 order.DailyOrder = dailyOrder;
@@ -84,16 +86,98 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public Task<OperationResult<OrderResponse>> GetOrder(Guid id)
+        public async Task<OperationResult<OrderResponse>> DeleteOrder(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                _unitOfWork.OrderRepository.SoftRemove(order);
+                await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
         }
 
-        public Task<OperationResult<List<OrderResponse>>> GetOrders()
+        public async Task<OperationResult<OrderResponse>> GetOrder(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails);
+                if (order is null)
+                {
+                    result.AddUnknownError("Id is not exsit");
+                    return result;
+                }
+                var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
+                var or = _mapper.Map<OrderResponse>(order);
+                or.orderDetails = orderDetails;
+                result.Payload = or;
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
         }
 
+        public async Task<OperationResult<Pagination<OrderResponse>>> GetOrderPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        {
+            var result = new OperationResult<Pagination<OrderResponse>>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.ToPagination(pageIndex, pageSize);
+                result.Payload = _mapper.Map<Pagination<OrderResponse>>(order);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
 
+        public async Task<OperationResult<List<OrderResponse>>> GetOrders()
+        {
+            var result = new OperationResult<List<OrderResponse>>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetAllAsync();
+                result.Payload = _mapper.Map<List<OrderResponse>>(order);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<OrderResponse>> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)
+        {
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                _mapper.Map(updateOrderRequest, order);
+                _unitOfWork.OrderRepository.Update(order);
+                await _unitOfWork.SaveChangeAsync();
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
     }
 }

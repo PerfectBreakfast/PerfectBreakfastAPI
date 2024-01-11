@@ -9,6 +9,8 @@ namespace PerfectBreakfast.Application.Interfaces
         Task<OperationResult<OrderResponse>> CreateOrder(OrderRequest orderRequest);
         Task<OperationResult<List<OrderResponse>>> GetOrders();
         Task<OperationResult<OrderResponse>> GetOrder(Guid id);
-        //Task<OperationResult<OrderResponse>> UpdateOrder(OrderRequest orderRequest);
+        Task<OperationResult<OrderResponse>> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest);
+        Task<OperationResult<OrderResponse>> DeleteOrder(Guid id);
+        public Task<OperationResult<Pagination<OrderResponse>>> GetOrderPaginationAsync(int pageIndex = 0, int pageSize = 10);
     }
 }
