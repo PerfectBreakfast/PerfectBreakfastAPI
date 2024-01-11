@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.FluentAPIs;
@@ -12,6 +13,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.OrderCode).ValueGeneratedOnAdd().UseMySqlIdentityColumn();
         
         builder.HasOne(r => r.Worker)
             .WithMany(ur => ur.OrdersWorker)
