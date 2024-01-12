@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Services;
-using System.Reflection;
-using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Infrastructure.MailServices;
-using PerfectBreakfast.Infrastructure.Repositories;
+using PerfectBreakfast.Infrastructure.Payments;
+using System.Reflection;
+using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -48,6 +48,9 @@ public static class DenpendencyInjection
         services.AddScoped<IPaymentMethodService, PaymentMethodService>();
         services.AddScoped<IComboService, ComboService>();
         services.AddScoped<IDailyOrderService, DailyOrderService>();
+        services.AddScoped<IPayOSService, PayOSService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<ISupplierCommissionRateService, SupplierCommissionRateService>();
         return services;
     }
 }

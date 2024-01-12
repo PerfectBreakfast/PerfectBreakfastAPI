@@ -1,5 +1,6 @@
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
@@ -25,6 +26,25 @@ public class ManagementUnitService : IManagementUnitService
         {
             var managementUnits = await _unitOfWork.ManagementUnitRepository.GetAllAsync();
             result.Payload = _mapper.Map<List<ManagementUnitResponseModel>>(managementUnits);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<ManagementUnitResponseModel>> GetManagementUnitId(Guid Id)
+    {
+        var result = new OperationResult<ManagementUnitResponseModel>();
+        try
+        {
+            var deliveryUnit = await _unitOfWork.ManagementUnitRepository.GetByIdAsync(Id);
+            result.Payload = _mapper.Map<ManagementUnitResponseModel>(deliveryUnit);
+        }
+        catch (NotFoundIdException e)
+        {
+            result.AddError(ErrorCode.NotFound,e.Message);
         }
         catch (Exception e)
         {

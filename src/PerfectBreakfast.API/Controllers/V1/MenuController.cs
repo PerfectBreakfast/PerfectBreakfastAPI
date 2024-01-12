@@ -6,11 +6,11 @@ using PerfectBreakfast.Application.Models.MenuModels.Request;
 namespace PerfectBreakfast.API.Controllers.V1
 {
     [Route("api/v{version:apiVersion}/menus")]
-    public class MenuComtroller : BaseController
+    public class MenuController : BaseController
     {
         private readonly IMenuService _menuService;
 
-        public MenuComtroller(IMenuService menuService)
+        public MenuController(IMenuService menuService)
         {
             _menuService = menuService;
         }
@@ -36,14 +36,14 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMenu(Guid id, MenuRequest menuRequest)
         {
             var response = await _menuService.UpdateMenu(id, menuRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("delete/{id}")]
+        [HttpPut("{id}/menu-status")]
         public async Task<IActionResult> DeleteMenu(Guid id)
         {
             var response = await _menuService.DeleteMenu(id);
@@ -57,17 +57,10 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var response = await _menuService.Delete(id);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        }
-
-        [HttpPost("CreateMenu")]
-        public async Task<IActionResult> CreateMenuAndCombo(CreateMenuAndComboRequest createMenuAndComboRequest)
-        {
-            var response = await _menuService.CreateMenuAndCombo(createMenuAndComboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }

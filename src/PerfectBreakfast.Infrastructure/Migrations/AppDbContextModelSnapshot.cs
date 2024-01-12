@@ -659,6 +659,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("OrderCode")
+                        .HasColumnType("int");
+
                     b.Property<int>("OrderStatus")
                         .HasColumnType("int");
 
@@ -673,6 +676,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("DailyOrderId");
 
                     b.HasIndex("ManagementUnitId");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique();
 
                     b.HasIndex("WorkerId");
 

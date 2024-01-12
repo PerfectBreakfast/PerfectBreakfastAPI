@@ -36,14 +36,14 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCombo(Guid id, ComboRequest comboRequest)
         {
             var response = await _comboService.UpdateCombo(id, comboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("delete/{id}")]
+        [HttpPut("{id}/combo-status")]
         public async Task<IActionResult> DeleteCombo(Guid id)
         {
             var response = await _comboService.DeleteCombo(id);
@@ -57,7 +57,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var response = await _comboService.Delete(id);
