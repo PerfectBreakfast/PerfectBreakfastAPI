@@ -43,4 +43,10 @@ public class ManagementUnitController : BaseController
         var response = await _managementUnitService.RemoveManagementUnit(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetManagementUnitId(Guid id)
+    {
+        var response = await _managementUnitService.GetManagementUnitId(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

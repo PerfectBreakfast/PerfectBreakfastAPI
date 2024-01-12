@@ -42,10 +42,10 @@ public class DeliveryUnitController : BaseController
         var response = await _deliveryUnitService.RemoveDelivery(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetDeliveryUnitId(Guid id)
-        {
-            var response = await _deliveryUnitService.GetDeliveryId(id);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetDeliveryUnitId(Guid id)
+    {
+        var response = await _deliveryUnitService.GetDeliveryId(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
