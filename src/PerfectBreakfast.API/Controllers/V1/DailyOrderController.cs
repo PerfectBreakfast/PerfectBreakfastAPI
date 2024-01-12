@@ -50,5 +50,12 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _dailyOrderService.UpdateDailyOrder(id, updateDailyOrderRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+
+        [HttpPut]
+        public async Task<IActionResult> AutoUpdateDailyOrer(DateTime date)
+        {
+            var response = await _dailyOrderService.AutoUpdate(date);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }

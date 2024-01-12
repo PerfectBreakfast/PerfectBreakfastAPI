@@ -15,5 +15,15 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             return await _dbSet.Where(d => d.CompanyId == companyId).FirstOrDefaultAsync();
         }
+
+        public async Task<List<DailyOrder>> FindByCreationDate(DateTime dateTime)
+        {
+            var dateToCompare = dateTime.Date;
+
+            return await _dbSet
+                .Where(d => d.CreationDate.Date == dateToCompare)
+                .Include(d => d.Orders)
+                .ToListAsync();
+        }
     }
 }
