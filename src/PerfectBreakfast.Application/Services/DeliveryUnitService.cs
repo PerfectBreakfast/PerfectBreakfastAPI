@@ -1,5 +1,6 @@
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
@@ -94,5 +95,24 @@ public class DeliveryUnitService : IDeliveryUnitService
             result.AddUnknownError(e.Message);
         }
         return result;
+    }
+
+    public async Task<OperationResult<DeliveryUnitResponseModel>> GetDeliveryId(Guid deliveryId)
+    {
+        var result = new OperationResult<DeliveryUnitResponseModel>();
+            try
+            {
+                var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetByIdAsync(deliveryId);
+                result.Payload = _mapper.Map<DeliveryUnitResponseModel>(deliveryUnit);
+            }
+            catch (NotFoundIdException e)
+            {
+                result.AddError(ErrorCode.NotFound,e.Message);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
     }
 }
