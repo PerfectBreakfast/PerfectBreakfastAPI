@@ -21,4 +21,5 @@ public interface IUnitOfWork : IDisposable
     public IComboRepository ComboRepository { get; }
     public IDailyOrderRepository DailyOrderRepository { get; }
     public IOrderRepository OrderRepository { get; }
+    public ISupplierCommissionRateRepository SupplierCommissionRateRepository { get; }
 }

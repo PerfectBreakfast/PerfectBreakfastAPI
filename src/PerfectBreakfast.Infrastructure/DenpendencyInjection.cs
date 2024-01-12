@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
+using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -49,6 +50,7 @@ public static class DenpendencyInjection
         services.AddScoped<IDailyOrderService, DailyOrderService>();
         services.AddScoped<IPayOSService, PayOSService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<ISupplierCommissionRateService, SupplierCommissionRateService>();
         return services;
     }
 }
