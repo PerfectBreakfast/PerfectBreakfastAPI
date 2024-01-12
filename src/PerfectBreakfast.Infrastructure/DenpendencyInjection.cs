@@ -13,7 +13,7 @@ namespace PerfectBreakfast.Infrastructure;
 
 public static class DenpendencyInjection
 {
-    public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection)
+    public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection,string redisConnection)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
