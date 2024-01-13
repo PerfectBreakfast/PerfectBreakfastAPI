@@ -11,7 +11,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
         }
 
-        public async Task<DailyOrder?> FindByCompanyId(Guid companyId)
+        public async Task<DailyOrder?> FindByCompanyId(Guid? companyId)
         {
             return await _dbSet.Where(d => d.CompanyId == companyId).FirstOrDefaultAsync();
         }

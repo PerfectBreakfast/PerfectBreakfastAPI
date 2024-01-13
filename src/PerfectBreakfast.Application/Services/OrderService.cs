@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.OrderModel.Request;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
+using PerfectBreakfast.Application.Models.PaymentModels.Respone;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -14,22 +15,24 @@ namespace PerfectBreakfast.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IClaimsService _claimsService;
+        private readonly IPayOsService _payOsService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,IPayOsService payOsService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _claimsService = claimsService;
+            _payOsService = payOsService;
         }
 
-        public async Task<OperationResult<OrderResponse>> CreateOrder(OrderRequest orderRequest)
+        public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
         {
             var userId = _claimsService.GetCurrentUserId;
-            var result = new OperationResult<OrderResponse>();
+            var result = new OperationResult<PaymentResponse>();
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId(user.CompanyId);
                 if (dailyOrder is null)
                 {
                     result.AddUnknownError("CompanyId is not exsit");
@@ -40,7 +43,7 @@ namespace PerfectBreakfast.Application.Services
                 foreach (var od in orderDetail)
                 {
                     // Fetch Combo by Id
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync((Guid)od.ComboId);
+                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
                     if (combo is null)
                     {
                         result.AddUnknownError("ComboId is not exsit");
@@ -64,16 +67,34 @@ namespace PerfectBreakfast.Application.Services
                     }
                 }
                 decimal totalPrice = orderDetail.Sum(detail => detail.Quantity * detail.UnitPrice);
-                int orderCode = Utils.Random.GenerateCode();
+                int orderCode = Utils.RandomCode.GenerateOrderCode();
                 order.OrderCode = orderCode;
                 order.WorkerId = userId;
                 order.OrderStatus = OrderStatus.Pending;
                 order.DailyOrder = dailyOrder;
                 order.TotalPrice = totalPrice;
                 order.OrderDetails = orderDetail;
-                await _unitOfWork.OrderRepository.AddAsync(order);
+                var entity = await _unitOfWork.OrderRepository.AddAsync(order);
+
+                var paymentMethod = orderRequest.Payment.ToUpper();
+                switch (paymentMethod)
+                {
+                    case "BANKING":        // Gọi phương thức tạo paymentLink Ngân hàng 
+                        var paymentResponse = await _payOsService.CreatePaymentLink(entity);
+                        if (paymentResponse.IsSuccess)
+                        {
+                            result.Payload = paymentResponse;
+                        }
+                        else
+                        {
+                            throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
+                        }
+                        break;
+                    
+                    case "MOMO":          // Gọi tạo PaymentLink MoMO
+                        break;
+                }
                 await _unitOfWork.SaveChangeAsync();
-                result.Payload = _mapper.Map<OrderResponse>(order);
             }
             catch (NotFoundIdException)
             {
@@ -136,6 +157,27 @@ namespace PerfectBreakfast.Application.Services
             {
                 var order = await _unitOfWork.OrderRepository.ToPagination(pageIndex, pageSize);
                 result.Payload = _mapper.Map<Pagination<OrderResponse>>(order);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<OrderResponse>> RemoveOrder(Guid id)
+        {
+            var result = new OperationResult<OrderResponse>();
+            try
+            {
+                // find supplier by ID
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                // Remove
+                var entity = _unitOfWork.OrderRepository.Remove(order);
+                // saveChange
+                await _unitOfWork.SaveChangeAsync();
+                // map entity to SupplierResponse
+                result.Payload = _mapper.Map<OrderResponse>(entity);
             }
             catch (Exception e)
             {

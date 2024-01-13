@@ -12,7 +12,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         }
 
         //to do
-        public async Task<Combo> GetComboFoodByIdAsync(Guid id)
+        public async Task<Combo> GetComboFoodByIdAsync(Guid? id)
         {
             return await _dbSet.Where(c => c.Id == id)
                             .Include(c => c.ComboFoods)
