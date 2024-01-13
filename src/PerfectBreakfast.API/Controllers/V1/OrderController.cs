@@ -57,5 +57,12 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _orderService.GetOrderPaginationAsync(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> RemoveOrder(Guid id)
+        {
+            var response = await _orderService.RemoveOrder(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        } 
     }
 }

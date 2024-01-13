@@ -174,7 +174,7 @@ public static class DependencyInjection
             });
         });
         //==================================================================================================================================
-        PayOS payOS = new PayOS(appConfiguration.PayOSSettings.ClientId,appConfiguration.PayOSSettings.ApiId,appConfiguration.PayOSSettings.CheckSumKey);
+        PayOS payOS = new PayOS(appConfiguration.PayOSSettings.ClientId,appConfiguration.PayOSSettings.ApiKey,appConfiguration.PayOSSettings.CheckSumKey);
         services.AddSingleton(payOS);
         //==================================================================================================================================
         services.AddHealthChecks();

@@ -6,7 +6,7 @@ using PerfectBreakfast.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration.Get<AppConfiguration>();
-builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection);
+builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection,configuration.RedisConnection);
 builder.Services.AddWebAPIService(configuration);
 builder.Services.AddSingleton(configuration);
 
