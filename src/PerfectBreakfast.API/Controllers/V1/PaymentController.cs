@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.PaymentModels.Request;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -24,6 +26,13 @@ public class PaymentController : ControllerBase
         var response = await _payOsService.HandleWebhook(body);
         return Ok(new {Success = response});
     }
+
+    [HttpPost("confirm-webhook")]
+    public async Task<IActionResult> ConfirmWebhook(ConfirmWebhook body)
+    {
+        return Ok(await _payOsService.ConfirmWebhook(body));
+    }
+    
 }
     
 

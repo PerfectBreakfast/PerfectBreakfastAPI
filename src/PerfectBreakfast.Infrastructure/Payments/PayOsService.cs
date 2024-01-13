@@ -3,6 +3,7 @@ using Net.payOS;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Models.PaymentModels.Request;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -22,8 +23,8 @@ public class PayOsService : IPayOsService
 
     public async Task<PaymentResponse> CreatePaymentLink(Order order)
     {
-        List<ItemData> items = new List<ItemData>();
-        PaymentData paymentData = new PaymentData(order.OrderCode, (Int32)order.TotalPrice, "Thanh toan don hang", items, _appConfiguration.Host+_appConfiguration.PayOSSettings.CancelURL, _appConfiguration.Host+_appConfiguration.PayOSSettings.ReturnURL);
+        List<ItemData> items = new ();
+        PaymentData paymentData = new PaymentData(order.OrderCode, (int)order.TotalPrice, "Thanh toan don hang", items, _appConfiguration.Host+_appConfiguration.PayOSSettings.CancelURL, _appConfiguration.Host+_appConfiguration.PayOSSettings.ReturnURL);
 
         var result = await _payOs.createPaymentLink(paymentData);
         if (result.status == "PENDING")
@@ -40,21 +41,43 @@ public class PayOsService : IPayOsService
         return new PaymentResponse{IsSuccess = false};
     }
 
-    public async Task<bool> HandleWebhook(WebhookType type)
+    public async Task<bool> ConfirmWebhook(ConfirmWebhook body)
     {
-        WebhookData data =  _payOs.verifyPaymentWebhookData(type);
-        if (data.code == "00")
-        {
-            Console.WriteLine(data.desc);
-            var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
-            if (data.amount == order.TotalPrice)
-            {
-                order.OrderStatus = OrderStatus.Paid;
-                await _unitOfWork.SaveChangeAsync();
-            }
+        try
+        {   
+            await _payOs.confirmWebhook(body.webhook_url);
             return true;
         }
-        Console.WriteLine(data.desc);
-        return true;
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> HandleWebhook(WebhookType type)
+    {
+        try
+        {
+            WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            if (data.code == "00")
+            {
+                Console.WriteLine(data.desc);
+                var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
+                if (data.amount == order.TotalPrice)
+                {
+                    order.OrderStatus = OrderStatus.Paid;
+                    await _unitOfWork.SaveChangeAsync();
+                }
+                return true;
+            }
+            Console.WriteLine(data.desc);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        
     }
 }
