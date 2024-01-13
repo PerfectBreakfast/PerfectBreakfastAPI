@@ -58,7 +58,9 @@ public class PayOsService : IPayOsService
     {
         try
         {
-            WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            // khong check signature
+            //WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            var data = type.data;
             if (data.code == "00")
             {
                 Console.WriteLine(data.desc);
