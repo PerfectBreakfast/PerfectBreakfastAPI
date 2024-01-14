@@ -1,10 +1,7 @@
-using System.Linq.Expressions;
-using Microsoft.AspNetCore.Identity;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
-using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Interfaces;
 
@@ -14,7 +11,7 @@ public interface IUserService
     public Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request);
     public Task<OperationResult<bool>> SignUp(SignUpModel request);
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken();
-    public Task<OperationResult<UserResponse>> GetCurrentUser();
+    public Task<OperationResult<UserDetailResponse>> GetCurrentUser();
     
     
     // action normal

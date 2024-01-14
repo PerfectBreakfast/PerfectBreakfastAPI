@@ -121,14 +121,16 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> GetCurrentUser()
+    public async Task<OperationResult<UserDetailResponse>> GetCurrentUser()
     {
-        var result = new OperationResult<UserResponse>();
+        var result = new OperationResult<UserDetailResponse>();
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            result.Payload = _mapper.Map<UserResponse>(user);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId,x => x.Company);
+            var userDetailResponse = _mapper.Map<UserDetailResponse>(user);
+            userDetailResponse = userDetailResponse with { CompanyName = user.Company.Name };
+            result.Payload = userDetailResponse;
         }
         catch (Exception e)
         {
