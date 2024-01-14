@@ -14,6 +14,8 @@ public interface IUserService
     public Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request);
     public Task<OperationResult<bool>> SignUp(SignUpModel request);
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken();
+    public Task<OperationResult<UserResponse>> GetCurrentUser();
+    
     
     // action normal
     public Task<OperationResult<List<UserResponse>>> GetUsers();

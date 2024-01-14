@@ -40,4 +40,13 @@ public class AccountController : BaseController
         var response = await _userService.RefreshUserToken();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet("current-user")]
+    [ApiVersionNeutral]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var response = await _userService.GetCurrentUser();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

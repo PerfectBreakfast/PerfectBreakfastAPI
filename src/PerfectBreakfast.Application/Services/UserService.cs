@@ -121,6 +121,22 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<OperationResult<UserResponse>> GetCurrentUser()
+    {
+        var result = new OperationResult<UserResponse>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            result.Payload = _mapper.Map<UserResponse>(user);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
     public async Task<OperationResult<List<UserResponse>>> GetUsers()
     {
         var result = new OperationResult<List<UserResponse>>();
