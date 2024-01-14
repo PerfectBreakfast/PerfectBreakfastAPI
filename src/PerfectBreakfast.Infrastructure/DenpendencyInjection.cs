@@ -38,7 +38,6 @@ public static class DenpendencyInjection
         var config = TypeAdapterConfig.GlobalSettings;
         config.Scan(Assembly.GetExecutingAssembly());
         services.AddSingleton(config);
-        services.AddSingleton<ICurrentTime, CurrentTime>();
         services.AddScoped<IMapper, ServiceMapper>();
 
         // register service here
