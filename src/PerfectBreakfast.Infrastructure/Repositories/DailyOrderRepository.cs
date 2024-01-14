@@ -13,7 +13,9 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<DailyOrder?> FindByCompanyId(Guid? companyId)
         {
-            return await _dbSet.Where(d => d.CompanyId == companyId).FirstOrDefaultAsync();
+            return await _dbSet.Where(d => d.CompanyId == companyId)
+                .OrderByDescending(d => d.CreationDate)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<List<DailyOrder>> FindByCreationDate(DateTime dateTime)

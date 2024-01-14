@@ -95,6 +95,7 @@ namespace PerfectBreakfast.Application.Services
                 decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
                 var listComboFood = _mapper.Map<List<FoodResponse?>>(foodEntities);
                 var co = _mapper.Map<ComboResponse>(combo);
+                co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
                 co.FoodResponses = listComboFood;
                 co.comboPrice = totalFoodPrice;
                 result.Payload = co;

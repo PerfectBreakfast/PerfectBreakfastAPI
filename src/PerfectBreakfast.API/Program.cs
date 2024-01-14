@@ -1,14 +1,18 @@
+﻿using Hangfire;
 using PerfectBreakfast.API;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration.Get<AppConfiguration>();
-builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection,configuration.RedisConnection);
+builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection, configuration.RedisConnection);
 builder.Services.AddWebAPIService(configuration);
 builder.Services.AddSingleton(configuration);
+
+RecurringJob.AddOrUpdate<IDailyOrderService>(d => d.AutoUpdate(DateTime.UtcNow.AddHours(7)), Cron.Daily(9));
 
 var app = builder.Build();
 
@@ -31,5 +35,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors();
 app.MapControllers();
+
+app.UseHangfireDashboard("/hangfire");
 
 app.Run();
