@@ -14,8 +14,8 @@ builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection, co
 builder.Services.AddWebAPIService(configuration);
 builder.Services.AddSingleton(configuration);
 
-RecurringJob.AddOrUpdate<IDailyOrderService>(d => d.AutoCreate(DateTime.UtcNow.AddHours(7)), Cron.Daily(18));
-RecurringJob.AddOrUpdate<IDailyOrderService>(d => d.AutoUpdate(DateTime.UtcNow.AddHours(7)), Cron.Daily(9));
+RecurringJob.AddOrUpdate<IManagementService>(d => d.AutoCreateDailyOrderEachDay1AM(), Cron.Daily(18));
+RecurringJob.AddOrUpdate<IManagementService>(d => d.AutoUpdateDailyOrderAfter4PM(), Cron.Daily(9));
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
