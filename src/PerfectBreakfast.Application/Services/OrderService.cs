@@ -17,7 +17,7 @@ namespace PerfectBreakfast.Application.Services
         private readonly IClaimsService _claimsService;
         private readonly IPayOsService _payOsService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,IPayOsService payOsService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService, IPayOsService payOsService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -32,7 +32,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId(user.CompanyId);
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
                 if (dailyOrder is null)
                 {
                     result.AddUnknownError("CompanyId is not exsit");
@@ -90,7 +90,7 @@ namespace PerfectBreakfast.Application.Services
                             throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
                         }
                         break;
-                    
+
                     case "MOMO":          // Gọi tạo PaymentLink MoMO
                         break;
                 }

@@ -1,4 +1,6 @@
-﻿using Mapster;
+﻿using Hangfire;
+using Hangfire.Redis.StackExchange;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +14,7 @@ namespace PerfectBreakfast.Infrastructure;
 
 public static class DenpendencyInjection
 {
-    public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection,string redisConnection)
+    public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, string databaseConnection, string redisConnection)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
@@ -27,6 +29,10 @@ public static class DenpendencyInjection
                 mySqlOptions => mySqlOptions
                     .EnableRetryOnFailure());
         });
+
+        services.AddHangfire(configuration => configuration.UseRedisStorage(redisConnection));
+        JobStorage.Current = new RedisStorage(redisConnection);
+        services.AddHangfireServer();
 
         // register Mapster
         var config = TypeAdapterConfig.GlobalSettings;
