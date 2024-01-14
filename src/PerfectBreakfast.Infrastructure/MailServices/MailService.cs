@@ -15,7 +15,7 @@ public class MailService : IMailService
     {
         _appConfiguration = appConfiguration;
     }
-    
+
     public async Task<bool> SendAsync(MailDataViewModel mailData, CancellationToken ct)
     {
         try
@@ -39,6 +39,46 @@ public class MailService : IMailService
             mail.Body = body.ToMessageBody();
 
             //Send Email
+            using var smtp = new SmtpClient();
+            if (_appConfiguration.MailSetting.UseSsl) await smtp.ConnectAsync(_appConfiguration.MailSetting.Host, _appConfiguration.MailSetting.Port, SecureSocketOptions.SslOnConnect, ct);
+            if (_appConfiguration.MailSetting.UseStartTls) await smtp.ConnectAsync(_appConfiguration.MailSetting.Host, _appConfiguration.MailSetting.Port, SecureSocketOptions.StartTls, ct);
+
+            await smtp.AuthenticateAsync(_appConfiguration.MailSetting.UserName, _appConfiguration.MailSetting.Password, ct);
+            await smtp.SendAsync(mail, ct);
+            await smtp.DisconnectAsync(true, ct);
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> SendEmailAsync(MailDataViewModel mailData, CancellationToken ct)
+    {
+        try
+        {
+            // Initialize a new instance of MimeMessage 
+            var mail = new MimeMessage();
+
+            // From
+            mail.From.Add(new MailboxAddress(_appConfiguration.MailSetting.DisplayName, _appConfiguration.MailSetting.From));
+
+            // Receiver
+            foreach (string mailAddress in mailData.To)
+            {
+                mail.To.Add(MailboxAddress.Parse(mailAddress));
+            }
+
+            // Add content to MimeMessage
+            var body = new BodyBuilder();
+            mail.Subject = mailData.Subject;
+            body.HtmlBody = mailData.Body;
+            mail.Body = body.ToMessageBody();
+
+
+            // Send Email
             using var smtp = new SmtpClient();
             if (_appConfiguration.MailSetting.UseSsl) await smtp.ConnectAsync(_appConfiguration.MailSetting.Host, _appConfiguration.MailSetting.Port, SecureSocketOptions.SslOnConnect, ct);
             if (_appConfiguration.MailSetting.UseStartTls) await smtp.ConnectAsync(_appConfiguration.MailSetting.Host, _appConfiguration.MailSetting.Port, SecureSocketOptions.StartTls, ct);

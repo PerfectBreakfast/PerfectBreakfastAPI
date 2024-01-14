@@ -25,6 +25,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return await _dbSet
                 .Where(d => d.CreationDate.Date == dateToCompare)
                 .Include(d => d.Orders)
+                .Include(d => d.Company)
                 .ToListAsync();
         }
     }

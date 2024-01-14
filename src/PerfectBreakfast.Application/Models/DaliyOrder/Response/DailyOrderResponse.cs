@@ -1,4 +1,5 @@
-﻿using PerfectBreakfast.Domain.Enums;
+﻿using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Models.DaliyOrder.Response
 {
@@ -9,8 +10,6 @@ namespace PerfectBreakfast.Application.Models.DaliyOrder.Response
         public int? OrderQuantity { get; set; }
         public DateOnly BookingDate { get; set; }
         public DailyOrderStatus Status { get; set; }
-
-        public Guid? CompanyId { get; set; }
-        public Guid? AdminId { get; set; }
+        public Company? Company { get; set; }
     }
 }
