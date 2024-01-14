@@ -12,4 +12,6 @@ public class SupplierCommissionRate : BaseEntity
     public Supplier? Supplier { get; set; }
     
     public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
+
+    
 }

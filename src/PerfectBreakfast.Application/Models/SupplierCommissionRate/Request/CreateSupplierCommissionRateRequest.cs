@@ -1,6 +1,6 @@
 ﻿namespace PerfectBreakfast.Application.Models.SupplierCommissionRate.Request;
 
-public class CreateSupplierCommissionRateRequest
+public record CreateSupplierCommissionRateRequest
 {
     //public Guid? Id { get; set; }
     public int CommissionRate { get; set; }

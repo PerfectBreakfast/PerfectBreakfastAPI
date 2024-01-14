@@ -27,4 +27,9 @@ public class OperationResult<T>
         Errors.Add(new Error { Code = code, Message = message });
         IsError = true;
     }
+
+    public void AddValidationError(string foodIdAndSupplierIdCannotBeTheSame)
+    {
+        HandleError(ErrorCode.UnknownError, foodIdAndSupplierIdCannotBeTheSame);
+    }
 }

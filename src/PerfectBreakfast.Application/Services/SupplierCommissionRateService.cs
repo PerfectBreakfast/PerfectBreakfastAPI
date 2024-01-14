@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.SupplierCommissionRate.Respone;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
+
 namespace PerfectBreakfast.Application.Services;
 
 public class SupplierCommissionRateService : ISupplierCommissionRateService
@@ -61,15 +62,65 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         return result;
     }
 
-    public async Task<OperationResult<SupplierCommissionRateRespone>> CreateSupplierCommissionRate(CreateSupplierCommissionRateRequest createSupplierCommissionRateRequest)
+    // public async Task<OperationResult<SupplierMoreFoodRespone>> GetSupplierMoreFood(Guid supplierId)
+    // {
+    //     var result = new OperationResult<SupplierMoreFoodRespone>();
+    //     try
+    //     {
+    //         // Assuming there's a method to get food items by supplierId
+    //         var foods = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(supplierId);
+    //         if (foods == null)
+    //         {
+    //             result.AddValidationError("No food items found for the given supplier ID.");
+    //             return result;
+    //         }
+    //
+    //         var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(supplierId);
+    //         if (supplierCommissionRate == null || supplierCommissionRate.FoodId == null)
+    //         {
+    //             result.AddValidationError("No food items found for the given supplier ID.");
+    //             return result;
+    //         }
+    //         else
+    //         {
+    //             return result;
+    //         }
+    //
+    //         
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         result.AddUnknownError(e.Message);
+    //     }
+    //     return result;
+    // }
+
+    public async Task<OperationResult<List<SupplierCommissionRateRespone>>> CreateSupplierCommissionRate(CreateSupplierMoreFood createSupplierCommissionRateRequest)
     {
-        var result = new OperationResult<SupplierCommissionRateRespone>();
+        var result = new OperationResult<List<SupplierCommissionRateRespone>>();
         try
         {
-            var supplierCommissionRate = _mapper.Map<SupplierCommissionRate>(createSupplierCommissionRateRequest);
-            await _unitOfWork.SupplierCommissionRateRepository.AddAsync(supplierCommissionRate);
+            var responses = new List<SupplierCommissionRateRespone>();
+
+            foreach (var commissionRateRequest in createSupplierCommissionRateRequest.FoodId)
+            {
+                
+                if (commissionRateRequest.FoodId == commissionRateRequest.SupplierId)
+                {
+                    result.AddValidationError("Food ID and Supplier ID cannot be the same.");
+                    continue;
+                }
+
+                var supplierCommissionRate = _mapper.Map<SupplierCommissionRate>(commissionRateRequest);
+                await _unitOfWork.SupplierCommissionRateRepository.AddAsync(supplierCommissionRate);
+
+                
+                var response = _mapper.Map<SupplierCommissionRateRespone>(supplierCommissionRate);
+                responses.Add(response);
+            }
+
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<SupplierCommissionRateRespone>(supplierCommissionRate);
+            result.Payload = responses;
         }
         catch (Exception e)
         {
