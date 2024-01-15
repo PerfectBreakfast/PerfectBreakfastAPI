@@ -79,16 +79,17 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                         var updatedDailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId(company.Id);
                         dailyOrderList.Add(updatedDailyOrder);
                     }
-
-                    // Gửi email với file đính kèm
+                    
+                    
+                     // Gửi email với file đính kèm
                     var mailData = new MailDataViewModel(
-                        to: new List<string> { "phil41005@gmail.com" }, // Thay bằng địa chỉ email người nhận
+                        to: new List<string> { "viethungdev23@gmail.com" }, // Thay bằng địa chỉ email người nhận
                         subject: "Daily Order Report",
                         body: "Attached is the daily order report. Please find the attached Excel file.",
                         excelAttachmentStream: CreateExcelAndReturnStream(dailyOrderList),
                         excelAttachmentFileName: $"DailyOrder_{magementUnit.Name}_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
                     );
-                    await _mailService.SendAsync(mailData, CancellationToken.None);
+                    await _mailService.SendAsync(mailData, CancellationToken.None); 
                 }
 
             }
@@ -98,8 +99,8 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             }
 
         }
-
-        static Stream CreateExcelAndReturnStream(List<DailyOrder> dailyOrders)
+        
+        public byte[] CreateExcelAndReturnStream(List<DailyOrder> dailyOrders)
         {
             using (var package = new ExcelPackage())
             {
@@ -123,13 +124,8 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     row++;
                 }
 
-                MemoryStream stream = new MemoryStream();
-                package.SaveAs(stream);
-
-                // Đặt con trỏ stream về đầu để chuẩn bị cho việc đọc
-                stream.Position = 0;
-
-                return stream;
+                byte[] byteArray = package.GetAsByteArray();
+                return byteArray;
             }
         }
     }

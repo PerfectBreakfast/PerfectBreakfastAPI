@@ -36,6 +36,10 @@ public class MailService : IMailService
             var body = new BodyBuilder();
             mail.Subject = mailData.Subject;
             body.HtmlBody = mailData.Body;
+            if (mailData.ExcelAttachmentStream != null && !string.IsNullOrEmpty(mailData.ExcelAttachmentFileName))
+            {
+                body.Attachments.Add(mailData.ExcelAttachmentFileName, mailData.ExcelAttachmentStream);
+            }
             mail.Body = body.ToMessageBody();
 
             //Send Email
