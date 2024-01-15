@@ -2,6 +2,7 @@
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Request;
+using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -28,6 +29,12 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.GetSupplierCommissionRateId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    // [HttpGet("GetSupplierMoreFood/{supplierId}")]
+    // public async Task<IActionResult> GetSupplierMoreFood(Guid supplierId)
+    // {
+    //     var response = await _supplierCommissionRate.GetSupplierMoreFood(supplierId);
+    //     return response.IsError ? BadRequest(response.Errors) : Ok(response.Payload);
+    // }
 
     [HttpPost]
     public async Task<IActionResult> CreateSupplierCommissionRate(CreateSupplierCommissionRateRequest supplierCommissionRateRequest)
@@ -63,4 +70,10 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.Delete(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    // [HttpPost("{id}/supplier-id")]
+    // public async Task<IActionResult> CreateSupplierMoreFood(CreateSupplierMoreFood supplierMoreFood)
+    // {
+    //     var response = await _supplierCommissionRate.CreateSupplierMoreFood(supplierMoreFood);
+    //     return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    // }
 }
