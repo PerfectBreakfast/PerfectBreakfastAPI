@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Respone;
 using PerfectBreakfast.Application.Repositories;
@@ -14,6 +15,6 @@ public class SupplierCommissionRateRepository : GenericRepository<SupplierCommis
 
     public async Task<bool> AnyAsync(Expression<Func<SupplierCommissionRate, bool>> predicate)
     {
-        throw new NotImplementedException();
+        return await _dbSet.AnyAsync(predicate);
     }
 }

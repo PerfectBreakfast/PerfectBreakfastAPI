@@ -16,13 +16,13 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly ISupplierCommissionRateRepository _supplierCommissionRateRepository;
+    //private readonly ISupplierCommissionRateRepository _supplierCommissionRateRepository;
 
-    public SupplierCommissionRateService(IUnitOfWork unitOfWork, IMapper mapper, ISupplierCommissionRateRepository supplierCommissionRateRepository)
+    public SupplierCommissionRateService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _supplierCommissionRateRepository = supplierCommissionRateRepository;
+        //_supplierCommissionRateRepository = supplierCommissionRateRepository;
     }
 
     public async Task<OperationResult<List<SupplierCommissionRateRespone>>> GetSupplierCommissionRates()
@@ -80,7 +80,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
             }
 
             // Check if the combination of SupplierId and FoodId already exists
-            bool alreadyExists = await _supplierCommissionRateRepository
+            bool alreadyExists = await _unitOfWork.SupplierCommissionRateRepository
                 .AnyAsync(scr => scr.FoodId == foodId && scr.SupplierId == request.SupplierId);
             if (alreadyExists)
             {
@@ -95,7 +95,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
                 SupplierId = request.SupplierId,
                 CommissionRate = request.CommissionRate
             };
-            await _supplierCommissionRateRepository.AddAsync(newCommissionRate);
+            await _unitOfWork.SupplierCommissionRateRepository.AddAsync(newCommissionRate);
 
             // Map to response DTO and add to the response list
             var responseDto = _mapper.Map<SupplierCommissionRateRespone>(newCommissionRate);
