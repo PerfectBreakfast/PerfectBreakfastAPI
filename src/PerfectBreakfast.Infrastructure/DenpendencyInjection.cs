@@ -32,8 +32,12 @@ public static class DenpendencyInjection
                 mySqlOptions => mySqlOptions
                     .EnableRetryOnFailure());
         });
-
-        services.AddHangfire(configuration => configuration.UseRedisStorage(redisConnection));
+        
+        // register hangfire 
+        services.AddHangfire(opt =>
+        {
+            opt.UseRedisStorage(redisConnection);
+        });
         JobStorage.Current = new RedisStorage(redisConnection);
         services.AddHangfireServer();
 

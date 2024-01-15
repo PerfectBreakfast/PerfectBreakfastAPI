@@ -14,14 +14,24 @@ builder.Services.AddInfrastructuresService(configuration!.DatabaseConnection, co
 builder.Services.AddWebAPIService(configuration);
 builder.Services.AddSingleton(configuration);
 
-RecurringJob.AddOrUpdate<IManagementService>(d => d.AutoCreateDailyOrderEachDay1AM(), Cron.Daily(18));
-RecurringJob.AddOrUpdate<IManagementService>(d => d.AutoUpdateDailyOrderAfter4PM(), Cron.Daily(9));
+// set Job create DailyOrder everyDay 1AM
+RecurringJob.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
+    d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(1),new RecurringJobOptions()
+{
+    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+});
+
+// set Job Update DailyOrder everyDay 16PM
+RecurringJob.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
+    d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(16),new RecurringJobOptions()
+{
+    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+});
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var app = builder.Build();
 
-//app.MapGroup("/account").MapIdentityApi<User>();
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 {
