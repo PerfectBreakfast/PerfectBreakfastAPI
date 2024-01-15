@@ -37,7 +37,7 @@ public class SupplierCommissionRateController : BaseController
     // }
 
     [HttpPost]
-    public async Task<IActionResult> CreateSupplierCommissionRate(CreateSupplierMoreFood supplierCommissionRateRequest)
+    public async Task<IActionResult> CreateSupplierCommissionRate(CreateSupplierCommissionRateRequest supplierCommissionRateRequest)
     {
         var response = await _supplierCommissionRate.CreateSupplierCommissionRate(supplierCommissionRateRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

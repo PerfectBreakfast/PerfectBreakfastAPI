@@ -1,4 +1,5 @@
-﻿using PerfectBreakfast.Application.Interfaces;
+﻿using System.Linq.Expressions;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Respone;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -9,5 +10,10 @@ public class SupplierCommissionRateRepository : GenericRepository<SupplierCommis
 {
     public SupplierCommissionRateRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) : base(context, timeService, claimsService)
     {
+    }
+
+    public async Task<bool> AnyAsync(Expression<Func<SupplierCommissionRate, bool>> predicate)
+    {
+        throw new NotImplementedException();
     }
 }

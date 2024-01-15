@@ -2,8 +2,8 @@
 
 public record CreateSupplierCommissionRateRequest
 {
-    //public Guid? Id { get; set; }
+    //public Guid FoodId { get; }
+    public List<Guid> FoodIds { get; set; } // List of FoodIds
+    public Guid SupplierId { get; set; }    // Single SupplierId
     public int CommissionRate { get; set; }
-    public Guid? FoodId { get; set; }
-    public Guid? SupplierId { get; set; }
 }
