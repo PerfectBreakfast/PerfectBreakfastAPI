@@ -14,7 +14,7 @@ namespace PerfectBreakfast.Application.Interfaces
     public interface ICategoryService
     {
         public Task<OperationResult<List<CategoryResponse>>> GetAllCategorys();
-       
+        public Task<OperationResult<List<CategoryDetailFood>>> GetCategoryId(Guid categoryId);
         public Task<OperationResult<CategoryResponse>> CreateCategory(CreateCategoryRequest requestModel);
         public Task<OperationResult<CategoryResponse>> UpdateCategory(Guid categoryId, UpdateCategoryRequest requestModel);
         public Task<OperationResult<CategoryResponse>> RemoveCategory(Guid categoryId);

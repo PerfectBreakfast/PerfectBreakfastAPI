@@ -23,7 +23,12 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _categoryService.GetAllCategorys();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
-
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryById(Guid id)
+        {
+            var response = await _categoryService.GetCategoryId(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
         
 
         [HttpPost]
