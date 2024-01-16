@@ -1,6 +1,7 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -53,13 +54,22 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<FoodResponse>> GetFoodById(Guid foodId)
+        public async Task<OperationResult<FoodResponeCategory>> GetFoodById(Guid foodId)
         {
-            var result = new OperationResult<FoodResponse>();
+            var result = new OperationResult<FoodResponeCategory>();
             try
             {
-                var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
-                result.Payload = _mapper.Map<FoodResponse>(food);
+                var food = await _unitOfWork.FoodRepository.FindSingleAsync(o => o.Id == foodId, o=>o.Category);
+                if (food is null)
+                {
+                    result.AddUnknownError("Id is not exist");
+                    return result;
+                }
+
+                var category = _mapper.Map<CategoryResponse>(food.Category);
+                var o = _mapper.Map<FoodResponeCategory>(food);
+                o.CategoryResponse = category;
+                result.Payload = o;
             }
             catch (Exception e)
             {
