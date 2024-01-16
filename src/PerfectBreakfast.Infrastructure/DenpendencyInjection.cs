@@ -39,6 +39,7 @@ public static class DenpendencyInjection
             opt.UseRedisStorage(redisConnection);
         });
         JobStorage.Current = new RedisStorage(redisConnection);
+        //services.AddHangfire(c => c.UseMemoryStorage());
         services.AddHangfireServer();
 
         // register Mapster
