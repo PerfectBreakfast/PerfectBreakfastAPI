@@ -21,14 +21,14 @@ var app = builder.Build();
 var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
 // set Job create DailyOrder everyDay 1AM
 recurringJobs.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
-    d.AutoCreateDailyOrderEachDay1AM(),Cron.Minutely,new RecurringJobOptions()
+    d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(1),new RecurringJobOptions()
 {
     TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
 
 // set Job Update DailyOrder everyDay 16PM
 recurringJobs.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
-    d.AutoUpdateDailyOrderAfter4PM(),Cron.Minutely,new RecurringJobOptions()
+    d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(16),new RecurringJobOptions()
 {
     TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
