@@ -112,8 +112,20 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<Pagination<ComboResponse>>();
             try
             {
-                var combo = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize);
-                result.Payload = _mapper.Map<Pagination<ComboResponse>>(combo);
+                var combos = await _unitOfWork.ComboRepository.GetAllCombo();
+                List<ComboResponse> comboResponses = new List<ComboResponse>();
+                foreach (var combo in combos)
+                {
+                    var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                    decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
+                    var co = _mapper.Map<ComboResponse>(combo);
+                    co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
+                    co.comboPrice = totalFoodPrice;
+                    comboResponses.Add(co);
+                }
+
+                var comboPagination = await _unitOfWork.ComboRepository.GetAllCombosWithPaginationAsync(pageIndex, pageSize, comboResponses);
+                result.Payload = _mapper.Map<Pagination<ComboResponse>>(comboPagination);
             }
             catch (Exception e)
             {
