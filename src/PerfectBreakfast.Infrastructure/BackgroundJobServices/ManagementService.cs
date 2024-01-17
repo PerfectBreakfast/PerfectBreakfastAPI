@@ -9,6 +9,7 @@ using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 using System.Drawing;
+using System.Text;
 
 namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 {
@@ -35,14 +36,14 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 foreach (var company in companies)
                 {
                     var dailyOrder = new DailyOrder();
-                    dailyOrder.Company = company;
+                    dailyOrder.CompanyId = company.Id;
                     dailyOrder.BookingDate = bookingDate.AddDays(1);
                     dailyOrder.Status = DailyOrderStatus.Pending;
                     dailyOrder.OrderQuantity = 0;
                     dailyOrder.TotalPrice = 0;
                     await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
+                    await _unitOfWork.SaveChangeAsync();
                 }
-                await _unitOfWork.SaveChangeAsync();
             }
             catch (Exception e)
             {
@@ -52,7 +53,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 
         public async Task AutoUpdateDailyOrderAfter4PM()
         {
-            var result = new OperationResult<DailyOrderResponse>();
             try
             {
                 var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByCreationDate(_currentTime.GetCurrentTime());
@@ -73,10 +73,11 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 }
                 else
                 {
-                    throw new Exception("khong co dailyOrders");
+                    throw new Exception("khong co dailyOrders được tạo hôm nay");
                 }
 
-                var magementUnits = await _unitOfWork.ManagementUnitRepository.FindAll(m => m.Companies).ToListAsync();
+                // Xử lý dữ liệu để đẩy cho các đối tác theo cty 
+                /*var magementUnits = await _unitOfWork.ManagementUnitRepository.FindAll(m => m.Companies).ToListAsync();
 
                 foreach (var magementUnit in magementUnits)
                 {
@@ -102,6 +103,8 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                             }
                         }
                     }
+                    
+                    
 
                     // Gửi email với file đính kèm
                     var mailData = new MailDataViewModel(
@@ -112,10 +115,84 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                         excelAttachmentFileName: $"DailyOrder_{magementUnit.Name}_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
                     );
                     await _mailService.SendAsync(mailData, CancellationToken.None);
+                }*/
+                
+                //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
+                var now = _currentTime.GetCurrentTime();
+                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
+                foreach (var managementUnit in managementUnits)
+                {
+                    // Lấy danh sách các công ty thuộc MU
+                    var companies = managementUnit.Companies;
+                    
+                    // xử lý mỗi cty
+                    foreach (var company in companies)
+                    {
+                        var foodCounts = new Dictionary<string, int>();
+                        
+                        // Lấy danh sách các daily order
+                        var dailyorders = company.DailyOrders.Where(x => x.CreationDate.Date == now.Date);
+                        
+                        // Duuyệt qua từng daily order
+                        foreach (var dailyorder in dailyorders)  
+                        {
+                            // Lấy chi tiết các order detail
+                            var orderDetails = dailyorder.Orders.SelectMany(o => o.OrderDetails);
+     
+                            // Đếm số lượng từng loại food
+                            foreach (var orderDetail in orderDetails)
+                            {
+                                if (orderDetail.Combo != null) 
+                                {
+                                    // Nếu là combo thì lấy chi tiết các food trong combo
+                                    var comboFoods = orderDetail.Combo.ComboFoods;
+    
+                                    // Với mỗi food trong combo, cộng dồn số lượng
+                                    foreach (var comboFood in comboFoods)
+                                    {
+                                        var foodName = comboFood.Food.Name;
+                                        //... cộng dồn số lượng cho từng food
+                                        if (foodCounts.ContainsKey(foodName))
+                                        {
+                                            foodCounts[foodName] += orderDetail.Quantity;  
+                                        }
+                                        else
+                                        {
+                                            foodCounts[foodName] = orderDetail.Quantity;
+                                        }
+                                    }
+
+                                }
+                                else if (orderDetail.Food != null)
+                                {
+                                    // Xử lý order detail là food đơn lẻ
+                                    var foodName = orderDetail.Food.Name;
+                                    // cộng dồn số lượng cho từng food
+                                    if (foodCounts.ContainsKey(foodName))
+                                    {
+                                        foodCounts[foodName] += orderDetail.Quantity;  
+                                    }
+                                    else
+                                    {
+                                        foodCounts[foodName] = orderDetail.Quantity;
+                                    }
+                                }
+                            }
+                        }
+                        // console ra xem tính toán đúng chưa 
+                        Console.OutputEncoding = Encoding.UTF8;
+                        Console.WriteLine($"Company: {company.Name}");
+                        foreach (var foodCount in foodCounts)
+                        {
+                            if(foodCounts.Count <= 0) Console.WriteLine("- không có đặt món nào!");
+                            Console.WriteLine($"- {foodCount.Key}: {foodCount.Value}"); 
+                        }
+                    }
                 }
             }
             catch (Exception e)
             {
+                Console.WriteLine("looix gi do ");
                 throw new Exception($"{e.Message}");
             }
         }
