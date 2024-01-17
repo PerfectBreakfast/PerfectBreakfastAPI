@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -11,4 +12,13 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>,IManag
     {
     }
     // to do
+    public async Task<ManagementUnit?> GetManagementUintDetail(Guid id)
+    {
+        var managementUnit = await _dbSet.Where(x => x.Id == id)
+            .Include(x => x.SupplyAssignments)
+            .ThenInclude(x=> x.Supplier).SingleOrDefaultAsync();
+        return managementUnit;
+
+
+    }
 }

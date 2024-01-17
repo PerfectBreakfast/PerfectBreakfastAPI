@@ -1,6 +1,8 @@
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -30,6 +32,38 @@ public class SupplierService : ISupplierService
         {
             result.AddUnknownError(e.Message);
         }
+        return result;
+    }
+
+    public async Task<OperationResult<SupplierResponse>> GetSupplierId(Guid Id)
+    {
+        var result = new OperationResult<SupplierResponse>();
+        try
+        {
+            var supp = await _unitOfWork.SupplierRepository.GetSupplierUintDetail(Id);
+            if (supp == null)
+            {
+                result.AddUnknownError("Id does not exist");
+                return result;
+            }
+
+            var managementUnit = supp.SupplyAssignments.Select(o => o.ManagementUnit).ToList();
+            
+            var supplier = _mapper.Map<SupplierResponse>(supp);
+            
+            supplier.ManagementUnitDtos = _mapper.Map<List<ManagementUnitDTO>>(managementUnit);
+
+            result.Payload = supplier;
+        }
+        catch (NotFoundIdException e)
+        {
+            result.AddError(ErrorCode.NotFound, e.Message);
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+
         return result;
     }
 

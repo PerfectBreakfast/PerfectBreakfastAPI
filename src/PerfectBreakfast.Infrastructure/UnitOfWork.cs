@@ -54,4 +54,5 @@ public class UnitOfWork : IUnitOfWork
     public IOrderRepository OrderRepository => new OrderRepository(_dbContext, _currentTime, _claimsService);
     public ISupplierCommissionRateRepository SupplierCommissionRateRepository =>
         new SupplierCommissionRateRepository(_dbContext, _currentTime, _claimsService);
+    public ISupplyAssigmentRepository SupplyAssigmentRepository => new SupplyAssigmentRepository(_dbContext);
 }
