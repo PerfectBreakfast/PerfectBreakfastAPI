@@ -11,6 +11,18 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
         }
 
+        public async Task<DailyOrder?> FindAllDataByCompanyId(Guid? companyId)
+        {
+            return await _dbSet.Where(d => d.CompanyId == companyId)
+                .Include(o => o.Orders)
+                    .ThenInclude(d => d.OrderDetails)
+                        .ThenInclude(c => c.Combo)
+                            .ThenInclude(m => m.MenuFoods)
+                                .ThenInclude(f => f.Food)
+                .OrderByDescending(d => d.CreationDate)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<DailyOrder?> FindByCompanyId(Guid? companyId)
         {
             return await _dbSet.Where(d => d.CompanyId == companyId)
