@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -11,4 +12,11 @@ public class SupplierRepository : GenericRepository<Supplier>,ISupplierRepositor
     {
     }
     // to do
+    public async Task<Supplier?> GetSupplierUintDetail(Guid id)
+    {
+        var supplier = await _dbSet.Where(x => x.Id == id)
+            .Include(x => x.SupplyAssignments)
+            .ThenInclude(x=> x.ManagementUnit).SingleOrDefaultAsync();
+        return supplier;
+    }
 }

@@ -15,11 +15,11 @@ public interface IUnitOfWork : IDisposable
     public IRoleRepository RoleRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
     public IFoodRepository FoodRepository { get; }
-
     public IMenuRepository MenuRepository { get; }
     public IPaymentMethodRepository PaymentMethodRepository { get; }
     public IComboRepository ComboRepository { get; }
     public IDailyOrderRepository DailyOrderRepository { get; }
     public IOrderRepository OrderRepository { get; }
     public ISupplierCommissionRateRepository SupplierCommissionRateRepository { get; }
+    public ISupplyAssigmentRepository SupplyAssigmentRepository { get; }
 }

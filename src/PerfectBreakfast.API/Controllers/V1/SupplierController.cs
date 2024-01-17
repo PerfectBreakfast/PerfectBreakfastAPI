@@ -76,4 +76,11 @@ public class SupplierController : BaseController
         var response = await _supplierService.RemoveSupplier(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetSupplierId(Guid id)
+    {
+        var response = await _supplierService.GetSupplierId(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
