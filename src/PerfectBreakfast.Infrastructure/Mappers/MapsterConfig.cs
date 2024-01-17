@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
+using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
@@ -18,5 +19,6 @@ public class MapsterConfig : IRegister
         config.NewConfig<Category, CategoryResponse>();
         config.NewConfig<DeliveryUnit, DeliveryUnitResponseModel>();
         config.NewConfig<ManagementUnit, ManagementUnitResponseModel>();
+        config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
     }
 }

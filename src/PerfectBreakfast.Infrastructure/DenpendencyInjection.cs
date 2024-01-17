@@ -66,6 +66,7 @@ public static class DenpendencyInjection
         services.AddScoped<IPayOsService, PayOsService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ISupplierCommissionRateService, SupplierCommissionRateService>();
+        services.AddScoped<ISupplyAssigmentService, SupplyAssigmentService>();
         return services;
     }
 }
