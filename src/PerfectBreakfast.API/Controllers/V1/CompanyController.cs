@@ -27,6 +27,13 @@ public class CompanyController : BaseController
         var response = await _companyService.GetCompany(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet("{id}/users")]
+    public async Task<IActionResult> GetUsersByCompany(Guid id)
+    {
+        var response = await _companyService.GetUsersByCompanyId(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     [HttpPost]
     public async Task<IActionResult> CreateCompany(CompanyRequest companyRequest)
