@@ -61,7 +61,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     foreach (var dailyOrderEntity in dailyOrders)
                     {
                         var orders = dailyOrderEntity.Orders;
-                        // Lọc các đơn đặt hàng có OrderStatus là Paid
                         orders = orders.Where(o => o.OrderStatus == OrderStatus.Paid).ToList();
                         var totalOrderPrice = orders.Sum(o => o.TotalPrice);
                         var totalOrder = orders.Count();
