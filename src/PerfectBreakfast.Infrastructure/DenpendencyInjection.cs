@@ -1,5 +1,4 @@
 ﻿using Hangfire;
-using Hangfire.Redis.StackExchange;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -34,14 +33,16 @@ public static class DenpendencyInjection
         });
         
         // register hangfire 
-        services.AddHangfire(opt =>
+        services.AddHangfire(hangfire =>
         {
-            opt.UseRedisStorage(redisConnection);
+            hangfire.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
+            hangfire.UseSimpleAssemblyNameTypeSerializer();
+            hangfire.UseRecommendedSerializerSettings();
+            hangfire.UseColouredConsoleLogProvider();
+            hangfire.UseSqlServerStorage("Server=202.92.4.186,1433;Database=Test;uid=sa;pwd=Viethung3900@;");
         });
-        JobStorage.Current = new RedisStorage(redisConnection);
-        //services.AddHangfire(c => c.UseMemoryStorage());
         services.AddHangfireServer();
-
+    
         // register Mapster
         var config = TypeAdapterConfig.GlobalSettings;
         config.Scan(Assembly.GetExecutingAssembly());
