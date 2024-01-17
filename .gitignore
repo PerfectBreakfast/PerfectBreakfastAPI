@@ -264,3 +264,10 @@ Packages.props
 
 #Local Log Files
 log*.txt
+
+# Hangfire SQLite database
+Hangfire.db
+
+# Hangfire SQLite temporary files
+Hangfire.db-shm
+Hangfire.db-wal

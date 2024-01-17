@@ -1,5 +1,4 @@
 ﻿using Hangfire;
-using Hangfire.Redis.StackExchange;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +9,7 @@ using PerfectBreakfast.Infrastructure.BackgroundJobServices;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
+using Hangfire.Storage.SQLite;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -34,14 +34,16 @@ public static class DenpendencyInjection
         });
         
         // register hangfire 
-        services.AddHangfire(opt =>
+        services.AddHangfire(hangfire =>
         {
-            opt.UseRedisStorage(redisConnection);
+            hangfire.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
+            hangfire.UseSimpleAssemblyNameTypeSerializer();
+            hangfire.UseRecommendedSerializerSettings();
+            hangfire.UseColouredConsoleLogProvider();
+            hangfire.UseSQLiteStorage("Hangfire.db"); // storage by SQLite
         });
-        JobStorage.Current = new RedisStorage(redisConnection);
-        //services.AddHangfire(c => c.UseMemoryStorage());
         services.AddHangfireServer();
-
+    
         // register Mapster
         var config = TypeAdapterConfig.GlobalSettings;
         config.Scan(Assembly.GetExecutingAssembly());

@@ -18,21 +18,6 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var app = builder.Build();
 
-var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
-// set Job create DailyOrder everyDay 1AM
-recurringJobs.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
-    d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(1),new RecurringJobOptions()
-{
-    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
-});
-
-// set Job Update DailyOrder everyDay 16PM
-recurringJobs.AddOrUpdate<IManagementService>(Guid.NewGuid().ToString(),d => 
-    d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(16),new RecurringJobOptions()
-{
-    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
-});
-
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 {
@@ -63,6 +48,20 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
             Pass = "123456"
         }
     }
+});
+var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+// set Job create DailyOrder everyDay 1AM
+recurringJobs.AddOrUpdate<IManagementService>("recurringJob1",d =>
+    d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(18),new RecurringJobOptions()
+{
+    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+});
+
+// set Job Update DailyOrder everyDay 16PM
+recurringJobs.AddOrUpdate<IManagementService>("recurringJob2",d =>
+    d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(9),new RecurringJobOptions()
+{
+    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
 
 app.Run();
