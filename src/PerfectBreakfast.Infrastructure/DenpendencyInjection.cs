@@ -9,6 +9,7 @@ using PerfectBreakfast.Infrastructure.BackgroundJobServices;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
+using Hangfire.Storage.SQLite;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -39,7 +40,7 @@ public static class DenpendencyInjection
             hangfire.UseSimpleAssemblyNameTypeSerializer();
             hangfire.UseRecommendedSerializerSettings();
             hangfire.UseColouredConsoleLogProvider();
-            hangfire.UseSqlServerStorage("Server=202.92.4.186,1433;Database=Test;uid=sa;pwd=Viethung3900@;");
+            hangfire.UseSQLiteStorage("Hangfire.db"); // storage by SQLite
         });
         services.AddHangfireServer();
     
