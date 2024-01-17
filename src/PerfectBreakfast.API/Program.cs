@@ -54,14 +54,14 @@ var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
 recurringJobs.AddOrUpdate<IManagementService>("recurringJob1",d =>
     d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(1),new RecurringJobOptions()
 {
-    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
 
 // set Job Update DailyOrder everyDay 16PM
 recurringJobs.AddOrUpdate<IManagementService>("recurringJob2",d =>
     d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(16),new RecurringJobOptions()
 {
-    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
 //RecurringJob.AddOrUpdate(() => Console.WriteLine("hello dân chơi hàngire"),"* * * * *");
 
