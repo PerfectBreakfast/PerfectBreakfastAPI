@@ -1,9 +1,12 @@
+using Mapster;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -39,17 +42,28 @@ public class ManagementUnitService : IManagementUnitService
         var result = new OperationResult<ManagementUnitResponseModel>();
         try
         {
-            var deliveryUnit = await _unitOfWork.ManagementUnitRepository.GetByIdAsync(Id);
-            result.Payload = _mapper.Map<ManagementUnitResponseModel>(deliveryUnit);
+            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementUintDetail(Id);
+            if (managementUnit == null)
+            {
+                result.AddUnknownError("Id does not exist");
+                return result;
+            }
+
+            var suppliers = managementUnit.SupplyAssignments.Select(o => o.Supplier).ToList();
+            var mana = _mapper.Map<ManagementUnitResponseModel>(managementUnit);
+            mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
+
+            result.Payload = mana;
         }
         catch (NotFoundIdException e)
         {
-            result.AddError(ErrorCode.NotFound,e.Message);
+            result.AddError(ErrorCode.NotFound, e.Message);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            result.AddUnknownError(e.Message);
+            result.AddUnknownError(ex.Message);
         }
+
         return result;
     }
 

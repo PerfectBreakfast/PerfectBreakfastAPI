@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Models.CompanyModels.Request;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -50,6 +51,26 @@ public class CompanyService : ICompanyService
         catch (NotFoundIdException)
         {
             result.AddUnknownError("Id is not exsit");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<UserResponse>>> GetUsersByCompanyId(Guid id)
+    {
+        var result = new OperationResult<List<UserResponse>>();
+        try
+        {
+            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, c => c.Workers);
+            var users = company.Workers;
+            result.Payload = _mapper.Map<List<UserResponse>>(users);
+        }
+        catch (NotFoundIdException e)
+        {
+            result.AddError(ErrorCode.NotFound,e.Message);
         }
         catch (Exception e)
         {

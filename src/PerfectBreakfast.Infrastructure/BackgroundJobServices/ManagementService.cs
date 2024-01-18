@@ -1,9 +1,9 @@
 ﻿using MapsterMapper;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
+using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 using System.Drawing;
@@ -34,14 +34,14 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 foreach (var company in companies)
                 {
                     var dailyOrder = new DailyOrder();
-                    dailyOrder.Company = company;
+                    dailyOrder.CompanyId = company.Id;
                     dailyOrder.BookingDate = bookingDate.AddDays(1);
                     dailyOrder.Status = DailyOrderStatus.Pending;
                     dailyOrder.OrderQuantity = 0;
                     dailyOrder.TotalPrice = 0;
                     await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
+                    await _unitOfWork.SaveChangeAsync();
                 }
-                await _unitOfWork.SaveChangeAsync();
             }
             catch (Exception e)
             {
@@ -51,7 +51,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 
         public async Task AutoUpdateDailyOrderAfter4PM()
         {
-            var result = new OperationResult<DailyOrderResponse>();
             try
             {
                 var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByCreationDate(_currentTime.GetCurrentTime());
@@ -72,15 +71,16 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 }
                 else
                 {
-                    throw new Exception("khong co dailyOrders");
+                    throw new Exception("khong co dailyOrders được tạo hôm nay");
                 }
-                /*
-                var magementUnits = await _unitOfWork.ManagementUnitRepository.FindAll(m => m.Companies).ToListAsync();
+
+                // Xử lý dữ liệu để đẩy cho các đối tác theo cty 
+                /*var magementUnits = await _unitOfWork.ManagementUnitRepository.FindAll(m => m.Companies).ToListAsync();
 
                 foreach (var magementUnit in magementUnits)
                 {
                     var dailyOrderList = new List<DailyOrder>();
-                    var dailyOrderExcelList = new List<DailyOrderResponseExcel>();
+                    
                     foreach (var company in magementUnit.Companies)
                     {
                         var updatedDailyOrder = await _unitOfWork.DailyOrderRepository.FindAllDataByCompanyId(company.Id);
@@ -101,20 +101,14 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                             }
                         }
                     }
+                    
+                    
 
-                    // Gửi email với file đính kèm
-                    var mailData = new MailDataViewModel(
-                        to: new List<string> { "phil41005@gmail.com" }, // Thay bằng địa chỉ email người nhận
-                        subject: "Daily Order Report",
-                        body: "Attached is the daily order report. Please find the attached Excel file.",
-                        excelAttachmentStream: CreateExcelAndReturnStream(dailyOrderExcelList),
-                        excelAttachmentFileName: $"DailyOrder_{magementUnit.Name}_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
-                    );
-                    await _mailService.SendAsync(mailData, CancellationToken.None);
-                }
-                */
+                    
+                }*/
 
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
+                var dailyOrderExcelList = new List<DailyOrderResponseExcel>();
                 var now = _currentTime.GetCurrentTime();
                 var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
                 foreach (var managementUnit in managementUnits)
@@ -157,6 +151,16 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                                         {
                                             foodCounts[foodName] = orderDetail.Quantity;
                                         }
+                                        DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
+                                        {
+                                            TotalPrice = dailyorder.TotalPrice,
+                                            OrderQuantity = dailyorder.OrderQuantity,
+                                            BookingDate = dailyorder.BookingDate,
+                                            Company = dailyorder.Company,
+                                            FoodCount = foodCounts
+                                        };
+                                        //var dailyOrderExcel = _mapper.Map<DailyOrderResponseExcel>(dailyorder);
+                                        dailyOrderExcelList.Add(dailyOrderExcel);
                                     }
 
                                 }
@@ -173,6 +177,17 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                                     {
                                         foodCounts[foodName] = orderDetail.Quantity;
                                     }
+
+                                    DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
+                                    {
+                                        TotalPrice = dailyorder.TotalPrice,
+                                        OrderQuantity = dailyorder.OrderQuantity,
+                                        BookingDate = dailyorder.BookingDate,
+                                        Company = dailyorder.Company,
+                                        FoodCount = foodCounts
+                                    };
+                                    //var dailyOrderExcel = _mapper.Map<DailyOrderResponseExcel>(dailyorder);
+                                    dailyOrderExcelList.Add(dailyOrderExcel);
                                 }
                             }
                         }
@@ -185,10 +200,21 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                             Console.WriteLine($"- {foodCount.Key}: {foodCount.Value}");
                         }
                     }
+
                 }
+                // Gửi email với file đính kèm
+                var mailData = new MailDataViewModel(
+                    to: new List<string> { "phil41005@gmail.com" }, // Thay bằng địa chỉ email người nhận
+                    subject: "Daily Order Report",
+                    body: "Attached is the daily order report. Please find the attached Excel file.",
+                    excelAttachmentStream: CreateExcelAndReturnStream(dailyOrderExcelList),
+                    excelAttachmentFileName: $"DailyOrder_managementUnit.Name_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
+                );
+                await _mailService.SendAsync(mailData, CancellationToken.None);
             }
             catch (Exception e)
             {
+                Console.WriteLine("looix gi do ");
                 throw new Exception($"{e.Message}");
             }
         }
@@ -223,6 +249,15 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 worksheet.Cells["C2"].Value = "Order Quantity";
                 worksheet.Cells["D2"].Value = "Booking Date";
 
+                // Assuming each dictionary in the FoodCount list has keys "FoodName" and "Quantity"
+                int foodColumn = 5; // Starting column for food items
+
+                // Add header for food items
+                foreach (var foodItem in dailyOrders)
+                {
+                    worksheet.Cells[2, foodColumn].Value = foodItem.FoodCount.Keys;
+                    foodColumn++;
+                }
 
                 // Thêm dữ liệu từ danh sách DailyOrder
                 int row = 3; // Bắt đầu từ dòng 3
@@ -232,30 +267,52 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     worksheet.Cells[row, 2].Value = data.TotalPrice;
                     worksheet.Cells[row, 3].Value = data.OrderQuantity;
                     worksheet.Cells[row, 4].Value = data.BookingDate.ToString("dd-MM-yyyy");
+                    // Add data for each food item
+                    foodColumn = 5; // Starting column for food items
+                    worksheet.Cells[row, foodColumn].Value = data.FoodCount.Values;
+                    foodColumn++;
+                    row++;
+                }
 
-                    // Thêm thông tin thực phẩm vào từng cột
-                    if (data.FoodResponses != null && data.FoodResponses.Any())
-                    {
-                        // Lấy tên thực phẩm và đếm số lượng
-                        var foodNameCount = data.FoodResponses
-                            .GroupBy(food => food.Name)
-                            .Select(group => new { FoodName = group.Key, Count = group.Count() })
-                            .ToList();
+                // Tự động điều chỉnh chiều rộng cột
+                worksheet.Cells.AutoFitColumns();
 
-                        // Thêm thông tin thực phẩm vào từng cột
-                        foreach (var foodCount in foodNameCount)
-                        {
-                            worksheet.Cells[row, 5].Value = foodCount.FoodName;
-                            worksheet.Cells[row, 6].Value = foodCount.Count;
+                byte[] byteArray = package.GetAsByteArray();
+                return byteArray;
+            }
+        }
 
-                            row++;
-                        }
-                    }
-                    else
-                    {
-                        // Nếu không có thông tin thực phẩm, di chuyển đến dòng tiếp theo
-                        row++;
-                    }
+        public byte[] CreateExcelAndReturnStreamForSupplier(List<Supplier> suppliers)
+        {
+            using (var package = new ExcelPackage())
+            {
+                var workbook = package.Workbook;
+                var worksheet = workbook.Worksheets.Add("DailyOrders");
+
+                // Đặt kích thước của dòng 1
+                worksheet.Row(1).Height = 30;
+
+                // Thêm tiêu đề cột và định dạng
+                var headerCells = worksheet.Cells["A1:D1"];
+                headerCells.Style.Font.Bold = true;
+                headerCells.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerCells.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+
+                worksheet.Cells["A1:D1"].Merge = true;
+                worksheet.Cells["A1"].Value = "Perfect Breakfast";
+                worksheet.Cells["A1"].Style.Font.Size = 16;
+                worksheet.Cells["A1"].Style.Font.Color.SetColor(Color.DarkGreen);
+
+                worksheet.Cells["A2"].Value = "Name";
+
+                // Thêm dữ liệu từ danh sách DailyOrder
+                int row = 3; // Bắt đầu từ dòng 3
+                foreach (var data in suppliers)
+                {
+                    worksheet.Cells[row, 1].Value = data.Name;
+
+
+                    row++;
                 }
 
                 // Tự động điều chỉnh chiều rộng cột

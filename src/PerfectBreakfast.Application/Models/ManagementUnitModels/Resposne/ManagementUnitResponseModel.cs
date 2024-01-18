@@ -1,3 +1,6 @@
+using PerfectBreakfast.Application.Models.SupplierModels.Response;
+using PerfectBreakfast.Domain.Entities;
+
 namespace PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 
 public record ManagementUnitResponseModel
@@ -7,4 +10,5 @@ public record ManagementUnitResponseModel
     public int CommissionRate { get; set; }
     public double? Longitude { get; set; } 
     public double? Latitude { get; set; } 
+    public List<SupplierDTO?> SupplierDTO { get; set; }
 }

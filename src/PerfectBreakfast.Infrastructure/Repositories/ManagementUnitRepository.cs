@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -11,4 +12,25 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>,IManag
     {
     }
     // to do
+    public async Task<List<ManagementUnit>> GetManagementUnits(DateTime dateTime)
+    {
+        var dateToCompare = dateTime.Date;
+        return await _dbSet.Include(mu => mu.Companies)
+            .ThenInclude(c => c.DailyOrders.Where(x => x.CreationDate.Date == dateToCompare))
+                .ThenInclude(d => d.Orders)
+                    .ThenInclude(o => o.OrderDetails)
+                        .ThenInclude(od => od.Combo)
+                            .ThenInclude(c => c.ComboFoods)
+                                .ThenInclude(cf => cf.Food)
+            .ToListAsync();
+    }
+
+    public async Task<ManagementUnit?> GetManagementUintDetail(Guid id)
+    {
+        var managementUnit = await _dbSet.Where(x => x.Id == id)
+            .Include(x => x.SupplyAssignments)
+            .ThenInclude(x=> x.Supplier).SingleOrDefaultAsync();
+        return managementUnit;
+        
+    }
 }
