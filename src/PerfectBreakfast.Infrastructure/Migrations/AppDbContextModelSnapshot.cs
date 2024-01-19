@@ -385,7 +385,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("AdminId");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("CompanyId", "BookingDate")
+                        .IsUnique();
 
                     b.ToTable("DailyOrder", (string)null);
                 });
