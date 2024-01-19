@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
@@ -12,10 +13,12 @@ namespace PerfectBreakfast.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public FoodService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IImgurService _imgurService;
+        public FoodService(IUnitOfWork unitOfWork, IMapper mapper,IImgurService imgurService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _imgurService = imgurService;
         }
 
         public async Task<OperationResult<FoodResponse>> CreateFood(CreateFoodRequestModels requestModel)
@@ -25,6 +28,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 // map model to Entity
                 var food = _mapper.Map<Food>(requestModel);
+                food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
                 // Add to DB
                 var entity = await _unitOfWork.FoodRepository.AddAsync(food);
                 // save change 

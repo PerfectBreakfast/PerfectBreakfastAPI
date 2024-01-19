@@ -20,5 +20,8 @@ public class DailyOrderConfig : IEntityTypeConfiguration<DailyOrder>
         builder.HasOne(r => r.Company)
             .WithMany(ur => ur.DailyOrders)
             .HasForeignKey(pk => pk.CompanyId);
+        
+        // Thêm ràng buộc duy nhất cho CompanyId và BookingDate
+        builder.HasIndex(x => new { x.CompanyId, x.BookingDate }).IsUnique();
     }
 }

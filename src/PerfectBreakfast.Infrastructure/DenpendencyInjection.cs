@@ -10,6 +10,7 @@ using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
 using Hangfire.Storage.SQLite;
+using PerfectBreakfast.Infrastructure.ImgurServices;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -22,6 +23,7 @@ public static class DenpendencyInjection
         services.AddTransient<JWTService>();
         services.AddTransient<IMailService, MailService>();
         services.AddScoped<IManagementService, ManagementService>();
+        services.AddScoped<IImgurService, ImgurService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>

@@ -47,6 +47,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Content = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Image = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreationDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ModificationDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -600,6 +602,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     OrderStatus = table.Column<int>(type: "int", nullable: false),
+                    OrderCode = table.Column<int>(type: "int", nullable: false),
                     WorkerId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ManagementUnitId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DailyOrderId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
@@ -883,9 +886,10 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 column: "AdminId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DailyOrder_CompanyId",
+                name: "IX_DailyOrder_CompanyId_BookingDate",
                 table: "DailyOrder",
-                column: "CompanyId");
+                columns: new[] { "CompanyId", "BookingDate" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Food_CategoryId",
@@ -916,6 +920,12 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 name: "IX_Order_ManagementUnitId",
                 table: "Order",
                 column: "ManagementUnitId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Order_OrderCode",
+                table: "Order",
+                column: "OrderCode",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_WorkerId",

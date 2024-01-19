@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.CategoryModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
-using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
@@ -31,7 +29,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFood(CreateFoodRequestModels requestModel)
+        public async Task<IActionResult> CreateFood([FromForm]CreateFoodRequestModels requestModel)
         {
             var response = await _foodService.CreateFood(requestModel);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

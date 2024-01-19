@@ -14,9 +14,11 @@ namespace PerfectBreakfast.API.Controllers.V1;
 public class UserController : BaseController
 {
     private readonly IUserService _userService;
-    public UserController(IUserService userService)
+    private readonly IImgurService _imgurService;
+    public UserController(IUserService userService, IImgurService imgurService)
     {
         _userService = userService;
+        _imgurService = imgurService;
     }
 
     [HttpGet]
@@ -52,5 +54,16 @@ public class UserController : BaseController
     {
         var response = await _userService.UpdateUser(id,requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    [HttpPost("image")]
+    public async Task<IActionResult> UploadImage(IFormFile file)
+    {
+            var imageUrl = await _imgurService.UploadImageAsync(file);
+
+            // Lưu imageUrl vào cơ sở dữ liệu
+            // ...
+            return Ok(imageUrl);
+        
     }
 }

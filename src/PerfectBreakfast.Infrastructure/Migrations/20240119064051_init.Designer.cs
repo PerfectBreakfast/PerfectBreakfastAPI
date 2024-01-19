@@ -11,8 +11,8 @@ using PerfectBreakfast.Infrastructure;
 namespace PerfectBreakfast.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240111065212_OrderCode")]
-    partial class OrderCode
+    [Migration("20240119064051_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -388,7 +388,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("AdminId");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("CompanyId", "BookingDate")
+                        .IsUnique();
 
                     b.ToTable("DailyOrder", (string)null);
                 });
@@ -679,6 +680,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("DailyOrderId");
 
                     b.HasIndex("ManagementUnitId");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique();
 
                     b.HasIndex("WorkerId");
 
