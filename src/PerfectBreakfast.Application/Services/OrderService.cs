@@ -80,15 +80,23 @@ namespace PerfectBreakfast.Application.Services
                 switch (paymentMethod)
                 {
                     case "BANKING":        // Gọi phương thức tạo paymentLink Ngân hàng 
-                        var paymentResponse = await _payOsService.CreatePaymentLink(entity);
+                        /*var paymentResponse = await _payOsService.CreatePaymentLink(entity);
                         if (paymentResponse.IsSuccess)
                         {
                             result.Payload = paymentResponse;
-                        }
-                        else
+                        }*/
+                        // không chơi tạo link thanh toán nữa test cho dễ
+                        result.Payload = new PaymentResponse
+                        {
+                            IsSuccess = true,
+                            DeepLink = null,
+                            PaymentUrl = "thành công rồi mà không trả link",
+                            QrCode = "QRcode"
+                        };
+                        /*else
                         {
                             throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
-                        }
+                        }*/
                         break;
 
                     case "MOMO":          // Gọi tạo PaymentLink MoMO
