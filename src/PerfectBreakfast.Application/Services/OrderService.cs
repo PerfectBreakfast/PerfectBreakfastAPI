@@ -93,6 +93,7 @@ namespace PerfectBreakfast.Application.Services
                             PaymentUrl = "thành công rồi mà không trả link",
                             QrCode = "QRcode"
                         };
+                        entity.OrderStatus = OrderStatus.Paid;
                         /*else
                         {
                             throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
