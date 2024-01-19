@@ -100,11 +100,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                                 }
                             }
                         }
-                    }
-                    
-                    
-
-                    
+                    }    
                 }*/
 
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
@@ -123,7 +119,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 
                         // Lấy danh sách các daily order
                         var dailyorders = company.DailyOrders.Where(x => x.CreationDate.Date == now.Date);
-
+                        var dailyOrder = dailyorders.First();
                         // Duuyệt qua từng daily order
                         foreach (var dailyorder in dailyorders)
                         {
@@ -151,16 +147,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                                         {
                                             foodCounts[foodName] = orderDetail.Quantity;
                                         }
-                                        DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
-                                        {
-                                            TotalPrice = dailyorder.TotalPrice,
-                                            OrderQuantity = dailyorder.OrderQuantity,
-                                            BookingDate = dailyorder.BookingDate,
-                                            Company = dailyorder.Company,
-                                            FoodCount = foodCounts
-                                        };
-                                        //var dailyOrderExcel = _mapper.Map<DailyOrderResponseExcel>(dailyorder);
-                                        dailyOrderExcelList.Add(dailyOrderExcel);
                                     }
 
                                 }
@@ -177,19 +163,9 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                                     {
                                         foodCounts[foodName] = orderDetail.Quantity;
                                     }
-
-                                    DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
-                                    {
-                                        TotalPrice = dailyorder.TotalPrice,
-                                        OrderQuantity = dailyorder.OrderQuantity,
-                                        BookingDate = dailyorder.BookingDate,
-                                        Company = dailyorder.Company,
-                                        FoodCount = foodCounts
-                                    };
-                                    //var dailyOrderExcel = _mapper.Map<DailyOrderResponseExcel>(dailyorder);
-                                    dailyOrderExcelList.Add(dailyOrderExcel);
                                 }
                             }
+
                         }
                         // console ra xem tính toán đúng chưa 
                         Console.OutputEncoding = Encoding.UTF8;
@@ -199,6 +175,15 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                             if (foodCounts.Count <= 0) Console.WriteLine("- không có đặt món nào!");
                             Console.WriteLine($"- {foodCount.Key}: {foodCount.Value}");
                         }
+                        DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
+                        {
+                            Company = company,
+                            FoodCount = foodCounts,
+                            OrderQuantity = dailyOrder.OrderQuantity,
+                            TotalPrice = dailyOrder.TotalPrice,
+                            BookingDate = dailyOrder.BookingDate
+                        };
+                        dailyOrderExcelList.Add(dailyOrderExcel);
                     }
 
                 }
@@ -249,15 +234,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 worksheet.Cells["C2"].Value = "Order Quantity";
                 worksheet.Cells["D2"].Value = "Booking Date";
 
-                // Assuming each dictionary in the FoodCount list has keys "FoodName" and "Quantity"
-                int foodColumn = 5; // Starting column for food items
 
-                // Add header for food items
-                foreach (var foodItem in dailyOrders)
-                {
-                    worksheet.Cells[2, foodColumn].Value = foodItem.FoodCount.Keys;
-                    foodColumn++;
-                }
 
                 // Thêm dữ liệu từ danh sách DailyOrder
                 int row = 3; // Bắt đầu từ dòng 3
@@ -267,10 +244,22 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     worksheet.Cells[row, 2].Value = data.TotalPrice;
                     worksheet.Cells[row, 3].Value = data.OrderQuantity;
                     worksheet.Cells[row, 4].Value = data.BookingDate.ToString("dd-MM-yyyy");
-                    // Add data for each food item
-                    foodColumn = 5; // Starting column for food items
-                    worksheet.Cells[row, foodColumn].Value = data.FoodCount.Values;
-                    foodColumn++;
+
+                    // Add data for each food item (if any)
+                    if (data.FoodCount != null && data.FoodCount.Count > 0)
+                    {
+                        int foodColumn = 5; // Starting column for food items (E)
+                        foreach (var foodItem in data.FoodCount)
+                        {
+                            // Create a formatted string with keys and values
+                            string formattedString = $"{foodItem.Key}: {foodItem.Value}";
+
+                            // Add the formatted string in the current row and column
+                            worksheet.Cells[row, foodColumn].Value = formattedString;
+
+                            foodColumn++; // Move to the next column
+                        }
+                    }
                     row++;
                 }
 
