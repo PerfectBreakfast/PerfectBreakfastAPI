@@ -30,7 +30,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCombo(CreateComboRequest createComboRequest)
+        public async Task<IActionResult> CreateCombo([FromForm]CreateComboRequest createComboRequest)
         {
             var response = await _comboService.CreateCombo(createComboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

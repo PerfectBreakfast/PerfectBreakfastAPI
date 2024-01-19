@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace PerfectBreakfast.Application.Models.FoodModels.Request
 {
@@ -11,7 +12,7 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Request
     {
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public string Image { get; set; } = string.Empty;
+        public IFormFile? Image { get; set; }
 
         //relationship
         public Guid? CategoryId { get; set; }
