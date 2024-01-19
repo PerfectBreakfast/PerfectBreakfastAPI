@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Identity;
 namespace PerfectBreakfast.Application.Repositories;
 public interface IRoleRepository
 {
-    public Task<List<IdentityRole<Guid>>> GetAllAsync();
-    public Task<bool> AddAsync(IdentityRole<Guid> role);
-    public Task<bool> Update(IdentityRole<Guid> role);
-    public Task<bool> Delete(IdentityRole<Guid> role);
-    public Task<IdentityRole<Guid>> GetByIdAsync(Guid id,params Expression<Func<IdentityRole<Guid>, object>>[] includeProperties);
-    public IQueryable<IdentityRole<Guid>> FindAll(params Expression<Func<IdentityRole<Guid>, object>>[]? includeProperties);
-    public IQueryable<IdentityRole<Guid>> FindAll(Expression<Func<IdentityRole<Guid>, bool>>? predicate = null, params Expression<Func<IdentityRole<Guid>, object>>[]? includeProperties);
-    Task<IdentityRole<Guid>?> FindSingleAsync(Expression<Func<IdentityRole<Guid>, bool>>? predicate, params Expression<Func<IdentityRole<Guid>, object>>[]? includeProperties);
+    public Task<List<Role>> GetAllAsync();
+    public Task<bool> AddAsync(Role role);
+    public Task<bool> Update(Role role);
+    public Task<bool> Delete(Role role);
+    public Task<Role> GetByIdAsync(Guid id,params Expression<Func<Role, object>>[] includeProperties);
+    public IQueryable<Role> FindAll(params Expression<Func<Role, object>>[]? includeProperties);
+    public IQueryable<Role> FindAll(Expression<Func<Role, bool>>? predicate = null, params Expression<Func<Role, object>>[]? includeProperties);
+    Task<Role?> FindSingleAsync(Expression<Func<Role, bool>>? predicate, params Expression<Func<Role, object>>[]? includeProperties);
 }

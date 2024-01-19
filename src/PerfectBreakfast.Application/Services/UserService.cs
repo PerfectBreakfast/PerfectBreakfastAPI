@@ -76,26 +76,11 @@ public class UserService : IUserService
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
             }
-            else if (user.DeliveryUnitId.HasValue)
-            {
-                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
-            }
-            else if (user.ManagementUnitId.HasValue)
-            {
-                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
-            }
-            else if (user.SupplierId.HasValue)
-            {
-                user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
-            }
             user.UserName = request.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
             var a = await _unitOfWork.UserRepository.AddAsync(user, request.Password);
-            if (!request.RoleId.HasValue && user.CompanyId.HasValue)
-            {
-                var u = await _unitOfWork.UserRepository.AddToRole(user, "CUSTOMER");
-            }
+            var u = await _unitOfWork.UserRepository.AddToRole(user, "CUSTOMER");
             result.Payload = a;
         }
         catch (Exception e)
@@ -194,13 +179,9 @@ public class UserService : IUserService
         try
         {
             var user = _mapper.Map<User>(requestModel);
-
-            // check User workspace to generate code
-            /*if (user.CompanyId.HasValue)
-            {
-                user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
-            }
-            else if (user.DeliveryUnitId.HasValue)
+            
+            // check User workspace to generate code\
+            if (user.DeliveryUnitId.HasValue)
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
             }
@@ -212,7 +193,7 @@ public class UserService : IUserService
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
             }
-            await _unitOfWork.UserRepository.AddAsync(user);*/
+            await _unitOfWork.UserRepository.AddAsync(user,"123456");
             await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception e)

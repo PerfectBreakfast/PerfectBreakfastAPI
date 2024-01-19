@@ -5,6 +5,7 @@ using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
 using Microsoft.AspNetCore.Identity;
 using PerfectBreakfast.Application.CustomExceptions;
+using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -55,7 +56,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<bool>();
             try
             {
-                var role = new IdentityRole<Guid>(requestModel.Name);
+                var role = new Role { Name = requestModel.Name };
                 result.Payload = await _unitOfWork.RoleRepository.AddAsync(role);
             }
             catch (Exception e)
