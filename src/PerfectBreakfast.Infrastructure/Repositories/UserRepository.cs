@@ -140,10 +140,25 @@ public class UserRepository : IUserRepository
         return await FindAll(includeProperties).SingleOrDefaultAsync(predicate);
     }
 
-    public async Task<User?> GetUserByManagementUnitId(Guid managementUnitId)
+    public async Task<List<User>?> GetUserByManagementUnitId(Guid managementUnitId)
     {
-        return await _userManager.Users
+        var users = await _userManager.Users
             .Where(u => u.ManagementUnitId == managementUnitId)
-            .FirstOrDefaultAsync();
+            .ToListAsync();
+        if (users != null && users.Any())
+        {
+            var usersWithRole = new List<User>();
+
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "MANAGEMENT UNIT ADMIN"))
+                {
+                    usersWithRole.Add(user);
+                }
+            }
+
+            return usersWithRole;
+        }
+        return null;
     }
 }

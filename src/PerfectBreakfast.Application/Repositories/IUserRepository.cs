@@ -21,5 +21,5 @@ public interface IUserRepository
     public IQueryable<User> FindAll(params Expression<Func<User, object>>[]? includeProperties);
     public IQueryable<User> FindAll(Expression<Func<User, bool>>? predicate = null, params Expression<Func<User, object>>[]? includeProperties);
     Task<User?> FindSingleAsync(Expression<Func<User, bool>>? predicate, params Expression<Func<User, object>>[]? includeProperties);
-    Task<User?> GetUserByManagementUnitId(Guid managementUnitId);
+    Task<List<User>?> GetUserByManagementUnitId(Guid managementUnitId);
 }
