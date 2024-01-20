@@ -10,7 +10,7 @@ namespace PerfectBreakfast.API.Controllers.V1;
 public class ManagementUnitController : BaseController
 {
     private readonly IManagementUnitService _managementUnitService;
-
+    
     public ManagementUnitController(IManagementUnitService managementUnitService)
     {
         _managementUnitService = managementUnitService;
@@ -47,6 +47,13 @@ public class ManagementUnitController : BaseController
     public async Task<IActionResult> GetManagementUnitId(Guid id)
     {
         var response = await _managementUnitService.GetManagementUnitId(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    [HttpGet("roles")]
+    public async Task<IActionResult> GetRoleByManagementUnit()
+    {
+        var response = await _managementUnitService.GetRoleByManagementUnit();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

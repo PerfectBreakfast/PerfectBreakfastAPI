@@ -1,10 +1,13 @@
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
+using PerfectBreakfast.Application.Models.RoleModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -25,6 +28,22 @@ public class DeliveryUnitService : IDeliveryUnitService
         {
             var deliveryUnits = await _unitOfWork.DeliveryUnitRepository.GetAllAsync();
             result.Payload = _mapper.Map<List<DeliveryUnitResponseModel>>(deliveryUnits);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+
+    public async Task<OperationResult<List<RoleResponse>>> GetRoleByDeliveryUnit()
+    {
+        var result = new OperationResult<List<RoleResponse>>();
+        try
+        {
+            var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.DeliveryUnit).ToListAsync();
+            result.Payload = _mapper.Map<List<RoleResponse>>(roles);
         }
         catch (Exception e)
         {

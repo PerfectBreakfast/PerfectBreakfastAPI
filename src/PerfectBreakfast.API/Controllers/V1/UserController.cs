@@ -1,26 +1,32 @@
-using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
-using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.UserModels.Request;
-using PerfectBreakfast.Application.Models.UserModels.Response;
-using PerfectBreakfast.Domain.Entities;
+
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
+/// <summary>
+/// User Controller
+/// </summary>
 [Route("api/v{version:apiVersion}/users")]
 public class UserController : BaseController
 {
     private readonly IUserService _userService;
-    private readonly IImgurService _imgurService;
-    public UserController(IUserService userService, IImgurService imgurService)
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="userService"></param>
+    public UserController(IUserService userService)
     {
         _userService = userService;
-        _imgurService = imgurService;
     }
 
+    /// <summary>
+    /// Api for All, Get all Users in system
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -28,6 +34,11 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// Api for All , Get user by Id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpGet("{id}"),Authorize]
     public async Task<IActionResult> GetUser(Guid id)
     {
@@ -35,6 +46,12 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// Api for All 
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
     [HttpGet("pagination")]
     public async Task<IActionResult> GetUserPagination(int pageIndex = 0, int pageSize = 10)
     {
@@ -42,6 +59,11 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Super Admin, create user for deliveryUnit, managementUnit, supplier
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromForm]CreateUserRequestModel requestModel)
     {
@@ -49,6 +71,12 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for All
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id,UpdateUserRequestModel requestModel)
     {
@@ -56,14 +84,16 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    [HttpPost("image")]
-    public async Task<IActionResult> UploadImage(IFormFile file)
+    /// <summary>
+    /// Update image user
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="image"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/image")]
+    public async Task<IActionResult> UpdateImageUser(Guid id,IFormFile image)
     {
-            var imageUrl = await _imgurService.UploadImageAsync(file);
-
-            // Lưu imageUrl vào cơ sở dữ liệu
-            // ...
-            return Ok(imageUrl);
-        
+        var response = await _userService.UpdateImageUser(id,image);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

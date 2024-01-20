@@ -13,5 +13,5 @@ public record CreateUserRequestModel
     public Guid? ManagementUnitId { get; set; }
     public Guid? SupplierId { get; set; }
     
-    public Guid RoleId { get; set; }
+    public required string RoleName { get; set; }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
@@ -20,4 +21,5 @@ public interface IUserService
     public Task<OperationResult<UserResponse>> GetUser(Guid id);
     public Task<OperationResult<UserResponse>> CreateUser(CreateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateUser(Guid id,UpdateUserRequestModel requestModel);
+    public Task<OperationResult<bool>> UpdateImageUser(Guid id,IFormFile image);
 }

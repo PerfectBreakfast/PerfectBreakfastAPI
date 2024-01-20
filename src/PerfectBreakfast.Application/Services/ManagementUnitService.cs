@@ -1,13 +1,16 @@
 using Mapster;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+using PerfectBreakfast.Application.Models.RoleModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -64,6 +67,21 @@ public class ManagementUnitService : IManagementUnitService
             result.AddUnknownError(ex.Message);
         }
 
+        return result;
+    }
+
+    public async Task<OperationResult<List<RoleResponse>>> GetRoleByManagementUnit()
+    {
+        var result = new OperationResult<List<RoleResponse>>();
+        try
+        {
+            var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.ManagementUnit).ToListAsync();
+            result.Payload = _mapper.Map<List<RoleResponse>>(roles);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
         return result;
     }
 

@@ -5,6 +5,7 @@ using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
@@ -26,19 +27,40 @@ public class UserRepository : IUserRepository
     public async Task<bool> AddToRole(User user, string role)
     {
         var result = await _userManager.AddToRoleAsync(user, role);
-        return result.Succeeded;
+        if (result.Succeeded) return result.Succeeded;
+        var builder = new StringBuilder();
+        foreach (var identityError in result.Errors)
+        {
+            builder.Append(identityError.Description);
+            builder.Append(", ");
+        }
+        throw new IdentityException(builder.ToString());
     }
 
     public async Task<bool> AddAsync(User user, string password)
     {
         var result = await _userManager.CreateAsync(user, password);
-        return result.Succeeded;
+        if (result.Succeeded) return result.Succeeded;
+        var builder = new StringBuilder();
+        foreach (var identityError in result.Errors)
+        {
+            builder.Append(identityError.Description);
+            builder.Append(". ");
+        }
+        throw new IdentityException(builder.ToString());
     }
 
     public async Task<bool> Update(User user)
     {
         var result = await _userManager.UpdateAsync(user);
-        return result.Succeeded;
+        if (result.Succeeded) return result.Succeeded;
+        var builder = new StringBuilder();
+        foreach (var identityError in result.Errors)
+        {
+            builder.Append(identityError.Description);
+            builder.Append(", ");
+        }
+        throw new IdentityException(builder.ToString());
     }
 
     public async Task<User> GetByIdAsync(Guid id, params Expression<Func<User, object>>[] includeProperties)
