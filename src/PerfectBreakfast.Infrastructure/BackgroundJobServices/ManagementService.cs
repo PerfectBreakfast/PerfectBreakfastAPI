@@ -1,8 +1,6 @@
 ﻿using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.MailModels;
@@ -76,47 +74,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     throw new Exception("khong co dailyOrders được tạo hôm nay");
                 }
 
-                // Xử lý dữ liệu để đẩy cho các đối tác theo cty 
-                /*var magementUnits = await _unitOfWork.ManagementUnitRepository.FindAll(m => m.Companies).ToListAsync();
-
-                foreach (var magementUnit in magementUnits)
-                {
-                    var dailyOrderList = new List<DailyOrder>();
-                    var dailyOrderExcelList = new List<DailyOrderResponseExcel>();
-                    foreach (var company in magementUnit.Companies)
-                    {
-                        var updatedDailyOrder = await _unitOfWork.DailyOrderRepository.FindAllDataByCompanyId(company.Id);
-                        dailyOrderList.Add(updatedDailyOrder);
-                        foreach (var dailyOrder in dailyOrders)
-                        {
-                            var orders = dailyOrder.Orders;
-                            foreach (var order in orders)
-                            {
-                                var combos = order.OrderDetails.Select(c => c.Combo).ToList();
-                                foreach (var combo in combos)
-                                {
-                                    var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                                    var dailyOrderExcel = _mapper.Map<DailyOrderResponseExcel>(dailyOrder);
-                                    dailyOrderExcel.FoodResponses = foods;
-                                    dailyOrderExcelList.Add(dailyOrderExcel);
-                                }
-                            }
-                        }
-                    }
-                    
-                    
-
-                    // Gửi email với file đính kèm
-                    var mailData = new MailDataViewModel(
-                        to: new List<string> { "phil41005@gmail.com" }, // Thay bằng địa chỉ email người nhận
-                        subject: "Daily Order Report",
-                        body: "Attached is the daily order report. Please find the attached Excel file.",
-                        excelAttachmentStream: CreateExcelAndReturnStream(dailyOrderExcelList),
-                        excelAttachmentFileName: $"DailyOrder_{magementUnit.Name}_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
-                    );
-                    await _mailService.SendAsync(mailData, CancellationToken.None);
-                }*/
-                
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
                 var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
@@ -124,71 +81,93 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 {
                     // Lấy danh sách các công ty thuộc MU
                     var companies = managementUnit.Companies;
-                    
+                    var dailyOrderExcelList = new List<DailyOrderResponseExcel>();
+                    //var users = await _unitOfWork.UserRepository.GetUserByManagementUnitId(managementUnit.Id);
+                    //var email = users.SelectMany(u => u.Email).ToList();
+
                     // xử lý mỗi cty
                     foreach (var company in companies)
                     {
                         var foodCounts = new Dictionary<string, int>();
-                        
-                        // Lấy danh sách các daily order
-                        var dailyorders = company.DailyOrders.Where(x => x.CreationDate.Date == now.Date);
-                        
-                        // Duuyệt qua từng daily order
-                        foreach (var dailyorder in dailyorders)  
-                        {
-                            // Lấy chi tiết các order detail
-                            var orderDetails = dailyorder.Orders.SelectMany(o => o.OrderDetails);
-     
-                            // Đếm số lượng từng loại food
-                            foreach (var orderDetail in orderDetails)
-                            {
-                                if (orderDetail.Combo != null) 
-                                {
-                                    // Nếu là combo thì lấy chi tiết các food trong combo
-                                    var comboFoods = orderDetail.Combo.ComboFoods;
-    
-                                    // Với mỗi food trong combo, cộng dồn số lượng
-                                    foreach (var comboFood in comboFoods)
-                                    {
-                                        var foodName = comboFood.Food.Name;
-                                        //... cộng dồn số lượng cho từng food
-                                        if (foodCounts.ContainsKey(foodName))
-                                        {
-                                            foodCounts[foodName] += orderDetail.Quantity;  
-                                        }
-                                        else
-                                        {
-                                            foodCounts[foodName] = orderDetail.Quantity;
-                                        }
-                                    }
 
-                                }
-                                else if (orderDetail.Food != null)
+                        // Lấy daily order
+                        var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+
+                        // Lấy chi tiết các order detail
+                        var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
+                        var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
+
+                        // Đếm số lượng từng loại food
+                        foreach (var orderDetail in orderDetails)
+                        {
+                            if (orderDetail.Combo != null)
+                            {
+                                // Nếu là combo thì lấy chi tiết các food trong combo
+                                var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
+                                var comboFoods = combo.ComboFoods;
+
+                                // Với mỗi food trong combo, cộng dồn số lượng
+                                foreach (var comboFood in comboFoods)
                                 {
-                                    // Xử lý order detail là food đơn lẻ
-                                    var foodName = orderDetail.Food.Name;
-                                    // cộng dồn số lượng cho từng food
+                                    var foodName = comboFood.Food.Name;
+                                    //... cộng dồn số lượng cho từng food
                                     if (foodCounts.ContainsKey(foodName))
                                     {
-                                        foodCounts[foodName] += orderDetail.Quantity;  
+                                        foodCounts[foodName] += orderDetail.Quantity;
                                     }
                                     else
                                     {
                                         foodCounts[foodName] = orderDetail.Quantity;
                                     }
                                 }
+
+                            }
+                            else if (orderDetail.Food != null)
+                            {
+                                // Xử lý order detail là food đơn lẻ
+                                var foodName = orderDetail.Food.Name;
+                                // cộng dồn số lượng cho từng food
+                                if (foodCounts.ContainsKey(foodName))
+                                {
+                                    foodCounts[foodName] += orderDetail.Quantity;
+                                }
+                                else
+                                {
+                                    foodCounts[foodName] = orderDetail.Quantity;
+                                }
                             }
                         }
+
                         // console ra xem tính toán đúng chưa 
                         Console.OutputEncoding = Encoding.UTF8;
                         Console.WriteLine($"Company: {company.Name}");
                         foreach (var foodCount in foodCounts)
                         {
-                            if(foodCounts.Count <= 0) Console.WriteLine("- không có đặt món nào!");
-                            Console.WriteLine($"- {foodCount.Key}: {foodCount.Value}"); 
+                            if (foodCounts.Count <= 0) Console.WriteLine("- không có đặt món nào!");
+                            Console.WriteLine($"- {foodCount.Key}: {foodCount.Value}");
                         }
+                        DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
+                        {
+                            Company = company,
+                            FoodCount = foodCounts,
+                            OrderQuantity = dailyOrder.OrderQuantity,
+                            TotalPrice = dailyOrder.TotalPrice,
+                            BookingDate = dailyOrder.BookingDate
+                        };
+                        dailyOrderExcelList.Add(dailyOrderExcel);
                     }
+
+                    // Gửi email với file đính kèm
+                    var mailData = new MailDataViewModel(
+                        to: new List<string> { "phil41005@gmail.com" }, // Thay bằng địa chỉ email người nhận (email)
+                        subject: "Daily Order Report",
+                        body: "Attached is the daily order report. Please find the attached Excel file.",
+                        excelAttachmentStream: CreateExcelForManagementUnit(dailyOrderExcelList),
+                        excelAttachmentFileName: $"DailyOrder_{managementUnit.Name}_{_currentTime.GetCurrentTime().ToString("yyyy-MM-dd")}.xlsx"
+                    );
+                    await _mailService.SendAsync(mailData, CancellationToken.None);
                 }
+
             }
             catch (Exception e)
             {
@@ -197,7 +176,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             }
         }
 
-        public byte[] CreateExcelAndReturnStream(List<DailyOrderResponseExcel> dailyOrders)
+        public byte[] CreateExcelForManagementUnit(List<DailyOrderResponseExcel> dailyOrders)
         {
             using (var package = new ExcelPackage())
             {
@@ -228,6 +207,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 worksheet.Cells["D2"].Value = "Booking Date";
 
 
+
                 // Thêm dữ liệu từ danh sách DailyOrder
                 int row = 3; // Bắt đầu từ dòng 3
                 foreach (var data in dailyOrders)
@@ -237,29 +217,63 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     worksheet.Cells[row, 3].Value = data.OrderQuantity;
                     worksheet.Cells[row, 4].Value = data.BookingDate.ToString("dd-MM-yyyy");
 
-                    // Thêm thông tin thực phẩm vào từng cột
-                    if (data.FoodResponses != null && data.FoodResponses.Any())
+                    // Add data for each food item (if any)
+                    if (data.FoodCount != null && data.FoodCount.Count > 0)
                     {
-                        // Lấy tên thực phẩm và đếm số lượng
-                        var foodNameCount = data.FoodResponses
-                            .GroupBy(food => food.Name)
-                            .Select(group => new { FoodName = group.Key, Count = group.Count() })
-                            .ToList();
-
-                        // Thêm thông tin thực phẩm vào từng cột
-                        foreach (var foodCount in foodNameCount)
+                        int foodColumn = 5; // Starting column for food items (E)
+                        foreach (var foodItem in data.FoodCount)
                         {
-                            worksheet.Cells[row, 5].Value = foodCount.FoodName;
-                            worksheet.Cells[row, 6].Value = foodCount.Count;
+                            // Create a formatted string with keys and values
+                            string formattedString = $"{foodItem.Key}: {foodItem.Value}";
 
-                            row++;
+                            // Add the formatted string in the current row and column
+                            worksheet.Cells[row, foodColumn].Value = formattedString;
+
+                            foodColumn++; // Move to the next column
                         }
                     }
-                    else
-                    {
-                        // Nếu không có thông tin thực phẩm, di chuyển đến dòng tiếp theo
-                        row++;
-                    }
+                    row++;
+                }
+
+                // Tự động điều chỉnh chiều rộng cột
+                worksheet.Cells.AutoFitColumns();
+
+                byte[] byteArray = package.GetAsByteArray();
+                return byteArray;
+            }
+        }
+
+        public byte[] CreateExcelAndForSupplier(List<Supplier> suppliers)
+        {
+            using (var package = new ExcelPackage())
+            {
+                var workbook = package.Workbook;
+                var worksheet = workbook.Worksheets.Add("DailyOrders");
+
+                // Đặt kích thước của dòng 1
+                worksheet.Row(1).Height = 30;
+
+                // Thêm tiêu đề cột và định dạng
+                var headerCells = worksheet.Cells["A1:D1"];
+                headerCells.Style.Font.Bold = true;
+                headerCells.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerCells.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+
+                worksheet.Cells["A1:D1"].Merge = true;
+                worksheet.Cells["A1"].Value = "Perfect Breakfast";
+                worksheet.Cells["A1"].Style.Font.Size = 16;
+                worksheet.Cells["A1"].Style.Font.Color.SetColor(Color.DarkGreen);
+
+                worksheet.Cells["A2"].Value = "Name";
+
+                // Thêm dữ liệu từ danh sách DailyOrder
+                int row = 3; // Bắt đầu từ dòng 3
+                foreach (var data in suppliers)
+                {
+                    worksheet.Cells[row, 1].Value = data.Name;
+
+
+                    row++;
                 }
 
                 // Tự động điều chỉnh chiều rộng cột

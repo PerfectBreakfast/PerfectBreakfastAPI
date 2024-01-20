@@ -5,9 +5,9 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
-public class ManagementUnitRepository : GenericRepository<ManagementUnit>,IManagementUnitRepository
+public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IManagementUnitRepository
 {
-    public ManagementUnitRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) 
+    public ManagementUnitRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
         : base(context, timeService, claimsService)
     {
     }
@@ -17,11 +17,6 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>,IManag
         var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)
             .ThenInclude(c => c.DailyOrders.Where(x => x.CreationDate.Date == dateToCompare))
-                .ThenInclude(d => d.Orders)
-                    .ThenInclude(o => o.OrderDetails)
-                        .ThenInclude(od => od.Combo)
-                            .ThenInclude(c => c.ComboFoods)
-                                .ThenInclude(cf => cf.Food)
             .ToListAsync();
     }
 
@@ -29,8 +24,8 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>,IManag
     {
         var managementUnit = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
-            .ThenInclude(x=> x.Supplier).SingleOrDefaultAsync();
+            .ThenInclude(x => x.Supplier).SingleOrDefaultAsync();
         return managementUnit;
-        
+
     }
 }

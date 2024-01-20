@@ -1,10 +1,10 @@
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
@@ -12,7 +12,7 @@ public class UserRepository : IUserRepository
 {
     private UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
-    public UserRepository(UserManager<User> userManager,SignInManager<User> signInManager)
+    public UserRepository(UserManager<User> userManager, SignInManager<User> signInManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -54,16 +54,16 @@ public class UserRepository : IUserRepository
     {
         var itemCount = await _userManager.Users.CountAsync();
         IQueryable<User> itemsQuery = _userManager.Users.OrderByDescending(x => x.CreationDate);
-        if (predicate != null) 
+        if (predicate != null)
         {
-            itemsQuery = itemsQuery.Where(predicate); 
+            itemsQuery = itemsQuery.Where(predicate);
         }
         var items = await itemsQuery
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .AsNoTracking()
             .ToListAsync();
-            
+
         var result = new Pagination<User>()
         {
             PageIndex = pageIndex,
@@ -77,7 +77,7 @@ public class UserRepository : IUserRepository
     public async Task<SignInResult> CheckPasswordSignin(User user, string password, bool lockoutOnFailure)
     {
         var isSuccess = await _signInManager
-            .CheckPasswordSignInAsync(user, password,lockoutOnFailure);
+            .CheckPasswordSignInAsync(user, password, lockoutOnFailure);
         return isSuccess;
     }
 
@@ -116,7 +116,7 @@ public class UserRepository : IUserRepository
     public IQueryable<User> FindAll(params Expression<Func<User, object>>[]? includeProperties)
     {
         IQueryable<User> items = _userManager.Users.AsNoTracking();
-        if(includeProperties != null)
+        if (includeProperties != null)
             foreach (var includeProperty in includeProperties)
             {
                 items = items.Include(includeProperty);
@@ -127,7 +127,7 @@ public class UserRepository : IUserRepository
     public IQueryable<User> FindAll(Expression<Func<User, bool>>? predicate = null, params Expression<Func<User, object>>[]? includeProperties)
     {
         IQueryable<User> items = _userManager.Users.AsNoTracking();
-        if(includeProperties != null)
+        if (includeProperties != null)
             foreach (var includeProperty in includeProperties)
             {
                 items = items.Include(includeProperty);
@@ -138,5 +138,27 @@ public class UserRepository : IUserRepository
     public async Task<User?> FindSingleAsync(Expression<Func<User, bool>>? predicate, params Expression<Func<User, object>>[]? includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(predicate);
+    }
+
+    public async Task<List<User>?> GetUserByManagementUnitId(Guid managementUnitId)
+    {
+        var users = await _userManager.Users
+            .Where(u => u.ManagementUnitId == managementUnitId)
+            .ToListAsync();
+        if (users != null && users.Any())
+        {
+            var usersWithRole = new List<User>();
+
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "MANAGEMENT UNIT ADMIN"))
+                {
+                    usersWithRole.Add(user);
+                }
+            }
+
+            return usersWithRole;
+        }
+        return null;
     }
 }
