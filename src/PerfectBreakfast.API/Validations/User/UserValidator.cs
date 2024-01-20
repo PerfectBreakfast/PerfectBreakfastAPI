@@ -9,7 +9,7 @@ public class UserValidator : AbstractValidator<CreateUserRequestModel>
     {
         RuleFor(p => p.Email).NotEmpty().WithMessage("Email cannot be empty");
 
-        RuleFor(p => p.FullName).NotEmpty().WithMessage("fullname cannot be empty")
+        RuleFor(p => p.Name).NotEmpty().WithMessage("fullname cannot be empty")
             .MaximumLength(50);
     }
 }

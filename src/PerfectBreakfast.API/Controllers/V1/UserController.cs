@@ -43,7 +43,7 @@ public class UserController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser(CreateUserRequestModel requestModel)
+    public async Task<IActionResult> CreateUser([FromForm]CreateUserRequestModel requestModel)
     {
         var response = await _userService.CreateUser(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

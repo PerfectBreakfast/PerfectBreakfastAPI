@@ -16,7 +16,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly IRoleRepository _roleRepository;
     public UnitOfWork(AppDbContext dbContext, ICurrentTime currentTime
         , IClaimsService claimsService, UserManager<User> userManager
-        , SignInManager<User> signInManager, RoleManager<IdentityRole<Guid>> roleManager)
+        , SignInManager<User> signInManager, RoleManager<Role> roleManager)
     {
         _dbContext = dbContext;
         _currentTime = currentTime;

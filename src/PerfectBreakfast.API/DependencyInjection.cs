@@ -157,8 +157,8 @@ public static class DependencyInjection
                 options.User.RequireUniqueEmail = true;  // Email là duy nhất
 
             })
-            .AddRoles<IdentityRole<Guid>>()   // be able to add role
-            .AddRoleManager<RoleManager<IdentityRole<Guid>>>()  // be able to make use of Role Manager
+            .AddRoles<Role>()   // be able to add role
+            .AddRoleManager<RoleManager<Role>>()  // be able to make use of Role Manager
             .AddEntityFrameworkStores<AppDbContext>()  // providing out context
             .AddSignInManager<SignInManager<User>>()  // make use of signin manager
             .AddUserManager<UserManager<User>>()  // make use of User Manager to create users
