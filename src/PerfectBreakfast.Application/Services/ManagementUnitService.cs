@@ -148,4 +148,19 @@ public class ManagementUnitService : IManagementUnitService
         }
         return result;
     }
+
+    public async Task<OperationResult<Pagination<ManagementUnitResponseModel>>> GetManagementUnitPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<ManagementUnitResponseModel>>();
+        try
+        {
+            var com = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize);
+            result.Payload = _mapper.Map<Pagination<ManagementUnitResponseModel>>(com);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
 }

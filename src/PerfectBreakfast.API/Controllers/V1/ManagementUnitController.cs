@@ -3,6 +3,7 @@ using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
+using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -54,6 +55,13 @@ public class ManagementUnitController : BaseController
     public async Task<IActionResult> GetRoleByManagementUnit()
     {
         var response = await _managementUnitService.GetRoleByManagementUnit();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetManagemnetUnitPagination(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _managementUnitService.GetManagementUnitPaginationAsync(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
