@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -19,7 +20,7 @@ public class JWTService
         _userManager = userManager;
     }
 
-    public async Task<string> CreateJWT(User user)
+    public async Task<UserLoginResponse> CreateJWT(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appConfiguration.JwtSettings.SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -38,7 +39,7 @@ public class JWTService
             audience: _appConfiguration.JwtSettings.Audience,
             expires: DateTime.Now.AddMinutes(_appConfiguration.JwtSettings.ExpiryMinutes),
             signingCredentials: credentials);
-        
-        return new JwtSecurityTokenHandler().WriteToken(token);
+
+        return new UserLoginResponse(roles.ToList(), new JwtSecurityTokenHandler().WriteToken(token));
     }
 }
