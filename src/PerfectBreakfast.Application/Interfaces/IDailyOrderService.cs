@@ -10,6 +10,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<List<DailyOrderResponse>>> GetDailyOrders();
         public Task<OperationResult<Pagination<DailyOrderResponse>>> GetDailyOrderPaginationAsync(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<DailyOrderResponse>> UpdateDailyOrder(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest);
-
+        public Task<OperationResult<List<DailyOrderResponseExcel>>> GetDailyOrderByManagementUnit(Guid id);
     }
 }
