@@ -12,8 +12,10 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _dbContext;
     private readonly ICurrentTime _currentTime;
     private readonly IClaimsService _claimsService;
-    private readonly IUserRepository _userRepository;
-    private readonly IRoleRepository _roleRepository;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
+    private readonly SignInManager<User> _signInManager;
+    
     public UnitOfWork(AppDbContext dbContext, ICurrentTime currentTime
         , IClaimsService claimsService, UserManager<User> userManager
         , SignInManager<User> signInManager, RoleManager<Role> roleManager)
@@ -21,8 +23,10 @@ public class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
         _currentTime = currentTime;
         _claimsService = claimsService;
-        _userRepository = new UserRepository(userManager, signInManager);
-        _roleRepository = new RoleRepository(roleManager);
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _signInManager = signInManager;
+
     }
     public async Task<int> SaveChangeAsync()
     {
@@ -38,9 +42,12 @@ public class UnitOfWork : IUnitOfWork
     {
         _dbContext.Dispose();
     }
+    public UserManager<User> UserManager => _userManager;
+    public SignInManager<User> SignInManager => _signInManager;
+    public RoleManager<Role> RoleManager => _roleManager;
 
-    public IUserRepository UserRepository => _userRepository;
-    public IRoleRepository RoleRepository => _roleRepository;
+    public IUserRepository UserRepository => new UserRepository(_dbContext);
+    public IRoleRepository RoleRepository => new RoleRepository(_dbContext);
     public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
     public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
     public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);

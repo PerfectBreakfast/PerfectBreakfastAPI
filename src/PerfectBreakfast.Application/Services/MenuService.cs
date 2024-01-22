@@ -28,6 +28,7 @@ namespace PerfectBreakfast.Application.Services
                 var menu = _mapper.Map<Menu>(createMenuFoodRequest);
                 var menuFood = _mapper.Map<ICollection<MenuFood?>>(createMenuFoodRequest.MenuFoodRequests);
                 menu.MenuFoods = menuFood;
+                menu.IsSelected = false;
                 await _unitOfWork.MenuRepository.AddAsync(menu);
                 await _unitOfWork.SaveChangeAsync();
                 result.Payload = _mapper.Map<MenuResponse>(menu);

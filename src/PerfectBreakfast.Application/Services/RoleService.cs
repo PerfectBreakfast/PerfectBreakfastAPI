@@ -3,7 +3,6 @@ using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
-using Microsoft.AspNetCore.Identity;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Domain.Entities;
 
@@ -57,7 +56,13 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var role = new Role { Name = requestModel.Name };
-                result.Payload = await _unitOfWork.RoleRepository.AddAsync(role);
+                var identityResult = await _unitOfWork.RoleManager.CreateAsync(role);
+                if (!identityResult.Succeeded)
+                {
+                    result.AddError(ErrorCode.ServerError,identityResult.Errors.Select(x =>x.Description).ToString());
+                    return result;
+                }
+                result.Payload = identityResult.Succeeded;
             }
             catch (Exception e)
             {
@@ -74,7 +79,9 @@ namespace PerfectBreakfast.Application.Services
                 // find supplier by ID
                 var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
                 _mapper.Map(requestModel, role);
-                result.Payload = await _unitOfWork.RoleRepository.Update(role);
+                _unitOfWork.RoleRepository.Update(role);
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                result.Payload = isSuccess;
             }
             catch (NotFoundIdException e)
             {
@@ -94,7 +101,9 @@ namespace PerfectBreakfast.Application.Services
             {
                 // find supplier by ID
                 var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
-                result.Payload = await _unitOfWork.RoleRepository.Delete(role);
+                _unitOfWork.RoleRepository.Remove(role);
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                result.Payload = isSuccess;
             }
             catch (NotFoundIdException e)
             {
