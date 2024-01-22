@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -24,7 +25,15 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var supplierFoodAssignments = _mapper.Map<List<SupplierFoodAssignment>>(request);
-
+                var supplierFoodAssignmentsReslt = new List<SupplierFoodAssignment>();
+                foreach (var supplierFoodAssignment in supplierFoodAssignments)
+                {
+                    supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Sent;
+                    await _unitOfWork.SupplierFoodAssignmentRepository.AddAsync(supplierFoodAssignment);
+                    await _unitOfWork.SaveChangeAsync();
+                    supplierFoodAssignmentsReslt.Add(supplierFoodAssignment);
+                }
+                result.Payload = _mapper.Map<List<SupplierFoodAssignmentResponse>>(supplierFoodAssignmentsReslt);
             }
             catch (Exception e)
             {

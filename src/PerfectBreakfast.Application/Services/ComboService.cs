@@ -1,5 +1,4 @@
 ﻿using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -16,7 +15,7 @@ namespace PerfectBreakfast.Application.Services
         private readonly IMapper _mapper;
         private readonly IImgurService _imgurService;
 
-        public ComboService(IUnitOfWork unitOfWork, IMapper mapper,IImgurService imgurService)
+        public ComboService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -29,7 +28,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var combo = _mapper.Map<Combo>(createComboRequest);
-                var comboFood = _mapper.Map<ICollection<ComboFood?>>(createComboRequest.ComboFoodRequests);
+                var comboFood = _mapper.Map<List<ComboFood?>>(createComboRequest.ComboFoodRequests);
                 combo.ComboFoods = comboFood;
                 combo.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
                 await _unitOfWork.ComboRepository.AddAsync(combo);

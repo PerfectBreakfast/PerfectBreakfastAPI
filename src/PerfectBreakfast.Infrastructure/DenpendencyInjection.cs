@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using Hangfire.Storage.SQLite;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -6,11 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Infrastructure.BackgroundJobServices;
+using PerfectBreakfast.Infrastructure.ImgurServices;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
-using Hangfire.Storage.SQLite;
-using PerfectBreakfast.Infrastructure.ImgurServices;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -34,7 +34,7 @@ public static class DenpendencyInjection
                 mySqlOptions => mySqlOptions
                     .EnableRetryOnFailure());
         });
-        
+
         // register hangfire 
         services.AddHangfire(hangfire =>
         {
@@ -45,7 +45,7 @@ public static class DenpendencyInjection
             hangfire.UseSQLiteStorage("Hangfire.db"); // storage by SQLite
         });
         services.AddHangfireServer();
-    
+
         // register Mapster
         var config = TypeAdapterConfig.GlobalSettings;
         config.Scan(Assembly.GetExecutingAssembly());
@@ -69,6 +69,7 @@ public static class DenpendencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ISupplierCommissionRateService, SupplierCommissionRateService>();
         services.AddScoped<ISupplyAssigmentService, SupplyAssigmentService>();
+        services.AddScoped<ISupplierFoodAssignmentService, SupplierFoodAssignmentService>();
         return services;
     }
 }
