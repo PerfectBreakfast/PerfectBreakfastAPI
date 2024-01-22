@@ -1,4 +1,5 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -16,18 +17,21 @@ public class UserService : IUserService
     private readonly IClaimsService _claimsService;
     private readonly JWTService _jwtService;
     private readonly ICurrentTime _currentTime;
+    private readonly IImgurService _imgurService;
 
     public UserService(IUnitOfWork unitOfWork
         ,IMapper mapper
         ,IClaimsService claimsService
         ,JWTService jwtService
-        ,ICurrentTime currentTime)
+        ,ICurrentTime currentTime
+        ,IImgurService imgurService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
         _jwtService = jwtService;
         _currentTime = currentTime;
+        _imgurService = imgurService;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
@@ -193,8 +197,12 @@ public class UserService : IUserService
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
             }
+            user.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+            user.UserName = requestModel.Email;
+            user.EmailConfirmed = true;
+            user.CreationDate = _currentTime.GetCurrentTime();
             await _unitOfWork.UserRepository.AddAsync(user,"123456");
-            await _unitOfWork.SaveChangeAsync();
+            await _unitOfWork.UserRepository.AddToRole(user, requestModel.RoleName);
         }
         catch (Exception e)
         {
@@ -211,6 +219,29 @@ public class UserService : IUserService
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             _mapper.Map(requestModel, user);
             result.Payload = await _unitOfWork.UserRepository.Update(user);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> UpdateImageUser(Guid id, IFormFile image)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            // hàm này đang fix 
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            user.Image = await _imgurService.UploadImageAsync(image);
+            var isSuccess = await _unitOfWork.UserRepository.Update(user);
+            if (!isSuccess)
+            {
+                result.Payload = !isSuccess;
+                return result;
+            }
+            result.Payload = isSuccess;
         }
         catch (Exception e)
         {

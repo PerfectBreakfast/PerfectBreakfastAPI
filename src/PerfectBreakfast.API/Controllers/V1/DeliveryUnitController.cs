@@ -48,4 +48,11 @@ public class DeliveryUnitController : BaseController
         var response = await _deliveryUnitService.GetDeliveryId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpGet("roles")]
+    public async Task<IActionResult> GetRoleByDeliveryUnit()
+    {
+        var response = await _deliveryUnitService.GetRoleByDeliveryUnit();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
