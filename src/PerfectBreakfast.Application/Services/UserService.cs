@@ -45,11 +45,10 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.UnAuthorize,"wrong email");
                 return result;
             }
-            var isSuccess = await _unitOfWork.UserRepository
-                .CheckPasswordSignin(user, request.Password,false);
-            if (!isSuccess.Succeeded)
+            var signInResult = await _unitOfWork.SignInManager.CheckPasswordSignInAsync(user, request.Password, false);
+            if (!signInResult.Succeeded)
             {
-                if (isSuccess.IsNotAllowed)
+                if (signInResult.IsNotAllowed)
                 {
                     result.AddError(ErrorCode.UnAuthorize,"need confirm account");
                     return result;
@@ -57,9 +56,7 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.UnAuthorize,"wrong pass");
                 return result;
             }
-
-            var token = await _jwtService.CreateJWT(user);
-            result.Payload = new UserLoginResponse(token);
+            result.Payload = await _jwtService.CreateJWT(user);
         }
         catch (Exception e)
         {
@@ -83,9 +80,19 @@ public class UserService : IUserService
             user.UserName = request.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
-            var a = await _unitOfWork.UserRepository.AddAsync(user, request.Password);
-            var u = await _unitOfWork.UserRepository.AddToRole(user, "CUSTOMER");
-            result.Payload = a;
+            var identityResult = await _unitOfWork.UserManager.CreateAsync(user, request.Password);
+            if (!identityResult.Succeeded)
+            {
+                result.AddError(ErrorCode.ServerError,identityResult.Errors.Select(x => x.Description).ToString());
+                return result;
+            }
+            var identityRe = await _unitOfWork.UserManager.AddToRoleAsync(user, "CUSTOMER");
+            if (!identityRe.Succeeded)
+            {
+                result.AddError(ErrorCode.ServerError,identityRe.Errors.Select(x => x.Description).ToString());
+                return result;
+            }
+            result.Payload = identityRe.Succeeded;
         }
         catch (Exception e)
         {
@@ -100,8 +107,7 @@ public class UserService : IUserService
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(_claimsService.GetCurrentUserId);
-            var token = await _jwtService.CreateJWT(user);
-            result.Payload = new UserLoginResponse(token); 
+            result.Payload = await _jwtService.CreateJWT(user);
         }
         catch (Exception e)
         {
@@ -201,8 +207,8 @@ public class UserService : IUserService
             user.UserName = requestModel.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
-            await _unitOfWork.UserRepository.AddAsync(user,"123456");
-            await _unitOfWork.UserRepository.AddToRole(user, requestModel.RoleName);
+            await _unitOfWork.UserManager.CreateAsync(user,"123456");
+            await _unitOfWork.UserManager.AddToRoleAsync(user, requestModel.RoleName);
         }
         catch (Exception e)
         {
@@ -218,7 +224,9 @@ public class UserService : IUserService
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             _mapper.Map(requestModel, user);
-            result.Payload = await _unitOfWork.UserRepository.Update(user);
+            _unitOfWork.UserRepository.Update(user);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
         }
         catch (Exception e)
         {
@@ -235,12 +243,8 @@ public class UserService : IUserService
             // hàm này đang fix 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             user.Image = await _imgurService.UploadImageAsync(image);
-            var isSuccess = await _unitOfWork.UserRepository.Update(user);
-            if (!isSuccess)
-            {
-                result.Payload = !isSuccess;
-                return result;
-            }
+            _unitOfWork.UserRepository.Update(user);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             result.Payload = isSuccess;
         }
         catch (Exception e)
