@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
@@ -133,5 +134,20 @@ public class DeliveryUnitService : IDeliveryUnitService
                 result.AddUnknownError(e.Message);
             }
             return result;
+    }
+
+    public async Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<DeliveryUnitResponseModel>>();
+        try
+        {
+            var com = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize);
+            result.Payload = _mapper.Map<Pagination<DeliveryUnitResponseModel>>(com);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
     }
 }

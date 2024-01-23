@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
+using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -53,6 +54,13 @@ public class DeliveryUnitController : BaseController
     public async Task<IActionResult> GetRoleByDeliveryUnit()
     {
         var response = await _deliveryUnitService.GetRoleByDeliveryUnit();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetDeliveryUnitPagination(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _deliveryUnitService.GetDeliveryUnitPaginationAsync(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
