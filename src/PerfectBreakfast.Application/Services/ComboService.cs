@@ -28,8 +28,10 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var combo = _mapper.Map<Combo>(createComboRequest);
-                var comboFood = _mapper.Map<List<ComboFood?>>(createComboRequest.ComboFoodRequests);
-                combo.ComboFoods = comboFood;
+                var comboFoods = createComboRequest.FoodId
+                    .Select(foodId => new ComboFood { FoodId = foodId })
+                    .ToList();
+                combo.ComboFoods = comboFoods;
                 combo.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
                 await _unitOfWork.ComboRepository.AddAsync(combo);
                 await _unitOfWork.SaveChangeAsync();

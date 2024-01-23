@@ -5,9 +5,9 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
-public class SupplierRepository : GenericRepository<Supplier>,ISupplierRepository
+public class SupplierRepository : GenericRepository<Supplier>, ISupplierRepository
 {
-    public SupplierRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) 
+    public SupplierRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
         : base(context, timeService, claimsService)
     {
     }
@@ -16,7 +16,17 @@ public class SupplierRepository : GenericRepository<Supplier>,ISupplierRepositor
     {
         var supplier = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
-            .ThenInclude(x=> x.ManagementUnit).SingleOrDefaultAsync();
+            .ThenInclude(x => x.ManagementUnit).SingleOrDefaultAsync();
         return supplier;
     }
+
+    public async Task<List<Supplier>?> GetSupplierUnitByManagementUnit(Guid managementUnitId)
+    {
+        var suppliers = await _dbSet
+            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.ManagementUnitId == managementUnitId))
+            .ToListAsync();
+
+        return suppliers;
+    }
+
 }

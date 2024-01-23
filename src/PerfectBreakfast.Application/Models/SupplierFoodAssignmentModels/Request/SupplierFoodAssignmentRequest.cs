@@ -2,7 +2,7 @@
 {
     public record SupplierFoodAssignmentRequest
     {
-        public decimal? ReceivedAmount { get; set; }
-        public Guid? FoodId { get; set; }
+        public Guid? SupplierId { get; set; }
+        public List<FoodAssignmentRequest> foodAssignmentRequests { get; set; }
     }
 }

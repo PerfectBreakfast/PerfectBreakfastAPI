@@ -42,19 +42,18 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<DailyOrderResponseExcel>>> GetDailyOrderByManagementUnit(Guid id)
+        public async Task<List<DailyOrderResponseExcel>> GetDailyOrderByManagementUnit(Guid id)
         {
-            var result = new OperationResult<List<DailyOrderResponseExcel>>();
+            var result = new List<DailyOrderResponseExcel>();
             try
             {
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
                 var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
-                var managementUnit = managementUnits.FirstOrDefault(m => m.Id == id);
+                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == id);
 
                 if (managementUnit == null)
                 {
-                    result.AddUnknownError("Managemnt Unit khong ton tai");
                     return result;
                 }
 
@@ -124,12 +123,12 @@ namespace PerfectBreakfast.Application.Services
                     };
                     dailyOrderExcelList.Add(dailyOrderExcel);
                 }
-                result.Payload = dailyOrderExcelList;
+                result = dailyOrderExcelList;
 
             }
             catch (Exception e)
             {
-                result.AddUnknownError(e.Message);
+                throw new Exception(e.Message);
             }
             return result;
         }
