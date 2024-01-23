@@ -13,11 +13,13 @@ namespace PerfectBreakfast.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentTime _currentTime;
 
-        public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentTime = currentTime;
         }
 
         public async Task<OperationResult<DailyOrderResponse>> CreateDailyOrder(DailyOrderRequest dailyOrderRequest)
@@ -36,6 +38,97 @@ namespace PerfectBreakfast.Application.Services
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<List<DailyOrderResponseExcel>> GetDailyOrderByManagementUnit(Guid id)
+        {
+            var result = new List<DailyOrderResponseExcel>();
+            try
+            {
+                //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
+                var now = _currentTime.GetCurrentTime();
+                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
+                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == id);
+
+                if (managementUnit == null)
+                {
+                    return result;
+                }
+
+                // Lấy danh sách các công ty thuộc MU
+                var companies = managementUnit.Companies;
+                var dailyOrderExcelList = new List<DailyOrderResponseExcel>();
+
+                // xử lý mỗi cty
+                foreach (var company in companies)
+                {
+                    var foodCounts = new Dictionary<string, int>();
+
+                    // Lấy daily order
+                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+
+                    // Lấy chi tiết các order detail
+                    var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
+                    var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
+
+                    // Đếm số lượng từng loại food
+                    foreach (var orderDetail in orderDetails)
+                    {
+                        if (orderDetail.Combo != null)
+                        {
+                            // Nếu là combo thì lấy chi tiết các food trong combo
+                            var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
+                            var comboFoods = combo.ComboFoods;
+
+                            // Với mỗi food trong combo, cộng dồn số lượng
+                            foreach (var comboFood in comboFoods)
+                            {
+                                var foodName = comboFood.Food.Name;
+                                //... cộng dồn số lượng cho từng food
+                                if (foodCounts.ContainsKey(foodName))
+                                {
+                                    foodCounts[foodName] += orderDetail.Quantity;
+                                }
+                                else
+                                {
+                                    foodCounts[foodName] = orderDetail.Quantity;
+                                }
+                            }
+
+                        }
+                        else if (orderDetail.Food != null)
+                        {
+                            // Xử lý order detail là food đơn lẻ
+                            var foodName = orderDetail.Food.Name;
+                            // cộng dồn số lượng cho từng food
+                            if (foodCounts.ContainsKey(foodName))
+                            {
+                                foodCounts[foodName] += orderDetail.Quantity;
+                            }
+                            else
+                            {
+                                foodCounts[foodName] = orderDetail.Quantity;
+                            }
+                        }
+                    }
+                    DailyOrderResponseExcel dailyOrderExcel = new DailyOrderResponseExcel()
+                    {
+                        Company = company,
+                        FoodCount = foodCounts,
+                        OrderQuantity = dailyOrder.OrderQuantity,
+                        TotalPrice = dailyOrder.TotalPrice,
+                        BookingDate = dailyOrder.BookingDate
+                    };
+                    dailyOrderExcelList.Add(dailyOrderExcel);
+                }
+                result = dailyOrderExcelList;
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
             return result;
         }

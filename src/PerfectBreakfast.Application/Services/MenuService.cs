@@ -53,19 +53,7 @@ namespace PerfectBreakfast.Application.Services
                         ? new MenuFood { ComboId = (Guid)mf.ComboId }
                         : mf.FoodId is not null
                             ? new MenuFood { FoodId = mf.FoodId }
-                            : mf.CreateComboRequest is not null
-                                ? new MenuFood
-                                {
-                                    Combo = new Combo
-                                    {
-                                        Name = mf.CreateComboRequest.Name,
-                                        Content = mf.CreateComboRequest.Content,
-                                        ComboFoods = mf.CreateComboRequest.ComboFoodRequests
-                                            .Select(cf => new ComboFood { FoodId = cf.FoodId })
-                                            .ToList()
-                                    }
-                                }
-                                : null;
+                            : null;
 
                     if (menuFood != null)
                     {

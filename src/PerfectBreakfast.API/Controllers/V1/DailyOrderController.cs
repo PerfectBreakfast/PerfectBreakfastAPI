@@ -51,5 +51,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id)
+        //{
+        //    var response = await _dailyOrderService.GetDailyOrderByManagementUnit(id);
+        //    return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        //}
     }
 }
