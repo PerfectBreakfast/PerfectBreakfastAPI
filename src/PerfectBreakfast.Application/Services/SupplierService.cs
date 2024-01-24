@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
@@ -128,7 +129,7 @@ public class SupplierService : ISupplierService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<SupplierResponse>>> GetPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<SupplierResponse>>> GetPaginationAsync( string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<SupplierResponse>>();
         try
@@ -138,7 +139,13 @@ public class SupplierService : ISupplierService
             {
                 NavigationProperty = c => c.Users
             };
-            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,null,userInclude);
+            
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? null 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
+            
+            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude);
             var supplierResponses = supplierPages.Items.Select(sp => 
                 new SupplierResponse(sp.Id,sp.Name,sp.Address,sp.Longitude,sp.Latitude,sp.Users.Count)).ToList();
             
