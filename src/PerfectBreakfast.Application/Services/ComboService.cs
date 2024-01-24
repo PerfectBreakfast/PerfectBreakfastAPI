@@ -28,10 +28,27 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<ComboResponse>();
             try
             {
+                var combos = await _unitOfWork.ComboRepository.GetAllCombo();
                 var combo = _mapper.Map<Combo>(createComboRequest);
                 var comboFoods = createComboRequest.FoodId
                     .Select(foodId => new ComboFood { FoodId = foodId })
                     .ToList();
+
+                foreach (var existingCombo in combos)
+                {
+                    var existingComboFoods = existingCombo.ComboFoods;
+
+                    if (existingComboFoods.Count() == comboFoods.Count)
+                    {
+                        // Check if FoodId values are the same for corresponding ComboFoods
+                        if (existingComboFoods.All(ef => comboFoods.Any(cf => cf.FoodId == ef.FoodId)))
+                        {
+                            // The sets of ComboFoods are the same, return or handle as needed
+                            result.AddUnknownError("Combo is already exsit. Combo is: " + existingCombo.Name);
+                            return result;
+                        }
+                    }
+                }
                 combo.ComboFoods = comboFoods;
                 combo.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
                 await _unitOfWork.ComboRepository.AddAsync(combo);
