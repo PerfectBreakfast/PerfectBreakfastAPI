@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using System.Linq.Expressions;
+using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -117,20 +118,38 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<Pagination<ComboResponse>>();
             try
             {
-                var combos = await _unitOfWork.ComboRepository.GetAllCombo();
-                List<ComboResponse> comboResponses = new List<ComboResponse>();
-                foreach (var combo in combos)
+                // xác định các thuộc tính include và theninclude 
+                var comboFoodInclude = new IncludeInfo<Combo>
                 {
-                    var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                    decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
-                    var co = _mapper.Map<ComboResponse>(combo);
-                    co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-                    co.comboPrice = totalFoodPrice;
-                    comboResponses.Add(co);
-                }
-
-                var comboPagination = await _unitOfWork.ComboRepository.GetAllCombosWithPaginationAsync(pageIndex, pageSize, comboResponses);
-                result.Payload = _mapper.Map<Pagination<ComboResponse>>(comboPagination);
+                    NavigationProperty = c => c.ComboFoods,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
+                    {
+                        cf => ((ComboFood)cf).Food,
+                    }
+                };
+                // lấy page combo 
+                var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize,null,comboFoodInclude);
+                // Chuyển đổi từ Combo sang ComboResponse
+                var comboResponses = pagedCombos.Items.Select(combo => new ComboResponse
+                {
+                    Id = combo.Id,
+                    Name = combo.Name,
+                    Content = combo.Content,
+                    Image = combo.Image,
+                    Foods = String.Join(", ", combo.ComboFoods
+                        .Where(cf => cf != null && cf.Food != null)
+                        .Select(cf => cf.Food.Name)),
+                    comboPrice = combo.ComboFoods
+                        .Where(cf => cf != null && cf.Food != null)
+                        .Sum(cf => cf.Food.Price)
+                }).ToList();
+                result.Payload = new Pagination<ComboResponse>
+                {
+                    PageIndex = pagedCombos.PageIndex,
+                    PageSize = pagedCombos.PageSize,
+                    TotalItemsCount = pagedCombos.TotalItemsCount,
+                    Items = comboResponses
+                };
             }
             catch (Exception e)
             {
