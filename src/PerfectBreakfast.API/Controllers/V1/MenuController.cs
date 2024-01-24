@@ -63,5 +63,19 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _menuService.Delete(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+
+        [HttpPut("{id}/menu-is-selected-status")]
+        public async Task<IActionResult> ChooseMenu(Guid id)
+        {
+            var response = await _menuService.ChooseMenu(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
+
+        [HttpGet("menu-is-selected")]
+        public async Task<IActionResult> GetMenuToShow()
+        {
+            var response = await _menuService.GetMenuByStatus();
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }

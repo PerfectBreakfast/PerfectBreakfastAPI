@@ -20,6 +20,44 @@ namespace PerfectBreakfast.Application.Services
             _mapper = mapper;
         }
 
+        public async Task<OperationResult<MenuResponse>> ChooseMenu(Guid id)
+        {
+            var result = new OperationResult<MenuResponse>();
+            try
+            {
+                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+
+                // Kiểm tra nếu 'menu' là null
+                if (menu != null)
+                {
+                    menu.IsSelected = false;
+                    _unitOfWork.MenuRepository.Update(menu);
+                    var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
+                    menuEntity.IsSelected = true;
+                    _unitOfWork.MenuRepository.Update(menuEntity);
+                    await _unitOfWork.SaveChangeAsync();
+
+                }
+                else
+                {
+                    var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
+                    menuEntity.IsSelected = true;
+                    _unitOfWork.MenuRepository.Update(menuEntity);
+                    await _unitOfWork.SaveChangeAsync();
+                }
+
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<MenuResponse>> CreateMenu(CreateMenuFoodRequest createMenuFoodRequest)
         {
             var result = new OperationResult<MenuResponse>();
@@ -121,6 +159,60 @@ namespace PerfectBreakfast.Application.Services
                 if (menu is null)
                 {
                     result.AddUnknownError("Id is not exsit");
+                    return result;
+                }
+                //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
+
+                // Lấy danh sách Food từ Menu
+                var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
+                var foodResponses = _mapper.Map<List<ComboAndFoodResponse?>>(foodEntities);
+
+                // Lấy danh sách Combo từ Menu
+                var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
+                var comboResponses = new List<ComboAndFoodResponse>();
+                // Duyệt qua từng Combo để lấy thông tin chi tiết
+                foreach (var combo in comboEntities)
+                {
+                    if (combo == null)
+                    {
+                        continue;
+                    }
+                    var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
+
+                    // Lấy danh sách Food từ Combo
+                    var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
+                    decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
+                    // Ánh xạ Combo chi tiết sang DTO
+                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
+                    comboResponse.FoodResponses = foodResponsesInCombo;
+                    comboResponse.Price = totalFoodPrice;
+                    comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
+                    comboResponses.Add(comboResponse);
+                }
+
+                // Ánh xạ Menu chi tiết sang DTO
+                var menuResponse = _mapper.Map<MenuResponse>(menu);
+                menuResponse.ComboFoodResponses = foodResponses;
+                menuResponse.ComboFoodResponses = comboResponses;
+                result.Payload = menuResponse;
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<MenuResponse>> GetMenuByStatus()
+        {
+            var result = new OperationResult<MenuResponse>();
+            try
+            {
+                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+                if (menu is null)
+                {
+                    result.AddUnknownError("No menu selected");
                     return result;
                 }
                 //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
