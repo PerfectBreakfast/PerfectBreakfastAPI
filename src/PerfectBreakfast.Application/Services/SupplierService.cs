@@ -38,12 +38,12 @@ public class SupplierService : ISupplierService
         return result;
     }
 
-    public async Task<OperationResult<SupplierResponse>> GetSupplierId(Guid Id)
+    public async Task<OperationResult<SupplierDetailResponse>> GetSupplierId(Guid id)
     {
-        var result = new OperationResult<SupplierResponse>();
+        var result = new OperationResult<SupplierDetailResponse>();
         try
         {
-            var supp = await _unitOfWork.SupplierRepository.GetSupplierUintDetail(Id);
+            var supp = await _unitOfWork.SupplierRepository.GetSupplierUintDetail(id);
             if (supp == null)
             {
                 result.AddUnknownError("Id does not exist");
@@ -52,7 +52,7 @@ public class SupplierService : ISupplierService
 
             var managementUnit = supp.SupplyAssignments.Select(o => o.ManagementUnit).ToList();
             
-            var supplier = _mapper.Map<SupplierResponse>(supp);
+            var supplier = _mapper.Map<SupplierDetailResponse>(supp);
             
             supplier.ManagementUnitDtos = _mapper.Map<List<ManagementUnitDTO>>(managementUnit);
 
@@ -133,8 +133,22 @@ public class SupplierService : ISupplierService
         var result = new OperationResult<Pagination<SupplierResponse>>();
         try
         {
-            var pagination = await _unitOfWork.SupplierRepository.ToPagination(pageIndex,pageSize);
-            result.Payload = _mapper.Map<Pagination<SupplierResponse>>(pagination);
+            // xác định các thuộc tính include và theninclude 
+            var userInclude = new IncludeInfo<Supplier>
+            {
+                NavigationProperty = c => c.Users
+            };
+            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,null,userInclude);
+            var supplierResponses = supplierPages.Items.Select(sp => 
+                new SupplierResponse(sp.Id,sp.Name,sp.Address,sp.Longitude,sp.Latitude,sp.Users.Count)).ToList();
+            
+            result.Payload = new Pagination<SupplierResponse>
+            {
+                PageIndex = supplierPages.PageIndex,
+                PageSize = supplierPages.PageSize,
+                TotalItemsCount = supplierPages.TotalItemsCount,
+                Items = supplierResponses
+            };
         }
         catch (Exception e)
         {

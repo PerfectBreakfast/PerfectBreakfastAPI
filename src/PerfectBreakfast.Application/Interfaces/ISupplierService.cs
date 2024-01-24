@@ -8,7 +8,7 @@ namespace PerfectBreakfast.Application.Interfaces;
 public interface ISupplierService
 {
     public Task<OperationResult<List<SupplierResponse>>> GetSuppliers();
-    public Task<OperationResult<SupplierResponse>> GetSupplierId(Guid Id);
+    public Task<OperationResult<SupplierDetailResponse>> GetSupplierId(Guid id);
     public Task<OperationResult<List<RoleResponse>>> GetRoleBySupplier();
     public Task<OperationResult<SupplierResponse>> CreateSupplier(CreateSupplierRequestModel requestModel);
     public Task<OperationResult<SupplierResponse>> UpdateSupplier(Guid supplierId,UpdateSupplierRequestModel requestModel);

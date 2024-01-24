@@ -3,12 +3,4 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 
-public record ManagementUnitResponseModel
-{
-    public Guid? Id { get; set; } 
-    public string Address { get; set; } = string.Empty;
-    public int CommissionRate { get; set; }
-    public double? Longitude { get; set; } 
-    public double? Latitude { get; set; } 
-    public List<SupplierDTO?> SupplierDTO { get; set; }
-}
+public record ManagementUnitResponseModel(Guid Id,string Address,int CommissionRate,double? Longitude,double? Latitude,int MemberCount);

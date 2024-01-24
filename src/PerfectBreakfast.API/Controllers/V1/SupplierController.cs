@@ -33,7 +33,7 @@ public class SupplierController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("pagination"),Authorize]
+    [HttpGet("pagination")]
     public async Task<IActionResult> GetPagination(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierService.GetPaginationAsync(pageIndex,pageSize);

@@ -141,8 +141,22 @@ public class DeliveryUnitService : IDeliveryUnitService
         var result = new OperationResult<Pagination<DeliveryUnitResponseModel>>();
         try
         {
-            var com = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<DeliveryUnitResponseModel>>(com);
+            // xác định các thuộc tính include và theninclude 
+            var userInclude = new IncludeInfo<DeliveryUnit>
+            {
+                NavigationProperty = c => c.Users
+            };
+            var deliveryUnitPages = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize,null,userInclude);
+            var deliveryUnitResponses = deliveryUnitPages.Items.Select(sp => 
+                new DeliveryUnitResponseModel(sp.Id,sp.Name,sp.Address,sp.Longitude,sp.Latitude,sp.Users.Count)).ToList();
+            
+            result.Payload = new Pagination<DeliveryUnitResponseModel>
+            {
+                PageIndex = deliveryUnitPages.PageIndex,
+                PageSize = deliveryUnitPages.PageSize,
+                TotalItemsCount = deliveryUnitPages.TotalItemsCount,
+                Items = deliveryUnitResponses
+            };
         }
         catch (Exception e)
         {

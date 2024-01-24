@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -40,12 +41,12 @@ public class ManagementUnitService : IManagementUnitService
         return result;
     }
 
-    public async Task<OperationResult<ManagementUnitResponseModel>> GetManagementUnitId(Guid Id)
+    public async Task<OperationResult<ManagementUnitDetailResponse>> GetManagementUnitId(Guid id)
     {
-        var result = new OperationResult<ManagementUnitResponseModel>();
+        var result = new OperationResult<ManagementUnitDetailResponse>();
         try
         {
-            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementUintDetail(Id);
+            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementUintDetail(id);
             if (managementUnit == null)
             {
                 result.AddUnknownError("Id does not exist");
@@ -53,7 +54,7 @@ public class ManagementUnitService : IManagementUnitService
             }
 
             var suppliers = managementUnit.SupplyAssignments.Select(o => o.Supplier).ToList();
-            var mana = _mapper.Map<ManagementUnitResponseModel>(managementUnit);
+            var mana = _mapper.Map<ManagementUnitDetailResponse>(managementUnit);
             mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
 
             result.Payload = mana;
@@ -154,8 +155,22 @@ public class ManagementUnitService : IManagementUnitService
         var result = new OperationResult<Pagination<ManagementUnitResponseModel>>();
         try
         {
-            var com = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<ManagementUnitResponseModel>>(com);
+            // xác định các thuộc tính include và theninclude 
+            var UserInclude = new IncludeInfo<ManagementUnit>
+            {
+                NavigationProperty = c => c.Users
+            };
+            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,null,UserInclude);
+            var managementUnitResponses = partnerPages.Items.Select(mu => 
+                new ManagementUnitResponseModel(mu.Id, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();
+            
+            result.Payload = new Pagination<ManagementUnitResponseModel>
+            {
+                PageIndex = partnerPages.PageIndex,
+                PageSize = partnerPages.PageSize,
+                TotalItemsCount = partnerPages.TotalItemsCount,
+                Items = managementUnitResponses
+            };
         }
         catch (Exception e)
         {
