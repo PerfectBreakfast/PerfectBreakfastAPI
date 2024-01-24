@@ -73,7 +73,9 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             _dbSet.UpdateRange(entities);
         }
 
-        public async Task<Pagination<TEntity>> ToPagination(int pageIndex = 0, int pageSize = 10, Expression<Func<TEntity, bool>>? predicate = null)
+        public async Task<Pagination<TEntity>> ToPagination(int pageIndex = 0, int pageSize = 10, 
+            Expression<Func<TEntity, bool>>? predicate = null,
+            params IncludeInfo<TEntity>[] includeProperties)
         {
             var itemCount = await _dbSet.CountAsync();
             IQueryable<TEntity> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
@@ -81,6 +83,17 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             {
                 itemsQuery = itemsQuery.Where(predicate); 
             }
+            // Xử lý các thuộc tính include và thenInclude
+            foreach (var includeProperty in includeProperties)
+            {
+                var queryWithInclude = itemsQuery.Include(includeProperty.NavigationProperty);
+                foreach (var thenInclude in includeProperty.ThenIncludes)
+                {
+                    queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+                }
+                itemsQuery = queryWithInclude;
+            }
+            
             var items = await itemsQuery
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize)

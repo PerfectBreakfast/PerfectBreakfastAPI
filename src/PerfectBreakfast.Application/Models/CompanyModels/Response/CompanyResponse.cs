@@ -12,6 +12,7 @@ public record CompanyResponse
     public string Address { get; set; } = string.Empty;
     public TimeOnly? StartWorkHour { get; set; }
     public bool IsDeleted { get; set; }
+    public int MemberCount { get; set; }
     public ManagementUnitResponseModel? ManagementUnit { get; set; }
     public DeliveryUnitResponseModel? DeliveryUnit { get; set; }
 }

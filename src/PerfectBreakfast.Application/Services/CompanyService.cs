@@ -144,8 +144,32 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<Pagination<CompanyResponse>>();
         try
         {
-            var com = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<CompanyResponse>>(com);
+            // xác định các thuộc tính include và theninclude 
+            var userInclude = new IncludeInfo<Company>
+            {
+                NavigationProperty = c => c.Workers
+            };
+            var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize,null,userInclude);
+            var companyResponses = companyPages.Items.Select(c => 
+                new CompanyResponse
+                {
+                    Id = c.Id,
+                    Address = c.Address,
+                    Email = c.Email,
+                    PhoneNumber = c.PhoneNumber,
+                    Name = c.Name,
+                    IsDeleted = c.IsDeleted,
+                    StartWorkHour = c.StartWorkHour,
+                    MemberCount = c.Workers.Count
+                }).ToList();
+            
+            result.Payload = new Pagination<CompanyResponse>
+            {
+                PageIndex = companyPages.PageIndex,
+                PageSize = companyPages.PageSize,
+                TotalItemsCount = companyPages.TotalItemsCount,
+                Items = companyResponses
+            };
         }
         catch (Exception e)
         {

@@ -30,13 +30,14 @@ public class SupplierController : BaseController
     /// <summary>
     /// API For Supper Admin
     /// </summary>
+    /// <param name="searchTerm"></param>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("pagination"),Authorize]
-    public async Task<IActionResult> GetPagination(int pageIndex = 0, int pageSize = 10)
+    [HttpGet("pagination")]
+    public async Task<IActionResult> GetPagination( string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _supplierService.GetPaginationAsync(pageIndex,pageSize);
+        var response = await _supplierService.GetPaginationAsync(searchTerm,pageIndex,pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
