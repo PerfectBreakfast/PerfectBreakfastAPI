@@ -50,13 +50,6 @@ public class ManagementUnitController : BaseController
         var response = await _managementUnitService.GetManagementUnitId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
-    [HttpGet("roles")]
-    public async Task<IActionResult> GetRoleByManagementUnit()
-    {
-        var response = await _managementUnitService.GetRoleByManagementUnit();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
 
     [HttpGet("pagination")]
     public async Task<IActionResult> GetManagemnetUnitPagination(int pageIndex = 0, int pageSize = 10)

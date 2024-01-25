@@ -10,7 +10,6 @@ public interface IManagementUnitService
 {
     public Task<OperationResult<List<ManagementUnitResponseModel>>> GetManagementUnits();
     public Task<OperationResult<ManagementUnitDetailResponse>> GetManagementUnitId(Guid id);
-    public Task<OperationResult<List<RoleResponse>>> GetRoleByManagementUnit();
     public Task<OperationResult<ManagementUnitResponseModel>> CreateManagementUnit(CreateManagementUnitRequest requestModel);
     public Task<OperationResult<ManagementUnitResponseModel>> UpdateManagementUnit(Guid managementUnitId, UpdateManagementUnitRequest requestModel);
     public Task<OperationResult<ManagementUnitResponseModel>> RemoveManagementUnit(Guid managementUnitIdId);

@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -11,4 +13,8 @@ public class DeliveryUnitRepository : GenericRepository<DeliveryUnit>,IDeliveryU
     {
     }
     // to do
+    public async Task<DeliveryUnit?> GetDeliveryUnitById(Guid id, params Expression<Func<DeliveryUnit, object>>[] includeProperties)
+    {
+        return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
+    }
 }

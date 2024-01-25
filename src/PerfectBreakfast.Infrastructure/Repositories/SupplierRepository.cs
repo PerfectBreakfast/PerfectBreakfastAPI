@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
@@ -29,4 +30,8 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
         return suppliers;
     }
 
+    public async Task<Supplier?> GetSupplierById(Guid id, params Expression<Func<Supplier, object>>[] includeProperties)
+    {
+        return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
+    }
 }

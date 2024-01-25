@@ -1,10 +1,12 @@
 ﻿using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -50,6 +52,50 @@ namespace PerfectBreakfast.Application.Services
             }
             return result;
         }
+
+        public async Task<OperationResult<List<RoleResponse>>> GetRoleByUnitId(Guid unitId)
+        {
+            var result = new OperationResult<List<RoleResponse>>();
+            try
+            {
+                // Kiểm tra ManagementUnit
+                var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementById(unitId);
+                if (managementUnit != null)
+                {
+                    // Lấy roles từ ManagementUnit
+                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.ManagementUnit).ToListAsync();
+                    result.Payload =  _mapper.Map<List<RoleResponse>>(roles);
+                    return result;
+                }
+                
+                // Kiểm tra DeliveryUnit
+                var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetDeliveryUnitById(unitId);
+                if (deliveryUnit != null)
+                {
+                    // Lấy roles từ DeliveryUnit
+                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.DeliveryUnit).ToListAsync();
+                    result.Payload =  _mapper.Map<List<RoleResponse>>(roles);
+                    return result;
+                }
+                
+                // Kiểm tra Supplier
+                var supplier = await _unitOfWork.SupplierRepository.GetSupplierById(unitId);
+                if (supplier != null)
+                {
+                    // Lấy roles từ Supplier
+                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.Supplier).ToListAsync();
+                    result.Payload =  _mapper.Map<List<RoleResponse>>(roles);
+                    return result;
+                }
+                result.AddError(ErrorCode.NotFound,$"Not found by Id : {unitId}");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<bool>> CreateRole(CreatRoleRequest requestModel)
         {
             var result = new OperationResult<bool>();

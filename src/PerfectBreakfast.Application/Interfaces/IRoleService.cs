@@ -7,6 +7,7 @@ public interface IRoleService
 {
     public Task<OperationResult<List<RoleResponse>>> GetAllRoles();
     public Task<OperationResult<RoleResponse>> GetRoleById(Guid id);
+    public Task<OperationResult<List<RoleResponse>>> GetRoleByUnitId(Guid unitId);
     public Task<OperationResult<bool>> CreateRole(CreatRoleRequest requestModel);
     public Task<OperationResult<bool>> UpdateRole(Guid roleId, UpdateRolerequest requestModel);
     public Task<OperationResult<bool>> RemoveRole(Guid roleId);

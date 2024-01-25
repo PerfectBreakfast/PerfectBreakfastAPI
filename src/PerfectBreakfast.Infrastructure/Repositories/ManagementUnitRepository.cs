@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
@@ -27,5 +28,10 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IMana
             .ThenInclude(x => x.Supplier).SingleOrDefaultAsync();
         return managementUnit;
 
+    }
+
+    public async Task<ManagementUnit?> GetManagementById(Guid id, params Expression<Func<ManagementUnit, object>>[] includeProperties)
+    {
+        return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
 }

@@ -84,11 +84,4 @@ public class SupplierController : BaseController
         var response = await _supplierService.GetSupplierId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
-    [HttpGet("roles")]
-    public async Task<IActionResult> GetRoleBySupplier()
-    {
-        var response = await _supplierService.GetRoleBySupplier();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
 }
