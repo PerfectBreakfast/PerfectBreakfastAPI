@@ -162,7 +162,7 @@ public class ManagementUnitService : IManagementUnitService
             };
             var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,null,UserInclude);
             var managementUnitResponses = partnerPages.Items.Select(mu => 
-                new ManagementUnitResponseModel(mu.Id, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();
+                new ManagementUnitResponseModel(mu.Id,mu.Name, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();
             
             result.Payload = new Pagination<ManagementUnitResponseModel>
             {
