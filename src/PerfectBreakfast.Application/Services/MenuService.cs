@@ -288,7 +288,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, MenuRequest menuRequest)
+        public async Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, CreateMenuAndComboRequest menuRequest)
         {
             var result = new OperationResult<MenuResponse>();
             try

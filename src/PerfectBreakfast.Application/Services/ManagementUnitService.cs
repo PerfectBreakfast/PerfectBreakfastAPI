@@ -1,11 +1,8 @@
-using System.Linq.Expressions;
-using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
@@ -20,12 +17,12 @@ public class ManagementUnitService : IManagementUnitService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public ManagementUnitService(IUnitOfWork unitOfWork,IMapper mapper)
+    public ManagementUnitService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-        
+
     public async Task<OperationResult<List<ManagementUnitResponseModel>>> GetManagementUnits()
     {
         var result = new OperationResult<List<ManagementUnitResponseModel>>();
@@ -160,10 +157,10 @@ public class ManagementUnitService : IManagementUnitService
             {
                 NavigationProperty = c => c.Users
             };
-            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,null,UserInclude);
-            var managementUnitResponses = partnerPages.Items.Select(mu => 
+            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize, null, UserInclude);
+            var managementUnitResponses = partnerPages.Items.Select(mu =>
                 new ManagementUnitResponseModel(mu.Id, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();
-            
+
             result.Payload = new Pagination<ManagementUnitResponseModel>
             {
                 PageIndex = partnerPages.PageIndex,

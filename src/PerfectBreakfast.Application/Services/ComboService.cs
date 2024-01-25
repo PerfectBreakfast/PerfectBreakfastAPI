@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using MapsterMapper;
+﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -7,6 +6,7 @@ using PerfectBreakfast.Application.Models.ComboModels.Request;
 using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -145,7 +145,7 @@ namespace PerfectBreakfast.Application.Services
                     }
                 };
                 // lấy page combo 
-                var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize,null,comboFoodInclude);
+                var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize, null, comboFoodInclude);
                 // Chuyển đổi từ Combo sang ComboResponse
                 var comboResponses = pagedCombos.Items.Select(combo => new ComboResponse
                 {
@@ -200,13 +200,14 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, ComboRequest comboRequest)
+        public async Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, CreateComboRequest createComboRequest)
         {
             var result = new OperationResult<ComboResponse>();
             try
             {
                 var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
-                _mapper.Map(comboRequest, comboEntity);
+                _mapper.Map(createComboRequest, comboEntity);
+                comboEntity.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
                 _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();
                 result.Payload = _mapper.Map<ComboResponse>(comboEntity);
