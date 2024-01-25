@@ -10,7 +10,7 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<ComboResponse>> GetCombo(Guid id);
         public Task<OperationResult<ComboResponse>> CreateCombo(CreateComboRequest createComboRequest);
         public Task<OperationResult<ComboResponse>> DeleteCombo(Guid id);
-        public Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, ComboRequest comboRequest);
+        public Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, CreateComboRequest createComboRequest);
         public Task<OperationResult<Pagination<ComboResponse>>> GetComboPaginationAsync(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<ComboResponse>> Delete(Guid id);
     }

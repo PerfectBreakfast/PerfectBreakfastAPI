@@ -1,6 +1,6 @@
 ﻿using MapsterMapper;
-using Microsoft.AspNetCore.Http;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
@@ -14,11 +14,15 @@ namespace PerfectBreakfast.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IImgurService _imgurService;
-        public FoodService(IUnitOfWork unitOfWork, IMapper mapper,IImgurService imgurService)
+        private readonly IClaimsService _claimsService;
+        private readonly ICurrentTime _currentTime;
+        public FoodService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService, IClaimsService claimsService, ICurrentTime currentTime)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _imgurService = imgurService;
+            _claimsService = claimsService;
+            _currentTime = currentTime;
         }
 
         public async Task<OperationResult<FoodResponse>> CreateFood(CreateFoodRequestModels requestModel)
@@ -63,7 +67,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<FoodResponeCategory>();
             try
             {
-                var food = await _unitOfWork.FoodRepository.FindSingleAsync(o => o.Id == foodId, o=>o.Category);
+                var food = await _unitOfWork.FoodRepository.FindSingleAsync(o => o.Id == foodId, o => o.Category);
                 if (food is null)
                 {
                     result.AddUnknownError("Id is not exist");
@@ -89,6 +93,96 @@ namespace PerfectBreakfast.Application.Services
             {
                 var foods = await _unitOfWork.FoodRepository.ToPagination(pageIndex, pageSize);
                 result.Payload = _mapper.Map<Pagination<FoodResponse>>(foods);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<List<TotalFoodResponse>>> GetFoodsForManagementUnit()
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var result = new OperationResult<List<TotalFoodResponse>>();
+            try
+            {
+                var now = _currentTime.GetCurrentTime();
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
+                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.ManagementUnitId);
+
+                if (managementUnit == null)
+                {
+                    result.AddUnknownError("managementUnit does not exsit");
+                    return result;
+                }
+
+                // Lấy danh sách các công ty thuộc MU
+                var companies = managementUnit.Companies;
+                var foodCounts = new Dictionary<string, int>();
+
+                // xử lý mỗi cty
+                foreach (var company in companies)
+                {
+                    // Lấy daily order
+                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+
+                    // Lấy chi tiết các order detail
+                    var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
+                    var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
+
+                    // Đếm số lượng từng loại food
+                    foreach (var orderDetail in orderDetails)
+                    {
+                        if (orderDetail.Combo != null)
+                        {
+                            // Nếu là combo thì lấy chi tiết các food trong combo
+                            var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
+                            var comboFoods = combo.ComboFoods;
+
+                            // Với mỗi food trong combo, cộng dồn số lượng
+                            foreach (var comboFood in comboFoods)
+                            {
+                                var foodName = comboFood.Food.Name;
+                                // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
+                                if (foodCounts.ContainsKey(foodName))
+                                {
+                                    // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
+                                    foodCounts[foodName] += orderDetail.Quantity;
+                                }
+                                else
+                                {
+                                    // Nếu chưa tồn tại, thêm mới vào foodCounts
+                                    foodCounts[foodName] = orderDetail.Quantity;
+                                }
+                            }
+                        }
+                        else if (orderDetail.Food != null)
+                        {
+                            // Xử lý order detail là food đơn lẻ
+                            var foodName = orderDetail.Food.Name;
+                            // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
+                            if (foodCounts.ContainsKey(foodName))
+                            {
+                                // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
+                                foodCounts[foodName] += orderDetail.Quantity;
+                            }
+                            else
+                            {
+                                // Nếu chưa tồn tại, thêm mới vào foodCounts
+                                foodCounts[foodName] = orderDetail.Quantity;
+                            }
+                        }
+                    }
+                }
+                // Tạo danh sách totalFoodList từ foodCounts
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse { Name = pair.Key, Quantity = pair.Value }).ToList();
+                result.Payload = totalFoodList;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddUnknownError("Id is not exsit");
             }
             catch (Exception e)
             {
