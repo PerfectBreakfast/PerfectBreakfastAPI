@@ -37,13 +37,13 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMenu(Guid id, MenuRequest menuRequest)
+        public async Task<IActionResult> UpdateMenu(Guid id, CreateMenuAndComboRequest menuRequest)
         {
             var response = await _menuService.UpdateMenu(id, menuRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpPut("{id}/menu-status")]
+        [HttpPut("{id}/menu-deletion")]
         public async Task<IActionResult> DeleteMenu(Guid id)
         {
             var response = await _menuService.DeleteMenu(id);

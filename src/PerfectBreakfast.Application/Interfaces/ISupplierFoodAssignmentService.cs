@@ -6,7 +6,7 @@ namespace PerfectBreakfast.Application.Interfaces
 {
     public interface ISupplierFoodAssignmentService
     {
-        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(Guid managementUnitId, List<SupplierFoodAssignmentRequest> request);
+        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> request);
         public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignment(Guid id);
     }
 }

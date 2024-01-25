@@ -2,7 +2,6 @@
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -15,36 +14,34 @@ namespace PerfectBreakfast.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICurrentTime _currentTime;
-        private readonly IDailyOrderService _dailyOrderService;
+        private readonly IFoodService _foodService;
+        private readonly IClaimsService _claimsService;
 
-        public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IDailyOrderService dailyOrderService)
+        public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IFoodService foodService, IClaimsService claimsService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentTime = currentTime;
-            _dailyOrderService = dailyOrderService;
+            _foodService = foodService;
+            _claimsService = claimsService;
         }
 
-        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(Guid managementUnitId, List<SupplierFoodAssignmentRequest> request)
+        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> request)
         {
             var result = new OperationResult<List<SupplierFoodAssignmentResponse>>();
+            var userId = _claimsService.GetCurrentUserId;
             try
             {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 var supplierfoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
 
                 // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit(managementUnitId);
-                // lấy Dailyorder từ management Unit
-                var dailyOrders = await _dailyOrderService.GetDailyOrderByManagementUnit(managementUnitId);
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.ManagementUnitId);
 
-                if (dailyOrders == null || suppliers == null)
-                {
-                    result.AddUnknownError("ManagementUnit doesn't have order or supplier");
-                    return result;
-                }
 
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
-                var totalFoodCount = GetTotalFoodCounts(dailyOrders);
+                var totalFoodCountOperationReult = await _foodService.GetFoodsForManagementUnit();
+                var totalFoodCount = totalFoodCountOperationReult.Payload;
                 var totalFoodReceive = new Dictionary<string, int>();
 
                 //Lay cac supplier trung voi supplier nhap vao
@@ -70,7 +67,7 @@ namespace PerfectBreakfast.Application.Services
                             result.AddUnknownError(" NCC chua co comission Rate");
                             return result;
                         }
-                        supplierFoodAssignment.ReceivedAmount = food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked;
+                        supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
                         supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
                         supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Sent;
@@ -101,8 +98,8 @@ namespace PerfectBreakfast.Application.Services
                 // Sau khi hoàn thành vòng lặp foreach (var supplier in suppliers)
                 foreach (var item in totalFoodCount)
                 {
-                    string foodName = item.Key; // Tên thức ăn
-                    int count = item.Value; // Tổng số lượng từ DailyOrderResponseExcels
+                    string foodName = item.Name; // Tên thức ăn
+                    int count = item.Quantity; // Tổng số lượng từ DailyOrderResponseExcels
 
                     if (!totalFoodReceive.ContainsKey(foodName) || totalFoodReceive[foodName] != count)
                     {
@@ -131,29 +128,6 @@ namespace PerfectBreakfast.Application.Services
         public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignment(Guid id)
         {
             throw new NotImplementedException();
-        }
-
-        static Dictionary<string, int> GetTotalFoodCounts(List<DailyOrderResponseExcel> dailyOrderResponseExcels)
-        {
-            var totalFoodCounts = new Dictionary<string, int>();
-
-            foreach (var order in dailyOrderResponseExcels)
-            {
-                foreach (var foodItem in order.FoodCount)
-                {
-                    string foodName = foodItem.Key; // Assuming Key is FoodId as a string
-                    if (totalFoodCounts.ContainsKey(foodName))
-                    {
-                        totalFoodCounts[foodName] += foodItem.Value;
-                    }
-                    else
-                    {
-                        totalFoodCounts.Add(foodName, foodItem.Value);
-                    }
-                }
-            }
-
-            return totalFoodCounts;
         }
 
     }

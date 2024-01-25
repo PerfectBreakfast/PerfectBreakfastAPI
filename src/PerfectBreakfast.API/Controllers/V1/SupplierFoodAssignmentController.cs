@@ -18,7 +18,7 @@ public class SupplierFoodAssignmentController : BaseController
     [HttpPost("{id}")]
     public async Task<IActionResult> CreateSupplierFoodAssignment(Guid id, List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
     {
-        var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(id, supplierFoodAssignmentRequest);
+        var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

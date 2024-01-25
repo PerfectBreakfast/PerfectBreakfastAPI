@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -10,5 +11,12 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
         : base(context, timeService, claimsService)
     {
     }
+
     // to do
+    public async Task<Company?> GetCompanyById(Guid id)
+    {
+        return await _dbSet.Include(c => c.DailyOrders)
+                           .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
 }

@@ -29,7 +29,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFood([FromForm]CreateFoodRequestModels requestModel)
+        public async Task<IActionResult> CreateFood([FromForm] CreateFoodRequestModels requestModel)
         {
             var response = await _foodService.CreateFood(requestModel);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -53,6 +53,13 @@ namespace PerfectBreakfast.API.Controllers.V1
         public async Task<IActionResult> GetFoodPagination(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _foodService.GetFoodPaginationAsync(pageIndex, pageSize);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
+
+        [HttpGet("managementunit")]
+        public async Task<IActionResult> GetFoodForManagementUnit()
+        {
+            var response = await _foodService.GetFoodsForManagementUnit();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }
