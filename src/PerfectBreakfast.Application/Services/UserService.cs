@@ -122,10 +122,15 @@ public class UserService : IUserService
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId,x => x.Company);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
             var userDetailResponse = _mapper.Map<UserDetailResponse>(user);
-            userDetailResponse = userDetailResponse with { CompanyName = user.Company.Name };
+            userDetailResponse = userDetailResponse with { Roles = roles };
             result.Payload = userDetailResponse;
+        }
+        catch (NotFoundIdException e)
+        {
+            result.AddError(ErrorCode.NotFound,"Not Found by Id");
         }
         catch (Exception e)
         {
