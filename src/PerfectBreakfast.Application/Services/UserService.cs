@@ -122,9 +122,35 @@ public class UserService : IUserService
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            // xác định các thuộc tính include và theninclude 
+            var companyInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.Company
+            };
+            // xác định các thuộc tính include và theninclude 
+            var supplierInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.Supplier
+            };
+            // xác định các thuộc tính include và theninclude 
+            var deliveryUnitInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.DeliveryUnit
+            };
+            // xác định các thuộc tính include và theninclude 
+            var managementUnitInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.ManagementUnit
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId,companyInclude,supplierInclude,deliveryUnitInclude,managementUnitInclude);
+            string unitName = user.Company?.Name 
+                              ?? user.DeliveryUnit?.Name 
+                              ?? user.ManagementUnit?.Name 
+                              ?? user.Supplier?.Name
+                              ?? "Perfect Breakfast";
             var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
             var userDetailResponse = _mapper.Map<UserDetailResponse>(user);
+            userDetailResponse = userDetailResponse with { CompanyName = unitName };
             userDetailResponse = userDetailResponse with { Roles = roles };
             result.Payload = userDetailResponse;
         }
