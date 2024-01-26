@@ -13,20 +13,33 @@ public class UserRepository : BaseRepository<User>,IUserRepository
     }
     // to do
 
-    public async Task<Pagination<User>> ToPagination(int pageIndex = 0, int pageSize = 10, Expression<Func<User, bool>>? predicate = null)
+    public async Task<Pagination<User>> ToPagination(int pageIndex = 0, int pageSize = 10, 
+        Expression<Func<User, bool>>? predicate = null,
+        params IncludeInfo<User>[] includeProperties)
     {
-        var itemCount = await _dbSet.CountAsync();
         IQueryable<User> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
-        if (predicate != null)
+        if (predicate != null) 
         {
-            itemsQuery = itemsQuery.Where(predicate);
+            itemsQuery = itemsQuery.Where(predicate); 
         }
+        var itemCount = await itemsQuery.CountAsync();
+        // Xử lý các thuộc tính include và thenInclude
+        foreach (var includeProperty in includeProperties)
+        {
+            var queryWithInclude = itemsQuery.Include(includeProperty.NavigationProperty);
+            foreach (var thenInclude in includeProperty.ThenIncludes)
+            {
+                queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+            }
+            itemsQuery = queryWithInclude;
+        }
+            
         var items = await itemsQuery
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .AsNoTracking()
             .ToListAsync();
-
+            
         var result = new Pagination<User>()
         {
             PageIndex = pageIndex,
@@ -96,5 +109,24 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             return usersWithRole;
         }*/
         return null;
+    }
+
+    public async Task<User> GetUserByIdAsync(Guid id, params IncludeInfo<User>[]? includeProperties)
+    {
+        var query  = _dbSet.Where(x => x.Id == id);
+        if (includeProperties != null)
+        {
+            foreach (var includeProperty in includeProperties)
+            {
+                var queryWithInclude = query.Include(includeProperty.NavigationProperty);
+                foreach (var thenInclude in includeProperty.ThenIncludes)
+                {
+                    queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+                }
+                query = queryWithInclude;
+            }
+        }
+        
+        return await query.SingleAsync();
     }
 }
