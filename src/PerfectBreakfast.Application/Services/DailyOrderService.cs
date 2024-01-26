@@ -213,6 +213,7 @@ namespace PerfectBreakfast.Application.Services
                 _mapper.Map(updateDailyOrderRequest, dailyOrderEntity);
                 _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrderEntity);
             }
             catch (NotFoundIdException)
             {

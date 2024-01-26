@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -70,7 +71,7 @@ public class CompanyService : ICompanyService
         }
         catch (NotFoundIdException e)
         {
-            result.AddError(ErrorCode.NotFound,e.Message);
+            result.AddError(ErrorCode.NotFound, e.Message);
         }
         catch (Exception e)
         {
@@ -139,9 +140,9 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<CompanyResponse>>> GetCompanyPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<CompanyResponse>>();
+        var result = new OperationResult<Pagination<CompanyResponsePaging>>();
         try
         {
             // xác định các thuộc tính include và theninclude 
@@ -149,9 +150,23 @@ public class CompanyService : ICompanyService
             {
                 NavigationProperty = c => c.Workers
             };
-            var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize,null,userInclude);
-            var companyResponses = companyPages.Items.Select(c => 
-                new CompanyResponse
+            var managementUnitInclude = new IncludeInfo<Company>
+            {
+                NavigationProperty = c => c.ManagementUnit
+            };
+            var deliveryUnitInclude = new IncludeInfo<Company>
+            {
+                NavigationProperty = c => c.DeliveryUnit
+            };
+
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<Company, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
+                ? null
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+
+            var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, searchPredicate, userInclude, managementUnitInclude, deliveryUnitInclude);
+            var companyResponses = companyPages.Items.Select(c =>
+                new CompanyResponsePaging
                 {
                     Id = c.Id,
                     Address = c.Address,
@@ -160,10 +175,12 @@ public class CompanyService : ICompanyService
                     Name = c.Name,
                     IsDeleted = c.IsDeleted,
                     StartWorkHour = c.StartWorkHour,
-                    MemberCount = c.Workers.Count
+                    MemberCount = c.Workers.Count,
+                    ManagementUnit = c.ManagementUnit.Name,
+                    DeliveryUnit = c.DeliveryUnit.Name
                 }).ToList();
-            
-            result.Payload = new Pagination<CompanyResponse>
+
+            result.Payload = new Pagination<CompanyResponsePaging>
             {
                 PageIndex = companyPages.PageIndex,
                 PageSize = companyPages.PageSize,
@@ -178,7 +195,7 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid Id, CompanyRequest companyRequest)
+    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid Id, UpdateCompanyRequest companyRequest)
     {
         var result = new OperationResult<CompanyResponse>();
         try
@@ -187,6 +204,7 @@ public class CompanyService : ICompanyService
             _mapper.Map(companyRequest, company);
             _unitOfWork.CompanyRepository.Update(company);
             await _unitOfWork.SaveChangeAsync();
+            result.Payload = _mapper.Map<CompanyResponse>(company);
         }
         catch (NotFoundIdException)
         {

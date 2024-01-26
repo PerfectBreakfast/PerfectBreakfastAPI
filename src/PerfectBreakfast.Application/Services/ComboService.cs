@@ -130,7 +130,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<ComboResponse>>> GetComboPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<ComboResponse>>> GetComboPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<ComboResponse>>();
             try
@@ -144,8 +144,14 @@ namespace PerfectBreakfast.Application.Services
                         cf => ((ComboFood)cf).Food,
                     }
                 };
+
+                // Tạo biểu thức tìm kiếm (predicate)
+                Expression<Func<Combo, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
+                    ? null
+                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+
                 // lấy page combo 
-                var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize, null, comboFoodInclude);
+                var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize, searchPredicate, comboFoodInclude);
                 // Chuyển đổi từ Combo sang ComboResponse
                 var comboResponses = pagedCombos.Items.Select(combo => new ComboResponse
                 {
@@ -200,14 +206,14 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, CreateComboRequest createComboRequest)
+        public async Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, UpdateComboRequest updateComboRequest)
         {
             var result = new OperationResult<ComboResponse>();
             try
             {
                 var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
-                _mapper.Map(createComboRequest, comboEntity);
-                comboEntity.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
+                _mapper.Map(updateComboRequest, comboEntity);
+                comboEntity.Image = await _imgurService.UploadImageAsync(updateComboRequest.Image);
                 _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();
                 result.Payload = _mapper.Map<ComboResponse>(comboEntity);

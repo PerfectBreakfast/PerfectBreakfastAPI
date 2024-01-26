@@ -50,9 +50,9 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpGet("pagination")]
-        public async Task<IActionResult> GetFoodPagination(int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetFoodPagination(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _foodService.GetFoodPaginationAsync(pageIndex, pageSize);
+            var response = await _foodService.GetFoodPaginationAsync(searchTerm, pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
