@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -129,7 +130,7 @@ public class ManagementUnitService : IManagementUnitService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<ManagementUnitResponseModel>>> GetManagementUnitPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<ManagementUnitResponseModel>>> GetManagementUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<ManagementUnitResponseModel>>();
         try
@@ -139,9 +140,50 @@ public class ManagementUnitService : IManagementUnitService
             {
                 NavigationProperty = c => c.Users
             };
-            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,null,UserInclude);
-            var managementUnitResponses = partnerPages.Items.Select(mu => 
-                new ManagementUnitResponseModel(mu.Id,mu.Name, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();
+            var supplierInclude = new IncludeInfo<ManagementUnit>
+            {
+                NavigationProperty = x => x.SupplyAssignments,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((SupplyAssignment)sp).Supplier
+                }
+            };
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<ManagementUnit, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? null 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+            
+            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,UserInclude,supplierInclude);
+            /*var managementUnitResponses = partnerPages.Items.Select(mu => 
+                new ManagementUnitResponseModel(mu.Id,mu.Name, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();*/
+
+            var managementUnitResponses = new List<ManagementUnitResponseModel>();
+            foreach (var mr in partnerPages.Items)
+            {
+                var adminUserNames = new List<string>();
+
+                foreach (var user in mr.Users)   // lấy ra danh sách user có role là Supplier Admin
+                {
+                    if (await CheckIfUserIsAdmin(user))
+                    {
+                        adminUserNames.Add(user.Name);
+                    }
+                }
+
+                var managementUnitResponse = new ManagementUnitResponseModel(
+                    mr.Id,
+                    mr.Name,
+                    mr.Address,
+                    mr.CommissionRate,
+                    mr.Longitude,
+                    mr.Latitude,
+                    adminUserNames, // Danh sách người dùng là admin
+                    mr.SupplyAssignments.Select(sa => sa.Supplier.Name).ToList(),
+                    mr.Users.Count);
+
+                managementUnitResponses.Add(managementUnitResponse);
+            }
+            
             result.Payload = new Pagination<ManagementUnitResponseModel>
             {
                 PageIndex = partnerPages.PageIndex,
@@ -155,5 +197,11 @@ public class ManagementUnitService : IManagementUnitService
             result.AddUnknownError(e.Message);
         }
         return result;
+    }
+    
+    private async Task<bool> CheckIfUserIsAdmin(User user)
+    {
+        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
+        return roles.Contains("MANAGEMENT UNIT ADMIN");
     }
 }

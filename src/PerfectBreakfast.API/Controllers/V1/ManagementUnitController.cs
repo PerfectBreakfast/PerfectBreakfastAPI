@@ -52,9 +52,9 @@ public class ManagementUnitController : BaseController
     }
 
     [HttpGet("pagination")]
-    public async Task<IActionResult> GetManagemnetUnitPagination(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetManagemnetUnitPagination(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _managementUnitService.GetManagementUnitPaginationAsync(pageIndex, pageSize);
+        var response = await _managementUnitService.GetManagementUnitPaginationAsync(searchTerm,pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

@@ -121,15 +121,60 @@ public class SupplierService : ISupplierService
             {
                 NavigationProperty = c => c.Users
             };
-            
+            var managementUnitInclude = new IncludeInfo<Supplier>
+            {
+                NavigationProperty = x => x.SupplyAssignments,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((SupplyAssignment)sp).ManagementUnit
+                }
+            };
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? null 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
             
-            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude);
-            var supplierResponses = supplierPages.Items.Select(sp => 
-                new SupplierResponse(sp.Id,sp.Name,sp.Address,sp.Longitude,sp.Latitude,sp.Users.Count)).ToList();
+            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,managementUnitInclude);
+            
+            /*var supplierResponses = supplierPages.Items.Select(sp => 
+                new SupplierResponse(
+                    sp.Id,
+                    sp.Name,
+                    sp.Address,
+                    sp.Longitude,
+                    sp.Latitude,
+                    sp.Users.Where(u => CheckIfUserIsAdmin(u))
+                        .Select(u => u.Name).ToList(),
+                    sp.SupplyAssignments.Select(sa => sa.ManagementUnit.Name).ToList(),
+                    sp.Users.Count)).
+                ToList();*/
+            
+            var supplierResponses = new List<SupplierResponse>();
+
+            foreach (var sp in supplierPages.Items)
+            {
+                var adminUserNames = new List<string>();
+
+                foreach (var user in sp.Users)   // lấy ra danh sách user có role là Supplier Admin
+                {
+                    if (await CheckIfUserIsAdmin(user))
+                    {
+                        adminUserNames.Add(user.Name);
+                    }
+                }
+
+                var supplierResponse = new SupplierResponse(
+                    sp.Id,
+                    sp.Name,
+                    sp.Address,
+                    sp.Longitude,
+                    sp.Latitude,
+                    adminUserNames, // Danh sách người dùng là admin
+                    sp.SupplyAssignments.Select(sa => sa.ManagementUnit.Name).ToList(),
+                    sp.Users.Count);
+
+                supplierResponses.Add(supplierResponse);
+            }
             
             result.Payload = new Pagination<SupplierResponse>
             {
@@ -165,5 +210,11 @@ public class SupplierService : ISupplierService
             result.AddUnknownError(e.Message);
         }
         return result;
+    }
+
+    private async Task<bool> CheckIfUserIsAdmin(User user)
+    {
+        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
+        return roles.Contains("SUPPLIER ADMIN");
     }
 }
