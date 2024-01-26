@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -86,12 +87,16 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<FoodResponse>>> GetFoodPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<FoodResponse>>> GetFoodPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<FoodResponse>>();
             try
             {
-                var foods = await _unitOfWork.FoodRepository.ToPagination(pageIndex, pageSize);
+                // Tạo biểu thức tìm kiếm (predicate)
+                Expression<Func<Food, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
+                    ? null
+                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                var foods = await _unitOfWork.FoodRepository.ToPagination(pageIndex, pageSize, searchPredicate);
                 result.Payload = _mapper.Map<Pagination<FoodResponse>>(foods);
             }
             catch (Exception e)
@@ -221,6 +226,7 @@ namespace PerfectBreakfast.Application.Services
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 // map from requestModel => supplier
                 _mapper.Map(requestModel, food);
+                food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
                 // update
                 _unitOfWork.FoodRepository.Update(food);
                 // saveChange

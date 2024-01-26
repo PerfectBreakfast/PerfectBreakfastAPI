@@ -37,7 +37,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMenu(Guid id, CreateMenuAndComboRequest menuRequest)
+        public async Task<IActionResult> UpdateMenu(Guid id, UpdateMenuRequest menuRequest)
         {
             var response = await _menuService.UpdateMenu(id, menuRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -51,9 +51,9 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpGet("pagination")]
-        public async Task<IActionResult> GetMenuPagination(int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetMenuPagination(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _menuService.GetMenuPaginationAsync(pageIndex, pageSize);
+            var response = await _menuService.GetMenuPaginationAsync(searchTerm, pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 

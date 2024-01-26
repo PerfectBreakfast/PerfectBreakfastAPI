@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Request;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -64,28 +65,8 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var menu = _mapper.Map<Menu>(createMenuFoodRequest);
-                var menuFood = _mapper.Map<ICollection<MenuFood?>>(createMenuFoodRequest.MenuFoodRequests);
-                menu.MenuFoods = menuFood;
-                menu.IsSelected = false;
-                await _unitOfWork.MenuRepository.AddAsync(menu);
-                await _unitOfWork.SaveChangeAsync();
-                result.Payload = _mapper.Map<MenuResponse>(menu);
-            }
-            catch (Exception e)
-            {
-                result.AddUnknownError(e.Message);
-            }
-            return result;
-        }
-
-        public async Task<OperationResult<MenuResponse>> CreateMenuAndCombo(CreateMenuAndComboRequest createMenuAndComboRequest)
-        {
-            var result = new OperationResult<MenuResponse>();
-            try
-            {
-                var menu = _mapper.Map<Menu>(createMenuAndComboRequest);
                 var list = new List<MenuFood>();
-                foreach (var mf in createMenuAndComboRequest.MenuFoodRequests)
+                foreach (var mf in createMenuFoodRequest.MenuFoodRequests)
                 {
                     var menuFood = mf.ComboId is not null
                         ? new MenuFood { ComboId = (Guid)mf.ComboId }
@@ -258,12 +239,16 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<MenuResponse>>();
             try
             {
-                var menu = await _unitOfWork.MenuRepository.ToPagination(pageIndex, pageSize);
+                // Tạo biểu thức tìm kiếm (predicate)
+                Expression<Func<Menu, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
+                    ? null
+                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                var menu = await _unitOfWork.MenuRepository.ToPagination(pageIndex, pageSize, searchPredicate);
                 result.Payload = _mapper.Map<Pagination<MenuResponse>>(menu);
             }
             catch (Exception e)
@@ -288,7 +273,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, CreateMenuAndComboRequest menuRequest)
+        public async Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, UpdateMenuRequest menuRequest)
         {
             var result = new OperationResult<MenuResponse>();
             try
@@ -297,6 +282,7 @@ namespace PerfectBreakfast.Application.Services
                 _mapper.Map(menuRequest, menuEntity);
                 _unitOfWork.MenuRepository.Update(menuEntity);
                 await _unitOfWork.SaveChangeAsync();
+                result.Payload = _mapper.Map<MenuResponse>(menuEntity);
             }
             catch (NotFoundIdException)
             {

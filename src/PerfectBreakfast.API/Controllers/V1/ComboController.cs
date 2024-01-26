@@ -37,7 +37,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCombo(Guid id, CreateComboRequest comboRequest)
+        public async Task<IActionResult> UpdateCombo(Guid id, UpdateComboRequest comboRequest)
         {
             var response = await _comboService.UpdateCombo(id, comboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -51,9 +51,9 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpGet("pagination")]
-        public async Task<IActionResult> GetComboPagination(int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetComboPagination(string? searchTerm, int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _comboService.GetComboPaginationAsync(pageIndex, pageSize);
+            var response = await _comboService.GetComboPaginationAsync(searchTerm, pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
