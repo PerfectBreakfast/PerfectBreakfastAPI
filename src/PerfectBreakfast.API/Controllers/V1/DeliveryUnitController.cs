@@ -51,9 +51,9 @@ public class DeliveryUnitController : BaseController
     }
 
     [HttpGet("pagination")]
-    public async Task<IActionResult> GetDeliveryUnitPagination(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDeliveryUnitPagination(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _deliveryUnitService.GetDeliveryUnitPaginationAsync(pageIndex, pageSize);
+        var response = await _deliveryUnitService.GetDeliveryUnitPaginationAsync(searchTerm,pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

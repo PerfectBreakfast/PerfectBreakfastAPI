@@ -136,7 +136,7 @@ public class ManagementUnitService : IManagementUnitService
         try
         {
             // xác định các thuộc tính include và theninclude 
-            var UserInclude = new IncludeInfo<ManagementUnit>
+            var userInclude = new IncludeInfo<ManagementUnit>
             {
                 NavigationProperty = c => c.Users
             };
@@ -148,15 +148,16 @@ public class ManagementUnitService : IManagementUnitService
                     sp => ((SupplyAssignment)sp).Supplier
                 }
             };
+            var companyInclude = new IncludeInfo<ManagementUnit>
+            {
+                NavigationProperty = c => c.Companies
+            };
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<ManagementUnit, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? null 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
             
-            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,UserInclude,supplierInclude);
-            /*var managementUnitResponses = partnerPages.Items.Select(mu => 
-                new ManagementUnitResponseModel(mu.Id,mu.Name, mu.Address, mu.CommissionRate, mu.Longitude, mu.Latitude, mu.Users.Count)).ToList();*/
-
+            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
             var managementUnitResponses = new List<ManagementUnitResponseModel>();
             foreach (var mr in partnerPages.Items)
             {
@@ -178,6 +179,7 @@ public class ManagementUnitService : IManagementUnitService
                     mr.Longitude,
                     mr.Latitude,
                     adminUserNames, // Danh sách người dùng là admin
+                    mr.Companies.Select(c => c.Name).ToList(),
                     mr.SupplyAssignments.Select(sa => sa.Supplier.Name).ToList(),
                     mr.Users.Count);
 

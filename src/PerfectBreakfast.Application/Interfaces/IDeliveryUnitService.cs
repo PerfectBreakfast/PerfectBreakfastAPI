@@ -11,5 +11,5 @@ public interface IDeliveryUnitService
     public Task<OperationResult<DeliveryUnitResponseModel>> CreateDelivery(CreateDeliveryUnitRequest requestModel);
     public Task<OperationResult<DeliveryUnitResponseModel>> UpdateDelivery(Guid deliveryId, UpdateDeliveryUnitRequest requestModel);
     public Task<OperationResult<DeliveryUnitResponseModel>> RemoveDelivery(Guid deliveryId);
-    public Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(int pageIndex = 0, int pageSize = 10);
+    public Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10);
 }

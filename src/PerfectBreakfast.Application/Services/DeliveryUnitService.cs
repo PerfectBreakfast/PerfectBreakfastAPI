@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -116,7 +117,7 @@ public class DeliveryUnitService : IDeliveryUnitService
             return result;
     }
 
-    public async Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DeliveryUnitResponseModel>>();
         try
@@ -126,9 +127,40 @@ public class DeliveryUnitService : IDeliveryUnitService
             {
                 NavigationProperty = c => c.Users
             };
-            var deliveryUnitPages = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize,null,userInclude);
-            var deliveryUnitResponses = deliveryUnitPages.Items.Select(sp => 
-                new DeliveryUnitResponseModel(sp.Id,sp.Name,sp.Address,sp.Longitude,sp.Latitude,sp.Users.Count)).ToList();
+            var companyInclude = new IncludeInfo<DeliveryUnit>
+            {
+                NavigationProperty = c => c.Companies
+            };
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<DeliveryUnit, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? null 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+            var deliveryUnitPages = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
+            var deliveryUnitResponses = new List<DeliveryUnitResponseModel>();
+            foreach (var du in deliveryUnitPages.Items)
+            {
+                var adminUserNames = new List<string>();
+
+                foreach (var user in du.Users)   // lấy ra danh sách user có role là Supplier Admin
+                {
+                    if (await CheckIfUserIsAdmin(user))
+                    {
+                        adminUserNames.Add(user.Name);
+                    }
+                }
+
+                var deliveryUnitResponse = new DeliveryUnitResponseModel(
+                    du.Id,
+                    du.Name,
+                    du.Address,
+                    du.Longitude,
+                    du.Latitude,
+                    adminUserNames, // Danh sách người dùng là admin
+                    du.Companies.Select(c => c.Name).ToList(),
+                    du.Users.Count);
+
+                deliveryUnitResponses.Add(deliveryUnitResponse);
+            }
             
             result.Payload = new Pagination<DeliveryUnitResponseModel>
             {
@@ -143,5 +175,11 @@ public class DeliveryUnitService : IDeliveryUnitService
             result.AddUnknownError(e.Message);
         }
         return result;
+    }
+    
+    private async Task<bool> CheckIfUserIsAdmin(User user)
+    {
+        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
+        return roles.Contains("DELIVERY UNIT ADMIN");
     }
 }
