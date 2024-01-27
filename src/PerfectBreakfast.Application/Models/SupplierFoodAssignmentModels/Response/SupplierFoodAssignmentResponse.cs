@@ -3,6 +3,6 @@
     public record SupplierFoodAssignmentResponse
     {
         public Guid? SupplierId { get; set; }
-        List<FoodAssignmentResponse> FoodAssignmentResponses { get; set; } = null;
+        public List<FoodAssignmentResponse> FoodAssignmentResponses { get; set; } = null;
     }
 }

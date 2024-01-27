@@ -90,7 +90,8 @@ namespace PerfectBreakfast.Application.Services
                     var a = _mapper.Map<List<FoodAssignmentResponse>>(foodAssignmentsResult);
                     SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
                     {
-                        SupplierId = supplier.Id
+                        SupplierId = supplier.Id,
+                        FoodAssignmentResponses = a
                     };
                     supplierfoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
                 }
@@ -130,5 +131,9 @@ namespace PerfectBreakfast.Application.Services
             throw new NotImplementedException();
         }
 
+        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignments()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
