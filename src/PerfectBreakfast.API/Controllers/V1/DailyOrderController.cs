@@ -52,16 +52,16 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         [HttpGet("managementUnit")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId()
+        public async Task<IActionResult> GetDailyOrderByManagementUnitId(int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _dailyOrderService.GetDailyOrderByManagementUnit();
+            var response = await _dailyOrderService.GetDailyOrderByManagementUnit(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
         [HttpGet("{id}/company")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id)
+        public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id, DateOnly bookingDate)
         {
-            var response = await _dailyOrderService.GetDailyOrderDetailByManagementUnit(id);
+            var response = await _dailyOrderService.GetDailyOrderDetailByManagementUnit(id, bookingDate);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
