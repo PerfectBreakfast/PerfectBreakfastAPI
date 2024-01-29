@@ -3,6 +3,6 @@
     public record FoodAssignmentResponse
     {
         public int AmountCooked { get; set; }
-        public Guid? FoodId { get; set; }
+        public string? FoodName { get; set; }
     }
 }

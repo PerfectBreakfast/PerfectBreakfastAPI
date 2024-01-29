@@ -87,11 +87,22 @@ namespace PerfectBreakfast.Application.Services
                         foodAssignmentsResult.Add(supplierFoodAssignment);
 
                     }
-                    var a = _mapper.Map<List<FoodAssignmentResponse>>(foodAssignmentsResult);
+                    var foodAssignmentResponses = new List<FoodAssignmentResponse>();
+                    foreach (var item in foodAssignmentsResult)
+                    {
+                        FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
+                        {
+                            AmountCooked = item.AmountCooked,
+                            FoodName = item.Food.Name
+                        };
+                        foodAssignmentResponses.Add(foodAssignmentResponse);
+                    }
+
                     SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
                     {
                         SupplierId = supplier.Id,
-                        FoodAssignmentResponses = a
+                        SupplierName = supplier.Name,
+                        FoodAssignmentResponses = foodAssignmentResponses
                     };
                     supplierfoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
                 }
