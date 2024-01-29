@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
+using System.ComponentModel;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -45,21 +46,21 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<DailyOrderForManagemtUnitResponse>>> GetDailyOrderByManagementUnit()
+        public async Task<OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>> GetDailyOrderByManagementUnit(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<List<DailyOrderForManagemtUnitResponse>>();
+            var result = new OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
-                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits(now);
+                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits();
                 var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.ManagementUnitId);
 
                 if (managementUnit == null)
                 {
-                    result.AddUnknownError("managementUnit does not exsit");
+                    result.AddUnknownError("managementUnit does not exist");
                     return result;
                 }
 
@@ -70,26 +71,48 @@ namespace PerfectBreakfast.Application.Services
                 // xử lý mỗi cty
                 foreach (var company in companies)
                 {
-                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+                    var dailyOrders = company.DailyOrders.ToList();
 
-                    DailyOrderForManagemtUnitResponse dailyOrderForManagemt = new DailyOrderForManagemtUnitResponse()
+                    foreach (var dailyOrder in dailyOrders)
                     {
-                        Id = company.Id,
-                        Name = company.Name,
-                        Address = company.Address,
-                        StartWorkHour = company.StartWorkHour,
-                        OrderQuantity = dailyOrder.OrderQuantity,
-                        TotalPrice = dailyOrder.TotalPrice,
-                        BookingDate = dailyOrder.BookingDate
-                    };
-                    dailyOrderForManagemtUnitResponses.Add(dailyOrderForManagemt);
+                        DailyOrderForManagemtUnitResponse dailyOrderForManagement = new DailyOrderForManagemtUnitResponse()
+                        {
+                            Id = company.Id,
+                            Name = company.Name,
+                            Address = company.Address,
+                            StartWorkHour = company.StartWorkHour,
+                            OrderQuantity = dailyOrder.OrderQuantity,
+                            TotalPrice = dailyOrder.TotalPrice,
+                            BookingDate = dailyOrder.BookingDate,
+                            Status = GetEnumDescription(dailyOrder.Status)
+                        };
+                        dailyOrderForManagemtUnitResponses.Add(dailyOrderForManagement);
+                    }
                 }
-                result.Payload = dailyOrderForManagemtUnitResponses;
+
+                // Sắp xếp theo BookingDate
+                dailyOrderForManagemtUnitResponses.Sort((x, y) => y.BookingDate.CompareTo(x.BookingDate));
+
+                // Phân trang danh sách
+                var paginatedList = dailyOrderForManagemtUnitResponses
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var paginationResult = new Pagination<DailyOrderForManagemtUnitResponse>()
+                {
+                    PageIndex = pageIndex,
+                    PageSize = pageSize,
+                    TotalItemsCount = dailyOrderForManagemtUnitResponses.Count,
+                    Items = paginatedList,
+                };
+
+                result.Payload = paginationResult;
 
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddUnknownError("Id is not exist");
             }
             catch (Exception e)
             {
@@ -98,12 +121,12 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<TotalFoodResponse>>> GetDailyOrderDetailByManagementUnit(Guid id)
+
+        public async Task<OperationResult<List<TotalFoodResponse>>> GetDailyOrderDetailByManagementUnit(Guid id, DateOnly bookingDate)
         {
             var result = new OperationResult<List<TotalFoodResponse>>();
             try
             {
-                var now = _currentTime.GetCurrentTime();
                 var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
                 if (company == null)
                 {
@@ -113,7 +136,7 @@ namespace PerfectBreakfast.Application.Services
                 var foodCounts = new Dictionary<string, int>();
 
                 // Lấy daily order
-                var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+                var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.BookingDate == bookingDate);
 
                 // Lấy chi tiết các order detail
                 var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
@@ -224,6 +247,16 @@ namespace PerfectBreakfast.Application.Services
                 result.AddUnknownError(e.Message);
             }
             return result;
+        }
+
+        public static string GetEnumDescription(Enum value)
+        {
+            var fieldInfo = value.GetType().GetField(value.ToString());
+
+            var attributes = (DescriptionAttribute[])fieldInfo.GetCustomAttributes(
+                typeof(DescriptionAttribute), false);
+
+            return attributes.Length > 0 ? attributes[0].Description : value.ToString();
         }
 
     }

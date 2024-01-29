@@ -1,8 +1,8 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
@@ -13,11 +13,10 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IMana
     {
     }
     // to do
-    public async Task<List<ManagementUnit>> GetManagementUnits(DateTime dateTime)
+    public async Task<List<ManagementUnit>> GetManagementUnits()
     {
-        var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)
-            .ThenInclude(c => c.DailyOrders.Where(x => x.CreationDate.Date == dateToCompare))
+            .ThenInclude(c => c.DailyOrders)
             .ToListAsync();
     }
 
@@ -33,5 +32,13 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IMana
     public async Task<ManagementUnit?> GetManagementById(Guid id, params Expression<Func<ManagementUnit, object>>[] includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
+    }
+
+    public async Task<List<ManagementUnit>> GetManagementUnitsByToday(DateTime dateTime)
+    {
+        var dateToCompare = dateTime.Date;
+        return await _dbSet.Include(mu => mu.Companies)
+            .ThenInclude(c => c.DailyOrders.Where(x => x.CreationDate.Date == dateToCompare))
+            .ToListAsync();
     }
 }

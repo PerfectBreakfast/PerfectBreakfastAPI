@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Request;
@@ -41,7 +42,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Supper Admin
+        /// API For Management Unit Admin
         /// </summary>
         /// <returns></returns>
         [HttpPut("{id}")]
@@ -51,17 +52,27 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// API For Management Unit Admin
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet("managementUnit")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId()
+        public async Task<IActionResult> GetDailyOrderByManagementUnitId(int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _dailyOrderService.GetDailyOrderByManagementUnit();
+            var response = await _dailyOrderService.GetDailyOrderByManagementUnit(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// API For Management Unit Admin
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet("{id}/company")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id)
+        public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id, DateOnly bookingDate)
         {
-            var response = await _dailyOrderService.GetDailyOrderDetailByManagementUnit(id);
+            var response = await _dailyOrderService.GetDailyOrderDetailByManagementUnit(id, bookingDate);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 

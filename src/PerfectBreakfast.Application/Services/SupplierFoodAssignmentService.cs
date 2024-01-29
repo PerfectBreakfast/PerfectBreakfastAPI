@@ -38,7 +38,6 @@ namespace PerfectBreakfast.Application.Services
                 // Lấy supplier từ management Unit
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.ManagementUnitId);
 
-
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
                 var totalFoodCountOperationReult = await _foodService.GetFoodsForManagementUnit();
                 var totalFoodCount = totalFoodCountOperationReult.Payload;

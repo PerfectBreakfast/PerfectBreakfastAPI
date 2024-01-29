@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
@@ -15,6 +16,11 @@ public class SupplierFoodAssignmentController : BaseController
         _supplierFoodAssignmentService = supplierFoodAssignmentService;
     }
 
+    /// <summary>
+    /// API For Management Unit Admin
+    /// </summary>
+    /// <returns></returns>
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
     {
