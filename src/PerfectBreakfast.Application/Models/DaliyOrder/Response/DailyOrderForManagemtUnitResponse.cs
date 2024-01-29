@@ -9,6 +9,6 @@
         public decimal? TotalPrice { get; set; }
         public int? OrderQuantity { get; set; }
         public DateOnly BookingDate { get; set; }
-
+        public string Status { get; set; }
     }
 }

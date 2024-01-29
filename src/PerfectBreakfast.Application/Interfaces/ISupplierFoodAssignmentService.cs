@@ -8,5 +8,6 @@ namespace PerfectBreakfast.Application.Interfaces
     {
         public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> request);
         public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignment(Guid id);
+        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignments();
     }
 }

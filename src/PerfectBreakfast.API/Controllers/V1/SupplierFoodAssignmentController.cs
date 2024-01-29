@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
@@ -15,8 +16,13 @@ public class SupplierFoodAssignmentController : BaseController
         _supplierFoodAssignmentService = supplierFoodAssignmentService;
     }
 
-    [HttpPost("{id}")]
-    public async Task<IActionResult> CreateSupplierFoodAssignment(Guid id, List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
+    /// <summary>
+    /// API For Management Unit Admin
+    /// </summary>
+    /// <returns></returns>
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
     {
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

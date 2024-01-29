@@ -38,7 +38,6 @@ namespace PerfectBreakfast.Application.Services
                 // Lấy supplier từ management Unit
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.ManagementUnitId);
 
-
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
                 var totalFoodCountOperationReult = await _foodService.GetFoodsForManagementUnit();
                 var totalFoodCount = totalFoodCountOperationReult.Payload;
@@ -87,10 +86,22 @@ namespace PerfectBreakfast.Application.Services
                         foodAssignmentsResult.Add(supplierFoodAssignment);
 
                     }
-                    var a = _mapper.Map<List<FoodAssignmentResponse>>(foodAssignmentsResult);
+                    var foodAssignmentResponses = new List<FoodAssignmentResponse>();
+                    foreach (var item in foodAssignmentsResult)
+                    {
+                        FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
+                        {
+                            AmountCooked = item.AmountCooked,
+                            FoodName = item.Food.Name
+                        };
+                        foodAssignmentResponses.Add(foodAssignmentResponse);
+                    }
+
                     SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
                     {
-                        SupplierId = supplier.Id
+                        SupplierId = supplier.Id,
+                        SupplierName = supplier.Name,
+                        FoodAssignmentResponses = foodAssignmentResponses
                     };
                     supplierfoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
                 }
@@ -130,5 +141,9 @@ namespace PerfectBreakfast.Application.Services
             throw new NotImplementedException();
         }
 
+        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignments()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
