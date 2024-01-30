@@ -76,7 +76,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
-                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnitsByToday(now);
+                var managementUnits = await _unitOfWork.PartnerRepository.GetManagementUnitsByToday(now);
                 foreach (var managementUnit in managementUnits)
                 {
                     // Lấy danh sách các công ty thuộc MU

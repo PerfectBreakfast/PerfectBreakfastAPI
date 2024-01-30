@@ -5,5 +5,5 @@ namespace PerfectBreakfast.Application.Models.SupplyAssigmentModels.Request;
 public class CreateSupplyAssigment
 {
     public Guid? SupplierId { get; set; }
-    public Guid? ManagementUnitId { get; set; }
+    public Guid? PartnerId { get; set; }
 }

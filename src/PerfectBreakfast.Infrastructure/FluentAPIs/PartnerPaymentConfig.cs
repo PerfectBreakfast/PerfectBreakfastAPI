@@ -21,13 +21,13 @@ public class PartnerPaymentConfig : IEntityTypeConfiguration<PartnerPayment>
             .WithMany(x => x.PartnerPayments)
             .HasForeignKey(fk => fk.DailyOrderId);
         
-        builder.HasOne(x => x.DeliveryUnit)
+        builder.HasOne(x => x.Delivery)
             .WithMany(x => x.PartnerPayments)
-            .HasForeignKey(fk => fk.DeliveryUnitId);
+            .HasForeignKey(fk => fk.DeliveryId);
         
-        builder.HasOne(x => x.ManagementUnit)
+        builder.HasOne(x => x.Partner)
             .WithMany(x => x.PartnerPayments)
-            .HasForeignKey(fk => fk.ManagementUnitId);
+            .HasForeignKey(fk => fk.PartnerId);
         
         builder.HasOne(x => x.Supplier)
             .WithMany(x => x.PartnerPayments)

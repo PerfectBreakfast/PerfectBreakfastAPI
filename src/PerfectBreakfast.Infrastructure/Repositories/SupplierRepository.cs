@@ -17,14 +17,14 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     {
         var supplier = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
-            .ThenInclude(x => x.ManagementUnit).SingleOrDefaultAsync();
+            .ThenInclude(x => x.Partner).SingleOrDefaultAsync();
         return supplier;
     }
 
     public async Task<List<Supplier>?> GetSupplierUnitByManagementUnit(Guid managementUnitId)
     {
         var suppliers = await _dbSet
-            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.ManagementUnitId == managementUnitId))
+            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == managementUnitId))
             .ToListAsync();
 
         return suppliers;

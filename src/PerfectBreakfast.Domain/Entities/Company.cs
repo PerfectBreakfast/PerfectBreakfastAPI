@@ -9,11 +9,11 @@ public class Company : BaseEntity
     public TimeOnly? StartWorkHour { get; set; }
     
     // relationship
-    public Guid? ManagementUnitId { get; set; }
-    public Guid? DeliveryUnitId { get; set; }
+    public Guid? PartnerId { get; set; }
+    public Guid? DeliveryId { get; set; }
     
-    public ManagementUnit? ManagementUnit { get; set; }
-    public DeliveryUnit? DeliveryUnit { get; set; }
+    public Partner? Partner { get; set; }
+    public Delivery? Delivery { get; set; }
     
     public ICollection<User?> Workers { get; set; }
     public ICollection<DailyOrder?> DailyOrders { get; set; }

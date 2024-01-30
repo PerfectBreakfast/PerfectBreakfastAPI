@@ -11,14 +11,14 @@ public class User : IdentityUser<Guid>
     
     // relationship 
     public Guid? CompanyId { get; set; }
-    public Guid? DeliveryUnitId { get; set; }
-    public Guid? ManagementUnitId { get; set; }
+    public Guid? DeliveryId { get; set; }
+    public Guid? PartnerId { get; set; }
     public Guid? SupplierId { get; set; }
     
     
     public Company? Company { get; set; }
-    public DeliveryUnit? DeliveryUnit { get; set; }
-    public ManagementUnit? ManagementUnit { get; set; }
+    public Delivery? Delivery { get; set; }
+    public Partner? Partner { get; set; }
     public Supplier? Supplier { get; set; }
     
     public ICollection<OrderHistory?> OrderHistories { get; set; }

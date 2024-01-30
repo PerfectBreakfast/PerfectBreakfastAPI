@@ -4,7 +4,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 
 namespace PerfectBreakfast.Application.Interfaces;
 
-public interface IDeliveryUnitService
+public interface IDeliveryService
 {
     public Task<OperationResult<List<DeliveryUnitResponseModel>>> GetDeliveries();
     public Task<OperationResult<DeliveryUnitResponseModel>> GetDeliveryId(Guid deliveryId);

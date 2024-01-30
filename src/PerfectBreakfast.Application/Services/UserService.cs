@@ -135,17 +135,17 @@ public class UserService : IUserService
             // xác định các thuộc tính include và theninclude 
             var deliveryUnitInclude = new IncludeInfo<User>
             {
-                NavigationProperty = c => c.DeliveryUnit
+                NavigationProperty = c => c.Delivery
             };
             // xác định các thuộc tính include và theninclude 
             var managementUnitInclude = new IncludeInfo<User>
             {
-                NavigationProperty = c => c.ManagementUnit
+                NavigationProperty = c => c.Partner
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId,companyInclude,supplierInclude,deliveryUnitInclude,managementUnitInclude);
             string unitName = user.Company?.Name 
-                              ?? user.DeliveryUnit?.Name 
-                              ?? user.ManagementUnit?.Name 
+                              ?? user.Delivery?.Name 
+                              ?? user.Partner?.Name 
                               ?? user.Supplier?.Name
                               ?? "Perfect Breakfast";
             var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
@@ -222,13 +222,13 @@ public class UserService : IUserService
             var user = _mapper.Map<User>(requestModel);
             
             // check User workspace to generate code\
-            if (user.DeliveryUnitId.HasValue)
+            if (user.DeliveryId.HasValue)
             {
-                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryUnitId.Value);
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryId.Value);
             }
-            else if (user.ManagementUnitId.HasValue)
+            else if (user.PartnerId.HasValue)
             {
-                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.ManagementUnitId.Value);
+                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.PartnerId.Value);
             }
             else if (user.SupplierId.HasValue)
             {

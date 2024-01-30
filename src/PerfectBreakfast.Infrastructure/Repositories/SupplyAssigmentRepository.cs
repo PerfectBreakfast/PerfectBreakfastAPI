@@ -13,7 +13,7 @@ public class SupplyAssigmentRepository : BaseRepository<SupplyAssignment>,ISuppl
     public async Task<List<SupplyAssignment>> GetByManagementUnitID(Guid managementUnitId)
     {
         return await _dbSet
-            .Where(sa => sa.ManagementUnitId == managementUnitId)
+            .Where(sa => sa.PartnerId == managementUnitId)
             .ToListAsync();
     }
     public async Task<List<SupplyAssignment>> GetBySupplierID(Guid supplierId)

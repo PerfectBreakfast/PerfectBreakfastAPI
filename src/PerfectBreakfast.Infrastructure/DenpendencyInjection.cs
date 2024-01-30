@@ -56,8 +56,8 @@ public static class DenpendencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<ISupplierService, SupplierService>();
-        services.AddScoped<IDeliveryUnitService, DeliveryUnitService>();
-        services.AddScoped<IManagementUnitService, ManagementUnitService>();
+        services.AddScoped<IDeliveryService, DeliveryService>();
+        services.AddScoped<IPartnerService, PartnerService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IFoodService, FoodService>();

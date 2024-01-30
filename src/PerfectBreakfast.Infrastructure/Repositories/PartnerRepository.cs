@@ -6,21 +6,21 @@ using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
-public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IManagementUnitRepository
+public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
 {
-    public ManagementUnitRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
+    public PartnerRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
         : base(context, timeService, claimsService)
     {
     }
     // to do
-    public async Task<List<ManagementUnit>> GetManagementUnits()
+    public async Task<List<Partner>> GetManagementUnits()
     {
         return await _dbSet.Include(mu => mu.Companies)
             .ThenInclude(c => c.DailyOrders)
             .ToListAsync();
     }
 
-    public async Task<ManagementUnit?> GetManagementUintDetail(Guid id)
+    public async Task<Partner?> GetManagementUintDetail(Guid id)
     {
         var managementUnit = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
@@ -29,12 +29,12 @@ public class ManagementUnitRepository : GenericRepository<ManagementUnit>, IMana
 
     }
 
-    public async Task<ManagementUnit?> GetManagementById(Guid id, params Expression<Func<ManagementUnit, object>>[] includeProperties)
+    public async Task<Partner?> GetManagementById(Guid id, params Expression<Func<Partner, object>>[] includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
 
-    public async Task<List<ManagementUnit>> GetManagementUnitsByToday(DateTime dateTime)
+    public async Task<List<Partner>> GetManagementUnitsByToday(DateTime dateTime)
     {
         var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)

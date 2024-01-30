@@ -1,12 +1,10 @@
 using PerfectBreakfast.Application.Commons;
-using PerfectBreakfast.Application.Models.CompanyModels.Response;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
-using PerfectBreakfast.Application.Models.RoleModels.Response;
+using PerfectBreakfast.Application.Models.PartnerModels.Request;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 
 namespace PerfectBreakfast.Application.Interfaces;
 
-public interface IManagementUnitService
+public interface IPartnerService
 {
     public Task<OperationResult<List<ManagementUnitResponseModel>>> GetManagementUnits();
     public Task<OperationResult<ManagementUnitDetailResponse>> GetManagementUnitId(Guid id);

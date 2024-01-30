@@ -114,8 +114,8 @@ namespace PerfectBreakfast.Application.Services
             {
                 var now = _currentTime.GetCurrentTime();
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnitsByToday(now);
-                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.ManagementUnitId);
+                var managementUnits = await _unitOfWork.PartnerRepository.GetManagementUnitsByToday(now);
+                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.PartnerId);
 
                 if (managementUnit == null)
                 {

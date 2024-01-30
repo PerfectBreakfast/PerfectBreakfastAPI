@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 using System.ComponentModel;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -55,8 +56,8 @@ namespace PerfectBreakfast.Application.Services
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
-                var managementUnits = await _unitOfWork.ManagementUnitRepository.GetManagementUnits();
-                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.ManagementUnitId);
+                var managementUnits = await _unitOfWork.PartnerRepository.GetManagementUnits();
+                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.PartnerId);
 
                 if (managementUnit == null)
                 {
@@ -113,6 +114,42 @@ namespace PerfectBreakfast.Application.Services
             catch (NotFoundIdException)
             {
                 result.AddUnknownError("Id is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>> GetDailyOrderByDeliveryUnit(int pageIndex = 0, int pageSize = 10)
+        {
+            var result = new OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>();
+            var userId = _claimsService.GetCurrentUserId;
+            try
+            {
+                var deliveryUnitInclude = new IncludeInfo<User>
+                {
+                    NavigationProperty = x => x.Delivery,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
+                    {
+                        sp => ((Delivery)sp).Companies
+                    }
+                };
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryUnitInclude);
+                // check xem user đó có phải là trong đơn vị không và role của user có phải là Admin hay không 
+                //
+                
+                var companyIds = user.Delivery.Companies.Select(u => u.Id).ToList();
+                
+                // Xây dựng predicate để lọc DailyOrder theo các CompanyId
+                Expression<Func<DailyOrder, bool>> predicate = x => companyIds.Contains(x.CompanyId.Value);
+                var dailyOrderPages = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize,predicate);
+
+                var dailyOrderResponse = dailyOrderPages.Items.Select(x =>
+                    new DailyOrderForDeliveryUnitResponse(
+                        x.BookingDate,
+                        new List<DailyOrderModelResponse>())).ToList();
             }
             catch (Exception e)
             {

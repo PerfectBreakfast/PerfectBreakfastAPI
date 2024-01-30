@@ -1,6 +1,6 @@
-﻿namespace PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
+﻿namespace PerfectBreakfast.Application.Models.PartnerModels.Request;
 
-public record CreateDeliveryUnitRequest
+public record CreateManagementUnitRequest
 {
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;

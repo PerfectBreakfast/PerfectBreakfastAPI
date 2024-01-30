@@ -9,12 +9,12 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
 
-public class DeliveryUnitService : IDeliveryUnitService
+public class DeliveryService : IDeliveryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public DeliveryUnitService(IUnitOfWork unitOfWork,IMapper mapper)
+    public DeliveryService(IUnitOfWork unitOfWork,IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -24,7 +24,7 @@ public class DeliveryUnitService : IDeliveryUnitService
         var result = new OperationResult<List<DeliveryUnitResponseModel>>();
         try
         {
-            var deliveryUnits = await _unitOfWork.DeliveryUnitRepository.GetAllAsync();
+            var deliveryUnits = await _unitOfWork.DeliveryRepository.GetAllAsync();
             result.Payload = _mapper.Map<List<DeliveryUnitResponseModel>>(deliveryUnits);
         }
         catch (Exception e)
@@ -40,9 +40,9 @@ public class DeliveryUnitService : IDeliveryUnitService
         try
         {
             // map model to Entity
-            var deliveryUnit = _mapper.Map<DeliveryUnit>(requestModel);
+            var deliveryUnit = _mapper.Map<Delivery>(requestModel);
             // Add to DB
-            var entity = await _unitOfWork.DeliveryUnitRepository.AddAsync(deliveryUnit);
+            var entity = await _unitOfWork.DeliveryRepository.AddAsync(deliveryUnit);
             // save change 
             await _unitOfWork.SaveChangeAsync();
             // map model to response
@@ -61,11 +61,11 @@ public class DeliveryUnitService : IDeliveryUnitService
         try
         {
             // find supplier by ID
-            var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetByIdAsync(deliveryId);
+            var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
             // map from requestModel => supplier
             _mapper.Map(requestModel, deliveryUnit);
             // update
-            _unitOfWork.DeliveryUnitRepository.Update(deliveryUnit);
+            _unitOfWork.DeliveryRepository.Update(deliveryUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             result.Payload = _mapper.Map<DeliveryUnitResponseModel>(deliveryUnit);
@@ -83,9 +83,9 @@ public class DeliveryUnitService : IDeliveryUnitService
         try
         {
             // find supplier by ID
-            var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetByIdAsync(deliveryId);
+            var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
             // Remove
-            var entity = _unitOfWork.DeliveryUnitRepository.Remove(deliveryUnit);
+            var entity = _unitOfWork.DeliveryRepository.Remove(deliveryUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
@@ -103,7 +103,7 @@ public class DeliveryUnitService : IDeliveryUnitService
         var result = new OperationResult<DeliveryUnitResponseModel>();
             try
             {
-                var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetByIdAsync(deliveryId);
+                var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
                 result.Payload = _mapper.Map<DeliveryUnitResponseModel>(deliveryUnit);
             }
             catch (NotFoundIdException e)
@@ -123,19 +123,19 @@ public class DeliveryUnitService : IDeliveryUnitService
         try
         {
             // xác định các thuộc tính include và theninclude 
-            var userInclude = new IncludeInfo<DeliveryUnit>
+            var userInclude = new IncludeInfo<Delivery>
             {
                 NavigationProperty = c => c.Users
             };
-            var companyInclude = new IncludeInfo<DeliveryUnit>
+            var companyInclude = new IncludeInfo<Delivery>
             {
                 NavigationProperty = c => c.Companies
             };
             // Tạo biểu thức tìm kiếm (predicate)
-            Expression<Func<DeliveryUnit, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+            Expression<Func<Delivery, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? null 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
-            var deliveryUnitPages = await _unitOfWork.DeliveryUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
+            var deliveryUnitPages = await _unitOfWork.DeliveryRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
             var deliveryUnitResponses = new List<DeliveryUnitResponseModel>();
             foreach (var du in deliveryUnitPages.Items)
             {

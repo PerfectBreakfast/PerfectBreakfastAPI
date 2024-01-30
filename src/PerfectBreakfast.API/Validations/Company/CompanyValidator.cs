@@ -23,10 +23,10 @@ namespace PerfectBreakfast.API.Validations.Company
             RuleFor(p => p.StartWorkHour).NotEmpty().WithMessage("Start Work Hour cannot be empty")
                 .NotNull().WithMessage("Phone cannot be null");
 
-            RuleFor(p => p.ManagementUnitId).NotEmpty().WithMessage("Management Unit Id cannot be empty")
+            RuleFor(p => p.PartnerId).NotEmpty().WithMessage("Partner Id cannot be empty")
                .NotNull().WithMessage("Management Unit Id cannot be null");
 
-            RuleFor(p => p.DeliveryUnitId).NotEmpty().WithMessage("Delivery Unit Id cannot be empty")
+            RuleFor(p => p.DeliveryId).NotEmpty().WithMessage("Delivery Id cannot be empty")
                .NotNull().WithMessage("Delivery Unit Id cannot be null");
         }
     }

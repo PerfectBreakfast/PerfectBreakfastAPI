@@ -36,7 +36,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierfoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
 
                 // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.ManagementUnitId);
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.PartnerId);
 
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
                 var totalFoodCountOperationReult = await _foodService.GetFoodsForManagementUnit();

@@ -59,21 +59,21 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 // Kiểm tra ManagementUnit
-                var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementById(unitId);
+                var managementUnit = await _unitOfWork.PartnerRepository.GetManagementById(unitId);
                 if (managementUnit != null)
                 {
-                    // Lấy roles từ ManagementUnit
-                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.ManagementUnit).ToListAsync();
+                    // Lấy roles từ Partner
+                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.Partner).ToListAsync();
                     result.Payload =  _mapper.Map<List<RoleResponse>>(roles);
                     return result;
                 }
                 
                 // Kiểm tra DeliveryUnit
-                var deliveryUnit = await _unitOfWork.DeliveryUnitRepository.GetDeliveryUnitById(unitId);
+                var deliveryUnit = await _unitOfWork.DeliveryRepository.GetDeliveryUnitById(unitId);
                 if (deliveryUnit != null)
                 {
                     // Lấy roles từ DeliveryUnit
-                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.DeliveryUnit).ToListAsync();
+                    var roles = await _unitOfWork.RoleRepository.FindAll(x => x.UnitCode == UnitCode.Delivery).ToListAsync();
                     result.Payload =  _mapper.Map<List<RoleResponse>>(roles);
                     return result;
                 }

@@ -12,12 +12,12 @@ public class Order : BaseEntity
     
     // relationship
     public Guid? WorkerId { get; set; }
-    public Guid? ManagementUnitId { get; set; }
+    public Guid? PartnerId { get; set; }
     public Guid? DailyOrderId { get; set; }
    
     public PaymentMethod? PaymentMethod { get; set; } // 1-1
     public User? Worker { get; set; }
-    public ManagementUnit? ManagementUnit { get; set; }
+    public Partner? Partner { get; set; }
     public DailyOrder? DailyOrder { get; set; }
 
     public ICollection<OrderDetail?> OrderDetails { get; set; }

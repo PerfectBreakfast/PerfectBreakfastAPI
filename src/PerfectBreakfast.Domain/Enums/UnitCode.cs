@@ -3,8 +3,8 @@ namespace PerfectBreakfast.Domain.Enums;
 public enum UnitCode
 {
     System,
-    ManagementUnit,
-    DeliveryUnit,
+    Partner,
+    Delivery,
     Supplier,
     Company
 }

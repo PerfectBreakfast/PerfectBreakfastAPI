@@ -50,8 +50,8 @@ public class UnitOfWork : IUnitOfWork
     public IRoleRepository RoleRepository => new RoleRepository(_dbContext);
     public ICompanyRepository CompanyRepository => new CompanyRepository(_dbContext, _currentTime, _claimsService);
     public ISupplierRepository SupplierRepository => new SupplierRepository(_dbContext, _currentTime, _claimsService);
-    public IDeliveryUnitRepository DeliveryUnitRepository => new DeliveryUnitRepository(_dbContext, _currentTime, _claimsService);
-    public IManagementUnitRepository ManagementUnitRepository => new ManagementUnitRepository(_dbContext, _currentTime, _claimsService);
+    public IDeliveryRepository DeliveryRepository => new DeliveryRepository(_dbContext, _currentTime, _claimsService);
+    public IPartnerRepository PartnerRepository => new PartnerRepository(_dbContext, _currentTime, _claimsService);
     public ICategoryRepository CategoryRepository => new CategoryRepository(_dbContext, _currentTime, _claimsService);
     public IFoodRepository FoodRepository => new FoodRepository(_dbContext, _currentTime, _claimsService);
     public IMenuRepository MenuRepository => new MenuRepository(_dbContext, _currentTime, _claimsService);

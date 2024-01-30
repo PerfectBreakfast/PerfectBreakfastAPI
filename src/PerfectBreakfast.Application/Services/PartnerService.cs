@@ -3,19 +3,19 @@ using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+using PerfectBreakfast.Application.Models.PartnerModels.Request;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
 
-public class ManagementUnitService : IManagementUnitService
+public class PartnerService : IPartnerService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public ManagementUnitService(IUnitOfWork unitOfWork, IMapper mapper)
+    public PartnerService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -26,7 +26,7 @@ public class ManagementUnitService : IManagementUnitService
         var result = new OperationResult<List<ManagementUnitResponseModel>>();
         try
         {
-            var managementUnits = await _unitOfWork.ManagementUnitRepository.GetAllAsync();
+            var managementUnits = await _unitOfWork.PartnerRepository.GetAllAsync();
             result.Payload = _mapper.Map<List<ManagementUnitResponseModel>>(managementUnits);
         }
         catch (Exception e)
@@ -41,7 +41,7 @@ public class ManagementUnitService : IManagementUnitService
         var result = new OperationResult<ManagementUnitDetailResponse>();
         try
         {
-            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetManagementUintDetail(id);
+            var managementUnit = await _unitOfWork.PartnerRepository.GetManagementUintDetail(id);
             if (managementUnit == null)
             {
                 result.AddUnknownError("Id does not exist");
@@ -72,9 +72,9 @@ public class ManagementUnitService : IManagementUnitService
         try
         {
             // map model to Entity
-            var managementUnit = _mapper.Map<ManagementUnit>(requestModel);
+            var managementUnit = _mapper.Map<Partner>(requestModel);
             // Add to DB
-            var entity = await _unitOfWork.ManagementUnitRepository.AddAsync(managementUnit);
+            var entity = await _unitOfWork.PartnerRepository.AddAsync(managementUnit);
             // save change 
             await _unitOfWork.SaveChangeAsync();
             // map model to response
@@ -93,11 +93,11 @@ public class ManagementUnitService : IManagementUnitService
         try
         {
             // find supplier by ID
-            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetByIdAsync(managementUnitId);
+            var managementUnit = await _unitOfWork.PartnerRepository.GetByIdAsync(managementUnitId);
             // map from requestModel => supplier
             _mapper.Map(requestModel, managementUnit);
             // update
-            _unitOfWork.ManagementUnitRepository.Update(managementUnit);
+            _unitOfWork.PartnerRepository.Update(managementUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             result.Payload = _mapper.Map<ManagementUnitResponseModel>(managementUnit);
@@ -115,9 +115,9 @@ public class ManagementUnitService : IManagementUnitService
         try
         {
             // find supplier by ID
-            var managementUnit = await _unitOfWork.ManagementUnitRepository.GetByIdAsync(managementUnitIdId);
+            var managementUnit = await _unitOfWork.PartnerRepository.GetByIdAsync(managementUnitIdId);
             // Remove
-            var entity = _unitOfWork.ManagementUnitRepository.Remove(managementUnit);
+            var entity = _unitOfWork.PartnerRepository.Remove(managementUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
@@ -136,11 +136,11 @@ public class ManagementUnitService : IManagementUnitService
         try
         {
             // xác định các thuộc tính include và theninclude 
-            var userInclude = new IncludeInfo<ManagementUnit>
+            var userInclude = new IncludeInfo<Partner>
             {
                 NavigationProperty = c => c.Users
             };
-            var supplierInclude = new IncludeInfo<ManagementUnit>
+            var supplierInclude = new IncludeInfo<Partner>
             {
                 NavigationProperty = x => x.SupplyAssignments,
                 ThenIncludes = new List<Expression<Func<object, object>>>
@@ -148,16 +148,16 @@ public class ManagementUnitService : IManagementUnitService
                     sp => ((SupplyAssignment)sp).Supplier
                 }
             };
-            var companyInclude = new IncludeInfo<ManagementUnit>
+            var companyInclude = new IncludeInfo<Partner>
             {
                 NavigationProperty = c => c.Companies
             };
             // Tạo biểu thức tìm kiếm (predicate)
-            Expression<Func<ManagementUnit, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+            Expression<Func<Partner, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? null 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
             
-            var partnerPages = await _unitOfWork.ManagementUnitRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
+            var partnerPages = await _unitOfWork.PartnerRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
             var managementUnitResponses = new List<ManagementUnitResponseModel>();
             foreach (var mr in partnerPages.Items)
             {

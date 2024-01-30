@@ -3,7 +3,7 @@ using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -48,7 +48,7 @@ public class SupplierService : ISupplierService
                 return result;
             }
 
-            var managementUnit = supp.SupplyAssignments.Select(o => o.ManagementUnit).ToList();
+            var managementUnit = supp.SupplyAssignments.Select(o => o.Partner).ToList();
             
             var supplier = _mapper.Map<SupplierDetailResponse>(supp);
             
@@ -126,7 +126,7 @@ public class SupplierService : ISupplierService
                 NavigationProperty = x => x.SupplyAssignments,
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
-                    sp => ((SupplyAssignment)sp).ManagementUnit
+                    sp => ((SupplyAssignment)sp).Partner
                 }
             };
             // Tạo biểu thức tìm kiếm (predicate)
@@ -170,7 +170,7 @@ public class SupplierService : ISupplierService
                     sp.Longitude,
                     sp.Latitude,
                     adminUserNames, // Danh sách người dùng là admin
-                    sp.SupplyAssignments.Select(sa => sa.ManagementUnit.Name).ToList(),
+                    sp.SupplyAssignments.Select(sa => sa.Partner.Name).ToList(),
                     sp.Users.Count);
 
                 supplierResponses.Add(supplierResponse);

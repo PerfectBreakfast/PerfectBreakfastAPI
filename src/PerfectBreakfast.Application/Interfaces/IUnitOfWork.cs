@@ -15,8 +15,8 @@ public interface IUnitOfWork : IDisposable
     public IUserRepository UserRepository { get; }
     public ICompanyRepository CompanyRepository { get; }
     public ISupplierRepository SupplierRepository { get; }
-    public IDeliveryUnitRepository DeliveryUnitRepository { get; }
-    public IManagementUnitRepository ManagementUnitRepository { get; }
+    public IDeliveryRepository DeliveryRepository { get; }
+    public IPartnerRepository PartnerRepository { get; }
     public IRoleRepository RoleRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
     public IFoodRepository FoodRepository { get; }

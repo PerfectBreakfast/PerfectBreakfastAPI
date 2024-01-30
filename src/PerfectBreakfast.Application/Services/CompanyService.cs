@@ -5,10 +5,10 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CompanyModels.Request;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -120,14 +120,14 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var companyEntity = await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.DeliveryUnit, c => c.ManagementUnit);
+            var companyEntity = await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.Delivery, c => c.Partner);
             if (companyEntity is null)
             {
                 result.AddUnknownError("Id is not exsit");
                 return result;
             }
-            var managerUnit = _mapper.Map<ManagementUnitResponseModel>(companyEntity.ManagementUnit);
-            var deliveryUnit = _mapper.Map<DeliveryUnitResponseModel>(companyEntity.DeliveryUnit);
+            var managerUnit = _mapper.Map<ManagementUnitResponseModel>(companyEntity.Partner);
+            var deliveryUnit = _mapper.Map<DeliveryUnitResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
             company.DeliveryUnit = deliveryUnit;
             company.ManagementUnit = managerUnit;
@@ -152,11 +152,11 @@ public class CompanyService : ICompanyService
             };
             var managementUnitInclude = new IncludeInfo<Company>
             {
-                NavigationProperty = c => c.ManagementUnit
+                NavigationProperty = c => c.Partner
             };
             var deliveryUnitInclude = new IncludeInfo<Company>
             {
-                NavigationProperty = c => c.DeliveryUnit
+                NavigationProperty = c => c.Delivery
             };
 
             // Tạo biểu thức tìm kiếm (predicate)
@@ -176,8 +176,8 @@ public class CompanyService : ICompanyService
                     IsDeleted = c.IsDeleted,
                     StartWorkHour = c.StartWorkHour,
                     MemberCount = c.Workers.Count,
-                    ManagementUnit = c.ManagementUnit.Name,
-                    DeliveryUnit = c.DeliveryUnit.Name
+                    ManagementUnit = c.Partner.Name,
+                    DeliveryUnit = c.Delivery.Name
                 }).ToList();
 
             result.Payload = new Pagination<CompanyResponsePaging>

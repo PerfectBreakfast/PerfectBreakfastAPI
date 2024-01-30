@@ -1,4 +1,4 @@
-﻿namespace PerfectBreakfast.Application.Models.ManagementUnitModels.Request;
+﻿namespace PerfectBreakfast.Application.Models.PartnerModels.Request;
 
 public record UpdateManagementUnitRequest
 {

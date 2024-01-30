@@ -1,4 +1,4 @@
-﻿namespace PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
+﻿namespace PerfectBreakfast.Application.Models.PartnerModels.Response;
 
 public record ManagementUnitDTO()
 {

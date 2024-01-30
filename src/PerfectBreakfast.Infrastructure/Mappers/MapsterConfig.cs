@@ -2,8 +2,7 @@ using Mapster;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
-using PerfectBreakfast.Application.Models.ManagementUnitModels.Resposne;
-using PerfectBreakfast.Application.Models.RoleModels.Response;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -17,8 +16,8 @@ public class MapsterConfig : IRegister
         config.NewConfig<User, UserResponse>();
         config.NewConfig<Food,FoodResponse>();
         config.NewConfig<Category, CategoryResponse>();
-        config.NewConfig<DeliveryUnit, DeliveryUnitResponseModel>();
-        config.NewConfig<ManagementUnit, ManagementUnitResponseModel>();
+        config.NewConfig<Delivery, DeliveryUnitResponseModel>();
+        config.NewConfig<Partner, ManagementUnitResponseModel>();
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
     }
 }

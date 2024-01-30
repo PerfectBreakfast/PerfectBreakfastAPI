@@ -6,7 +6,7 @@ using PerfectBreakfast.Application.Models.DaliyOrder.Request;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
-    [Route("api/v{version:apiVersion}/daliyorders")]
+    [Route("api/v{version:apiVersion}/daily-orders")]
     public class DailyOrderController : BaseController
     {
         private readonly IDailyOrderService _dailyOrderService;
@@ -57,10 +57,17 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("managementUnit")]
+        [HttpGet("partner")]
         public async Task<IActionResult> GetDailyOrderByManagementUnitId(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByManagementUnit(pageIndex, pageSize);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
+
+        [HttpGet("delivery")]
+        public async Task<IActionResult> GetDailyOrderByDeliveryUnit(int pageIndex = 0, int pageSize = 10)
+        {
+            var response = await _dailyOrderService.GetDailyOrderByDeliveryUnit(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 

@@ -4,14 +4,15 @@ using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.FluentAPIs;
 
-public class ManagementUnitConfig : IEntityTypeConfiguration<ManagementUnit>
+public class DeliveryConfig : IEntityTypeConfiguration<Delivery>
 {
-    public void Configure(EntityTypeBuilder<ManagementUnit> builder)
+    public void Configure(EntityTypeBuilder<Delivery> builder)
     {
-        builder.ToTable("ManagementUnit");
+        builder.ToTable("Delivery");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Address).IsRequired().HasMaxLength(200);
+        builder.Property(x => x.PhoneNumber).HasMaxLength(10);
     }
 }
