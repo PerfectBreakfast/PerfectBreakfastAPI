@@ -36,6 +36,19 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _orderService.GetOrder(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+        
+        /// <summary>
+        /// Api for Customer
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        [HttpGet("history"),Authorize(policy:"RequireCustomerRole")]
+        public async Task<IActionResult> GetOrderHistoryByCustomer(int pageIndex = 0, int pageSize = 10)
+        {
+            var response = await _orderService.GetOrderHistory(pageIndex,pageSize);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)

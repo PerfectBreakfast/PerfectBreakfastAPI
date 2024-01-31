@@ -182,6 +182,7 @@ public static class DependencyInjection
             opt.AddPolicy("RequireDeliveryAdminRole", policy => policy.RequireRole("DELIVERY ADMIN"));
             opt.AddPolicy("RequirePartnerAdminRole", policy => policy.RequireRole("PARTNER ADMIN"));
             opt.AddPolicy("RequireSuperAdminRole", policy => policy.RequireRole("SUPER ADMIN"));
+            opt.AddPolicy("RequireCustomerRole", policy => policy.RequireRole("CUSTOMER"));
             //opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
         });
         //==================================================================================================================================
