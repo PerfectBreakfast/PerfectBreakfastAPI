@@ -12,9 +12,9 @@ public class SupplierFoodAssignment : BaseEntity
     // relationship
     public Guid? FoodId { get; set; }
     public Guid? SupplierCommissionRateId { get; set; }
-    public Guid? DailyOrderId { get; set; }
+    public Guid? PartnerId { get; set; }
     
     public Food? Food { get; set; }
     public SupplierCommissionRate? SupplierCommissionRate { get; set; }
-    public DailyOrder? DailyOrder { get; set; }
+    public Partner? Partner { get; set; }
 }

@@ -13,6 +13,7 @@ public class Partner : BaseEntity
     public ICollection<Order?> Orders { get; set; }
     public ICollection<SupplyAssignment?> SupplyAssignments { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
+    public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
     public ICollection<Company?> Companies { get; set; }
     
 }

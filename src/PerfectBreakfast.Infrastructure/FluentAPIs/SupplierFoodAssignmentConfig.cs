@@ -21,8 +21,8 @@ public class SupplierFoodAssignmentConfig : IEntityTypeConfiguration<SupplierFoo
             .WithMany(ur => ur.SupplierFoodAssignments)
             .HasForeignKey(pk => pk.SupplierCommissionRateId);
         
-        builder.HasOne(r => r.DailyOrder)
+        builder.HasOne(r => r.Partner)
             .WithMany(ur => ur.SupplierFoodAssignments)
-            .HasForeignKey(pk => pk.DailyOrderId);
+            .HasForeignKey(pk => pk.PartnerId);
     }
 }
