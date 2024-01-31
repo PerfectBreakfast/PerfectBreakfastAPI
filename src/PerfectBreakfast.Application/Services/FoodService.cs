@@ -106,7 +106,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<TotalFoodResponse>>> GetFoodsForManagementUnit()
+        public async Task<OperationResult<List<TotalFoodResponse>>> GetFoodsForPartner()
         {
             var userId = _claimsService.GetCurrentUserId;
             var result = new OperationResult<List<TotalFoodResponse>>();

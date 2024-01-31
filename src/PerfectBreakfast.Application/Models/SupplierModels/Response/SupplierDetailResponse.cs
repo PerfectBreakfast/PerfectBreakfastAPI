@@ -9,5 +9,5 @@ public record SupplierDetailResponse
     public string Address { get; set; } 
     public double? Longitude { get; set; } 
     public double? Latitude { get; set; }
-    public List<ManagementUnitDTO?> ManagementUnitDtos { get; set; }
+    public List<PartnerDTO?> ManagementUnitDtos { get; set; }
 }

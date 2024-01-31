@@ -47,7 +47,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>> GetDailyOrderByManagementUnit(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>();
             var userId = _claimsService.GetCurrentUserId;
@@ -122,7 +122,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>> GetDailyOrderByDeliveryUnit(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>();
             var userId = _claimsService.GetCurrentUserId;
@@ -176,7 +176,7 @@ namespace PerfectBreakfast.Application.Services
         }
 
 
-        public async Task<OperationResult<List<TotalFoodResponse>>> GetDailyOrderDetailByManagementUnit(Guid id, DateOnly bookingDate)
+        public async Task<OperationResult<List<TotalFoodResponse>>> GetDailyOrderDetailByPartner(Guid id, DateOnly bookingDate)
         {
             var result = new OperationResult<List<TotalFoodResponse>>();
             try

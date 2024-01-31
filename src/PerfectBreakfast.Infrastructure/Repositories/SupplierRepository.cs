@@ -21,7 +21,7 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
         return supplier;
     }
 
-    public async Task<List<Supplier>?> GetSupplierUnitByManagementUnit(Guid managementUnitId)
+    public async Task<List<Supplier>?> GetSupplierByPartner(Guid managementUnitId)
     {
         var suppliers = await _dbSet
             .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == managementUnitId))

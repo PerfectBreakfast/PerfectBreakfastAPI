@@ -2,7 +2,7 @@ using PerfectBreakfast.Application.Models.SupplierModels.Response;
 
 namespace PerfectBreakfast.Application.Models.PartnerModels.Response;
 
-public record ManagementUnitDetailResponse
+public record PartnerDetailResponse
 {
     public Guid? Id { get; set; } 
     public string Name { get; set; } = string.Empty;
