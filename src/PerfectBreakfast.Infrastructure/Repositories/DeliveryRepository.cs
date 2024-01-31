@@ -13,7 +13,7 @@ public class DeliveryRepository : GenericRepository<Delivery>,IDeliveryRepositor
     {
     }
     // to do
-    public async Task<Delivery?> GetDeliveryUnitById(Guid id, params Expression<Func<Delivery, object>>[] includeProperties)
+    public async Task<Delivery?> GetDeliveryById(Guid id, params Expression<Func<Delivery, object>>[] includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }

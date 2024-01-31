@@ -13,7 +13,7 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     {
     }
     // to do
-    public async Task<Supplier?> GetSupplierUintDetail(Guid id)
+    public async Task<Supplier?> GetSupplierDetail(Guid id)
     {
         var supplier = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)

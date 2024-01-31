@@ -13,14 +13,14 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
     {
     }
     // to do
-    public async Task<List<Partner>> GetManagementUnits()
+    public async Task<List<Partner>> GetPartners()
     {
         return await _dbSet.Include(mu => mu.Companies)
             .ThenInclude(c => c.DailyOrders)
             .ToListAsync();
     }
 
-    public async Task<Partner?> GetManagementUintDetail(Guid id)
+    public async Task<Partner?> GetPartnerDetail(Guid id)
     {
         var managementUnit = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
@@ -29,12 +29,12 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
 
     }
 
-    public async Task<Partner?> GetManagementById(Guid id, params Expression<Func<Partner, object>>[] includeProperties)
+    public async Task<Partner?> GetPartnerById(Guid id, params Expression<Func<Partner, object>>[] includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
 
-    public async Task<List<Partner>> GetManagementUnitsByToday(DateTime dateTime)
+    public async Task<List<Partner>> GetPartnersByToday(DateTime dateTime)
     {
         var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)

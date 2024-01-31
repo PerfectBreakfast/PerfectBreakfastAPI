@@ -1,6 +1,6 @@
 namespace PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 
-public record DeliveryUnitResponseModel(
+public record DeliveryResponseModel(
     Guid Id,
     string Name,
     string Address,

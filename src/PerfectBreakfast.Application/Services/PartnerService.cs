@@ -41,15 +41,15 @@ public class PartnerService : IPartnerService
         var result = new OperationResult<PartnerDetailResponse>();
         try
         {
-            var managementUnit = await _unitOfWork.PartnerRepository.GetManagementUintDetail(id);
-            if (managementUnit == null)
+            var partner = await _unitOfWork.PartnerRepository.GetPartnerDetail(id);
+            if (partner == null)
             {
                 result.AddUnknownError("Id does not exist");
                 return result;
             }
 
-            var suppliers = managementUnit.SupplyAssignments.Select(o => o.Supplier).ToList();
-            var mana = _mapper.Map<PartnerDetailResponse>(managementUnit);
+            var suppliers = partner.SupplyAssignments.Select(o => o.Supplier).ToList();
+            var mana = _mapper.Map<PartnerDetailResponse>(partner);
             mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
 
             result.Payload = mana;

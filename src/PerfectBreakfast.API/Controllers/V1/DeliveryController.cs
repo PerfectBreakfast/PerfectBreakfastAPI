@@ -24,14 +24,14 @@ public class DeliveryController : BaseController
     }
     
     [HttpPost]
-    public async Task<IActionResult> CreateDelivery(CreateDeliveryUnitRequest requestModel)
+    public async Task<IActionResult> CreateDelivery(CreateDeliveryRequest requestModel)
     {
         var response = await _deliveryService.CreateDelivery(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateDelivery(Guid id, UpdateDeliveryUnitRequest requestModel)
+    public async Task<IActionResult> UpdateDelivery(Guid id, UpdateDeliveryRequest requestModel)
     {
         var response = await _deliveryService.UpdateDelivery(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

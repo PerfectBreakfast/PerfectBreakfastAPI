@@ -1,6 +1,6 @@
 ﻿namespace PerfectBreakfast.Application.Models.DaliyOrder.Response
 {
-    public record DailyOrderForManagemtUnitResponse
+    public record DailyOrderForPartnerResponse
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;

@@ -126,11 +126,11 @@ public class CompanyService : ICompanyService
                 result.AddUnknownError("Id is not exsit");
                 return result;
             }
-            var managerUnit = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
-            var deliveryUnit = _mapper.Map<DeliveryUnitResponseModel>(companyEntity.Delivery);
+            var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
+            var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
-            company.DeliveryUnit = deliveryUnit;
-            company.ManagementUnit = managerUnit;
+            company.Delivery = delivery;
+            company.Partner = partner;
             result.Payload = company;
         }
         catch (Exception e)

@@ -65,7 +65,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return companyCode + 1;
     }
 
-    public async Task<int> CalculateDeliveryUnitCode(Guid deliveryUnitId)
+    public async Task<int> CalculateDeliveryCode(Guid deliveryUnitId)
     {
         var deliveryUnitCode = await _dbSet.AsNoTracking()
             .Where(u => u.DeliveryId == deliveryUnitId)
@@ -73,7 +73,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return deliveryUnitCode + 1;
     }
 
-    public async Task<int> CalculateManagementUnitCode(Guid managementUnitId)
+    public async Task<int> CalculatePartnerCode(Guid managementUnitId)
     {
         var managementUnitCode = await _dbSet.AsNoTracking()
             .Where(u => u.PartnerId == managementUnitId)
@@ -89,7 +89,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return supplierCode + 1;
     }
 
-    public async Task<List<User>?> GetUserByManagementUnitId(Guid managementUnitId)
+    public async Task<List<User>?> GetUserByPartnerId(Guid managementUnitId)
     {
         /*var users = await _userManager.Users
             .Where(u => u.ManagementUnitId == managementUnitId)

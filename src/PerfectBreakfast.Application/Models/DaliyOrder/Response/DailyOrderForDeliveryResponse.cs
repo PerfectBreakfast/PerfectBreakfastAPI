@@ -1,5 +1,5 @@
 namespace PerfectBreakfast.Application.Models.DaliyOrder.Response;
 
-public record DailyOrderForDeliveryUnitResponse(
+public record DailyOrderForDeliveryResponse(
     DateOnly BookingDate,
     List<DailyOrderModelResponse> DailyOrderModelResponses);
