@@ -21,13 +21,13 @@ public class PartnerService : IPartnerService
         _mapper = mapper;
     }
 
-    public async Task<OperationResult<List<ManagementUnitResponseModel>>> GetManagementUnits()
+    public async Task<OperationResult<List<PartnerResponseModel>>> GetPartners()
     {
-        var result = new OperationResult<List<ManagementUnitResponseModel>>();
+        var result = new OperationResult<List<PartnerResponseModel>>();
         try
         {
             var managementUnits = await _unitOfWork.PartnerRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<ManagementUnitResponseModel>>(managementUnits);
+            result.Payload = _mapper.Map<List<PartnerResponseModel>>(managementUnits);
         }
         catch (Exception e)
         {
@@ -36,9 +36,9 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<ManagementUnitDetailResponse>> GetManagementUnitId(Guid id)
+    public async Task<OperationResult<PartnerDetailResponse>> GetPartnerId(Guid id)
     {
-        var result = new OperationResult<ManagementUnitDetailResponse>();
+        var result = new OperationResult<PartnerDetailResponse>();
         try
         {
             var managementUnit = await _unitOfWork.PartnerRepository.GetManagementUintDetail(id);
@@ -49,7 +49,7 @@ public class PartnerService : IPartnerService
             }
 
             var suppliers = managementUnit.SupplyAssignments.Select(o => o.Supplier).ToList();
-            var mana = _mapper.Map<ManagementUnitDetailResponse>(managementUnit);
+            var mana = _mapper.Map<PartnerDetailResponse>(managementUnit);
             mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
 
             result.Payload = mana;
@@ -66,9 +66,9 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<ManagementUnitResponseModel>> CreateManagementUnit(CreateManagementUnitRequest requestModel)
+    public async Task<OperationResult<PartnerResponseModel>> CreatePartner(CreatePartnerRequest requestModel)
     {
-        var result = new OperationResult<ManagementUnitResponseModel>();
+        var result = new OperationResult<PartnerResponseModel>();
         try
         {
             // map model to Entity
@@ -78,7 +78,7 @@ public class PartnerService : IPartnerService
             // save change 
             await _unitOfWork.SaveChangeAsync();
             // map model to response
-            result.Payload = _mapper.Map<ManagementUnitResponseModel>(entity);
+            result.Payload = _mapper.Map<PartnerResponseModel>(entity);
         }
         catch (Exception e)
         {
@@ -87,9 +87,9 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<ManagementUnitResponseModel>> UpdateManagementUnit(Guid managementUnitId, UpdateManagementUnitRequest requestModel)
+    public async Task<OperationResult<PartnerResponseModel>> UpdatePartner(Guid managementUnitId, UpdatePartnerRequest requestModel)
     {
-        var result = new OperationResult<ManagementUnitResponseModel>();
+        var result = new OperationResult<PartnerResponseModel>();
         try
         {
             // find supplier by ID
@@ -100,7 +100,7 @@ public class PartnerService : IPartnerService
             _unitOfWork.PartnerRepository.Update(managementUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<ManagementUnitResponseModel>(managementUnit);
+            result.Payload = _mapper.Map<PartnerResponseModel>(managementUnit);
         }
         catch (Exception e)
         {
@@ -109,9 +109,9 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<ManagementUnitResponseModel>> RemoveManagementUnit(Guid managementUnitIdId)
+    public async Task<OperationResult<PartnerResponseModel>> RemovePartner(Guid managementUnitIdId)
     {
-        var result = new OperationResult<ManagementUnitResponseModel>();
+        var result = new OperationResult<PartnerResponseModel>();
         try
         {
             // find supplier by ID
@@ -121,7 +121,7 @@ public class PartnerService : IPartnerService
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
-            result.Payload = _mapper.Map<ManagementUnitResponseModel>(entity);
+            result.Payload = _mapper.Map<PartnerResponseModel>(entity);
         }
         catch (Exception e)
         {
@@ -130,9 +130,9 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<ManagementUnitResponseModel>>> GetManagementUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<PartnerResponseModel>>> GetPartnerPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<ManagementUnitResponseModel>>();
+        var result = new OperationResult<Pagination<PartnerResponseModel>>();
         try
         {
             // xác định các thuộc tính include và theninclude 
@@ -158,7 +158,7 @@ public class PartnerService : IPartnerService
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
             
             var partnerPages = await _unitOfWork.PartnerRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
-            var managementUnitResponses = new List<ManagementUnitResponseModel>();
+            var managementUnitResponses = new List<PartnerResponseModel>();
             foreach (var mr in partnerPages.Items)
             {
                 var adminUserNames = new List<string>();
@@ -171,7 +171,7 @@ public class PartnerService : IPartnerService
                     }
                 }
 
-                var managementUnitResponse = new ManagementUnitResponseModel(
+                var managementUnitResponse = new PartnerResponseModel(
                     mr.Id,
                     mr.Name,
                     mr.Address,
@@ -186,7 +186,7 @@ public class PartnerService : IPartnerService
                 managementUnitResponses.Add(managementUnitResponse);
             }
             
-            result.Payload = new Pagination<ManagementUnitResponseModel>
+            result.Payload = new Pagination<PartnerResponseModel>
             {
                 PageIndex = partnerPages.PageIndex,
                 PageSize = partnerPages.PageSize,

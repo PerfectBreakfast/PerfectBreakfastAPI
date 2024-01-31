@@ -18,7 +18,7 @@ public class MapsterConfig : IRegister
         config.NewConfig<Food,FoodResponse>();
         config.NewConfig<Category, CategoryResponse>();
         config.NewConfig<Delivery, DeliveryUnitResponseModel>();
-        config.NewConfig<Partner, ManagementUnitResponseModel>();
+        config.NewConfig<Partner, PartnerResponseModel>();
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
         config.NewConfig<DailyOrder, DailyOrderModelResponse>()
             .Map(dest => dest.Company,src => src.Company);

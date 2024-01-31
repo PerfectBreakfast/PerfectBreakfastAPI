@@ -42,9 +42,10 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Management Unit Admin
+        /// API For Partner Admin
         /// </summary>
         /// <returns></returns>
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDailyOrer(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
         {
@@ -53,13 +54,14 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Management Unit Admin
+        /// API For Partner Admin
         /// </summary>
         /// <returns></returns>
+        [Authorize]
         [HttpGet("partner"),Authorize(Policy = "RequirePartnerAdminRole")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId(int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetDailyOrderByPartnerId(int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _dailyOrderService.GetDailyOrderByManagementUnit(pageIndex, pageSize);
+            var response = await _dailyOrderService.GetDailyOrderByPartner(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
@@ -72,19 +74,19 @@ namespace PerfectBreakfast.API.Controllers.V1
         [HttpGet("delivery"),Authorize(Policy = "RequireDeliveryAdminRole")]
         public async Task<IActionResult> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _dailyOrderService.GetDailyOrderByDeliveryUnit(pageIndex, pageSize);
+            var response = await _dailyOrderService.GetDailyOrderByDelivery(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
         /// <summary>
-        /// API For Management Unit Admin
+        /// API For Partner Admin
         /// </summary>
         /// <returns></returns>
         [Authorize]
         [HttpGet("{id}/company")]
-        public async Task<IActionResult> GetDailyOrderByManagementUnitId(Guid id, DateOnly bookingDate)
+        public async Task<IActionResult> GetDailyOrderByPartnerId(Guid id, DateOnly bookingDate)
         {
-            var response = await _dailyOrderService.GetDailyOrderDetailByManagementUnit(id, bookingDate);
+            var response = await _dailyOrderService.GetDailyOrderDetailByPartner(id, bookingDate);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 

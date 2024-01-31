@@ -17,7 +17,7 @@ public class SupplierFoodAssignmentController : BaseController
     }
 
     /// <summary>
-    /// API For Management Unit Admin
+    /// API For Partner Admin
     /// </summary>
     /// <returns></returns>
     [Authorize]

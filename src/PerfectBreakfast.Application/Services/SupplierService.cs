@@ -52,7 +52,7 @@ public class SupplierService : ISupplierService
             
             var supplier = _mapper.Map<SupplierDetailResponse>(supp);
             
-            supplier.ManagementUnitDtos = _mapper.Map<List<ManagementUnitDTO>>(managementUnit);
+            supplier.ManagementUnitDtos = _mapper.Map<List<PartnerDTO>>(managementUnit);
 
             result.Payload = supplier;
         }

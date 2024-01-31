@@ -56,10 +56,10 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpGet("managementunit")]
-        public async Task<IActionResult> GetFoodForManagementUnit()
+        [HttpGet("partner")]
+        public async Task<IActionResult> GetFoodForPartner()
         {
-            var response = await _foodService.GetFoodsForManagementUnit();
+            var response = await _foodService.GetFoodsForPartner();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }

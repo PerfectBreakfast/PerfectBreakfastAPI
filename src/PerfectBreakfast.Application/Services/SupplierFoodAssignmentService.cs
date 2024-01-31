@@ -36,10 +36,10 @@ namespace PerfectBreakfast.Application.Services
                 var supplierfoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
 
                 // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierUnitByManagementUnit((Guid)user.PartnerId);
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
 
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
-                var totalFoodCountOperationReult = await _foodService.GetFoodsForManagementUnit();
+                var totalFoodCountOperationReult = await _foodService.GetFoodsForPartner();
                 var totalFoodCount = totalFoodCountOperationReult.Payload;
                 var totalFoodReceive = new Dictionary<string, int>();
 
@@ -50,7 +50,7 @@ namespace PerfectBreakfast.Application.Services
 
                 foreach (var supplier in filteredSuppliers)
                 {
-                    //Tìm suppplier khớp với supplier truyền vào và tìm % ăn chia supplier 
+                    //Tìm supplier khớp với supplier truyền vào và tìm % ăn chia supplier 
                     var foodAssignmentsResult = new List<SupplierFoodAssignment>();
                     var supplierFoodAssignmentRequest = request.SingleOrDefault(request => request.SupplierId == supplier.Id);
                     var supplierCommissionRates = await _unitOfWork.SupplierCommissionRateRepository.GetBySupplier(supplier.Id);
@@ -131,7 +131,6 @@ namespace PerfectBreakfast.Application.Services
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
-
             }
             return result;
         }
@@ -141,9 +140,30 @@ namespace PerfectBreakfast.Application.Services
             throw new NotImplementedException();
         }
 
-        public Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignments()
+        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignments()
         {
-            throw new NotImplementedException();
+            var result = new OperationResult<List<SupplierFoodAssignmentResponse>>();
+            var userId = _claimsService.GetCurrentUserId;
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                var supplierFoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
+
+                // Lấy supplier từ management Unit
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
+                
+                
+            }
+            catch (NotFoundIdException ex)
+            {
+                result.AddUnknownError("Food khong ton tai");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+
+            return result;
         }
     }
 }
