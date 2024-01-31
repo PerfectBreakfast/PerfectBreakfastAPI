@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
@@ -56,6 +57,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// API For Partner Admin
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
         [HttpGet("partner")]
         public async Task<IActionResult> GetFoodForPartner()
         {
