@@ -6,10 +6,10 @@ namespace PerfectBreakfast.Application.Interfaces;
 
 public interface IDeliveryService
 {
-    public Task<OperationResult<List<DeliveryUnitResponseModel>>> GetDeliveries();
-    public Task<OperationResult<DeliveryUnitResponseModel>> GetDeliveryId(Guid deliveryId);
-    public Task<OperationResult<DeliveryUnitResponseModel>> CreateDelivery(CreateDeliveryUnitRequest requestModel);
-    public Task<OperationResult<DeliveryUnitResponseModel>> UpdateDelivery(Guid deliveryId, UpdateDeliveryUnitRequest requestModel);
-    public Task<OperationResult<DeliveryUnitResponseModel>> RemoveDelivery(Guid deliveryId);
-    public Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10);
+    public Task<OperationResult<List<DeliveryResponseModel>>> GetDeliveries();
+    public Task<OperationResult<DeliveryResponseModel>> GetDeliveryId(Guid deliveryId);
+    public Task<OperationResult<DeliveryResponseModel>> CreateDelivery(CreateDeliveryRequest requestModel);
+    public Task<OperationResult<DeliveryResponseModel>> UpdateDelivery(Guid deliveryId, UpdateDeliveryRequest requestModel);
+    public Task<OperationResult<DeliveryResponseModel>> RemoveDelivery(Guid deliveryId);
+    public Task<OperationResult<Pagination<DeliveryResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10);
 }

@@ -19,13 +19,13 @@ public class DeliveryService : IDeliveryService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-    public async Task<OperationResult<List<DeliveryUnitResponseModel>>> GetDeliveries()
+    public async Task<OperationResult<List<DeliveryResponseModel>>> GetDeliveries()
     {
-        var result = new OperationResult<List<DeliveryUnitResponseModel>>();
+        var result = new OperationResult<List<DeliveryResponseModel>>();
         try
         {
-            var deliveryUnits = await _unitOfWork.DeliveryRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<DeliveryUnitResponseModel>>(deliveryUnits);
+            var deliveries = await _unitOfWork.DeliveryRepository.GetAllAsync();
+            result.Payload = _mapper.Map<List<DeliveryResponseModel>>(deliveries);
         }
         catch (Exception e)
         {
@@ -34,9 +34,9 @@ public class DeliveryService : IDeliveryService
         return result;
     }
 
-    public async Task<OperationResult<DeliveryUnitResponseModel>> CreateDelivery(CreateDeliveryUnitRequest requestModel)
+    public async Task<OperationResult<DeliveryResponseModel>> CreateDelivery(CreateDeliveryRequest requestModel)
     {
-        var result = new OperationResult<DeliveryUnitResponseModel>();
+        var result = new OperationResult<DeliveryResponseModel>();
         try
         {
             // map model to Entity
@@ -46,7 +46,7 @@ public class DeliveryService : IDeliveryService
             // save change 
             await _unitOfWork.SaveChangeAsync();
             // map model to response
-            result.Payload = _mapper.Map<DeliveryUnitResponseModel>(entity);
+            result.Payload = _mapper.Map<DeliveryResponseModel>(entity);
         }
         catch (Exception e)
         {
@@ -55,9 +55,9 @@ public class DeliveryService : IDeliveryService
         return result;
     }
 
-    public async Task<OperationResult<DeliveryUnitResponseModel>> UpdateDelivery(Guid deliveryId, UpdateDeliveryUnitRequest requestModel)
+    public async Task<OperationResult<DeliveryResponseModel>> UpdateDelivery(Guid deliveryId, UpdateDeliveryRequest requestModel)
     {
-        var result = new OperationResult<DeliveryUnitResponseModel>();
+        var result = new OperationResult<DeliveryResponseModel>();
         try
         {
             // find supplier by ID
@@ -68,7 +68,7 @@ public class DeliveryService : IDeliveryService
             _unitOfWork.DeliveryRepository.Update(deliveryUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<DeliveryUnitResponseModel>(deliveryUnit);
+            result.Payload = _mapper.Map<DeliveryResponseModel>(deliveryUnit);
         }
         catch (Exception e)
         {
@@ -77,9 +77,9 @@ public class DeliveryService : IDeliveryService
         return result;
     }
 
-    public async Task<OperationResult<DeliveryUnitResponseModel>> RemoveDelivery(Guid deliveryId)
+    public async Task<OperationResult<DeliveryResponseModel>> RemoveDelivery(Guid deliveryId)
     {
-        var result = new OperationResult<DeliveryUnitResponseModel>();
+        var result = new OperationResult<DeliveryResponseModel>();
         try
         {
             // find supplier by ID
@@ -89,7 +89,7 @@ public class DeliveryService : IDeliveryService
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
-            result.Payload = _mapper.Map<DeliveryUnitResponseModel>(entity);
+            result.Payload = _mapper.Map<DeliveryResponseModel>(entity);
         }
         catch (Exception e)
         {
@@ -98,13 +98,13 @@ public class DeliveryService : IDeliveryService
         return result;
     }
 
-    public async Task<OperationResult<DeliveryUnitResponseModel>> GetDeliveryId(Guid deliveryId)
+    public async Task<OperationResult<DeliveryResponseModel>> GetDeliveryId(Guid deliveryId)
     {
-        var result = new OperationResult<DeliveryUnitResponseModel>();
+        var result = new OperationResult<DeliveryResponseModel>();
             try
             {
                 var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
-                result.Payload = _mapper.Map<DeliveryUnitResponseModel>(deliveryUnit);
+                result.Payload = _mapper.Map<DeliveryResponseModel>(deliveryUnit);
             }
             catch (NotFoundIdException e)
             {
@@ -117,9 +117,9 @@ public class DeliveryService : IDeliveryService
             return result;
     }
 
-    public async Task<OperationResult<Pagination<DeliveryUnitResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<DeliveryResponseModel>>> GetDeliveryUnitPaginationAsync(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<DeliveryUnitResponseModel>>();
+        var result = new OperationResult<Pagination<DeliveryResponseModel>>();
         try
         {
             // xác định các thuộc tính include và theninclude 
@@ -135,9 +135,9 @@ public class DeliveryService : IDeliveryService
             Expression<Func<Delivery, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? null 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
-            var deliveryUnitPages = await _unitOfWork.DeliveryRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
-            var deliveryUnitResponses = new List<DeliveryUnitResponseModel>();
-            foreach (var du in deliveryUnitPages.Items)
+            var deliveryPages = await _unitOfWork.DeliveryRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
+            var deliveryResponses = new List<DeliveryResponseModel>();
+            foreach (var du in deliveryPages.Items)
             {
                 var adminUserNames = new List<string>();
 
@@ -149,25 +149,26 @@ public class DeliveryService : IDeliveryService
                     }
                 }
 
-                var deliveryUnitResponse = new DeliveryUnitResponseModel(
+                var deliveryUnitResponse = new DeliveryResponseModel(
                     du.Id,
                     du.Name,
                     du.Address,
+                    du.PhoneNumber,
                     du.Longitude,
                     du.Latitude,
                     adminUserNames, // Danh sách người dùng là admin
                     du.Companies.Select(c => c.Name).ToList(),
                     du.Users.Count);
 
-                deliveryUnitResponses.Add(deliveryUnitResponse);
+                deliveryResponses.Add(deliveryUnitResponse);
             }
             
-            result.Payload = new Pagination<DeliveryUnitResponseModel>
+            result.Payload = new Pagination<DeliveryResponseModel>
             {
-                PageIndex = deliveryUnitPages.PageIndex,
-                PageSize = deliveryUnitPages.PageSize,
-                TotalItemsCount = deliveryUnitPages.TotalItemsCount,
-                Items = deliveryUnitResponses
+                PageIndex = deliveryPages.PageIndex,
+                PageSize = deliveryPages.PageSize,
+                TotalItemsCount = deliveryPages.TotalItemsCount,
+                Items = deliveryResponses
             };
         }
         catch (Exception e)

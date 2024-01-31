@@ -41,7 +41,7 @@ public class SupplierService : ISupplierService
         var result = new OperationResult<SupplierDetailResponse>();
         try
         {
-            var supp = await _unitOfWork.SupplierRepository.GetSupplierUintDetail(id);
+            var supp = await _unitOfWork.SupplierRepository.GetSupplierDetail(id);
             if (supp == null)
             {
                 result.AddUnknownError("Id does not exist");
@@ -167,6 +167,7 @@ public class SupplierService : ISupplierService
                     sp.Id,
                     sp.Name,
                     sp.Address,
+                    sp.PhoneNumber,
                     sp.Longitude,
                     sp.Latitude,
                     adminUserNames, // Danh sách người dùng là admin

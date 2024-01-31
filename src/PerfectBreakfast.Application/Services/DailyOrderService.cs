@@ -47,27 +47,27 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<Pagination<DailyOrderForManagemtUnitResponse>>();
+            var result = new OperationResult<Pagination<DailyOrderForPartnerResponse>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 var now = _currentTime.GetCurrentTime();
-                var managementUnits = await _unitOfWork.PartnerRepository.GetManagementUnits();
-                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.PartnerId);
+                var partners = await _unitOfWork.PartnerRepository.GetPartners();
+                var partner = partners.SingleOrDefault(m => m.Id == user.PartnerId);
 
-                if (managementUnit == null)
+                if (partner == null)
                 {
                     result.AddUnknownError("managementUnit does not exist");
                     return result;
                 }
 
                 // Lấy danh sách các công ty thuộc MU
-                var companies = managementUnit.Companies;
-                var dailyOrderForManagemtUnitResponses = new List<DailyOrderForManagemtUnitResponse>();
+                var companies = partner.Companies;
+                var dailyOrderForPartnerResponses = new List<DailyOrderForPartnerResponse>();
 
                 // xử lý mỗi cty
                 foreach (var company in companies)
@@ -76,7 +76,7 @@ namespace PerfectBreakfast.Application.Services
 
                     foreach (var dailyOrder in dailyOrders)
                     {
-                        DailyOrderForManagemtUnitResponse dailyOrderForManagement = new DailyOrderForManagemtUnitResponse()
+                        DailyOrderForPartnerResponse dailyOrderForPartner = new DailyOrderForPartnerResponse()
                         {
                             Id = company.Id,
                             Name = company.Name,
@@ -87,24 +87,24 @@ namespace PerfectBreakfast.Application.Services
                             BookingDate = dailyOrder.BookingDate,
                             Status = GetEnumDescription(dailyOrder.Status)
                         };
-                        dailyOrderForManagemtUnitResponses.Add(dailyOrderForManagement);
+                        dailyOrderForPartnerResponses.Add(dailyOrderForPartner);
                     }
                 }
 
                 // Sắp xếp theo BookingDate
-                dailyOrderForManagemtUnitResponses.Sort((x, y) => y.BookingDate.CompareTo(x.BookingDate));
+                dailyOrderForPartnerResponses.Sort((x, y) => y.BookingDate.CompareTo(x.BookingDate));
 
                 // Phân trang danh sách
-                var paginatedList = dailyOrderForManagemtUnitResponses
+                var paginatedList = dailyOrderForPartnerResponses
                     .Skip(pageIndex * pageSize)
                     .Take(pageSize)
                     .ToList();
 
-                var paginationResult = new Pagination<DailyOrderForManagemtUnitResponse>()
+                var paginationResult = new Pagination<DailyOrderForPartnerResponse>()
                 {
                     PageIndex = pageIndex,
                     PageSize = pageSize,
-                    TotalItemsCount = dailyOrderForManagemtUnitResponses.Count,
+                    TotalItemsCount = dailyOrderForPartnerResponses.Count,
                     Items = paginatedList,
                 };
 
@@ -122,9 +122,9 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<Pagination<DailyOrderForDeliveryUnitResponse>>();
+            var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
@@ -155,12 +155,12 @@ namespace PerfectBreakfast.Application.Services
                     .ToDictionary(x => x.Key, g => g.ToList());
                 // custom output
                 var dailyOrderResponse = dailyOrderByBookingOrder.Select(x =>
-                    new DailyOrderForDeliveryUnitResponse(
+                    new DailyOrderForDeliveryResponse(
                         x.Key, // BookingDate từ Dictionary
                         _mapper.Map<List<DailyOrderModelResponse>>(x.Value)
                     )).ToList();
                 
-                result.Payload = new Pagination<DailyOrderForDeliveryUnitResponse>
+                result.Payload = new Pagination<DailyOrderForDeliveryResponse>
                 {
                     PageIndex = dailyOrderPages.PageIndex,
                     PageSize = dailyOrderPages.PageSize,

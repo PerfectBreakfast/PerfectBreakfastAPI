@@ -224,11 +224,11 @@ public class UserService : IUserService
             // check User workspace to generate code\
             if (user.DeliveryId.HasValue)
             {
-                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryUnitCode(user.DeliveryId.Value);
+                user.Code = await _unitOfWork.UserRepository.CalculateDeliveryCode(user.DeliveryId.Value);
             }
             else if (user.PartnerId.HasValue)
             {
-                user.Code = await _unitOfWork.UserRepository.CalculateManagementUnitCode(user.PartnerId.Value);
+                user.Code = await _unitOfWork.UserRepository.CalculatePartnerCode(user.PartnerId.Value);
             }
             else if (user.SupplierId.HasValue)
             {
