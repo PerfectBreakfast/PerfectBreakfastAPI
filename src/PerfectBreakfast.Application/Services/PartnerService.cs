@@ -175,6 +175,7 @@ public class PartnerService : IPartnerService
                     mr.Id,
                     mr.Name,
                     mr.Address,
+                    mr.PhoneNumber,
                     mr.CommissionRate,
                     mr.Longitude,
                     mr.Latitude,

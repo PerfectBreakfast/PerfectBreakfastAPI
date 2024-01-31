@@ -153,6 +153,7 @@ public class DeliveryService : IDeliveryService
                     du.Id,
                     du.Name,
                     du.Address,
+                    du.PhoneNumber,
                     du.Longitude,
                     du.Latitude,
                     adminUserNames, // Danh sách người dùng là admin

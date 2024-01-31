@@ -4,6 +4,7 @@ public record DeliveryResponseModel(
     Guid Id,
     string Name,
     string Address,
+    string PhoneNumber ,
     //int CommissionRate,
     double? Longitude,
     double? Latitude,

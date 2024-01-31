@@ -167,6 +167,7 @@ public class SupplierService : ISupplierService
                     sp.Id,
                     sp.Name,
                     sp.Address,
+                    sp.PhoneNumber,
                     sp.Longitude,
                     sp.Latitude,
                     adminUserNames, // Danh sách người dùng là admin
