@@ -177,6 +177,14 @@ public static class DependencyInjection
         PayOS payOS = new PayOS(appConfiguration.PayOSSettings.ClientId,appConfiguration.PayOSSettings.ApiKey,appConfiguration.PayOSSettings.CheckSumKey);
         services.AddSingleton(payOS);
         //==================================================================================================================================
+        services.AddAuthorization(opt =>
+        {
+            opt.AddPolicy("RequireDeliveryAdminRole", policy => policy.RequireRole("DELIVERY ADMIN"));
+            opt.AddPolicy("RequirePartnerAdminRole", policy => policy.RequireRole("PARTNER ADMIN"));
+            opt.AddPolicy("RequireSuperAdminRole", policy => policy.RequireRole("SUPER ADMIN"));
+            //opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
+        });
+        //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();
         services.AddSingleton<PerformanceMiddleware>();

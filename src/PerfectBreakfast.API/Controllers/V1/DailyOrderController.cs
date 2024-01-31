@@ -56,16 +56,21 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// API For Management Unit Admin
         /// </summary>
         /// <returns></returns>
-        [Authorize]
-        [HttpGet("partner")]
+        [HttpGet("partner"),Authorize(Policy = "RequirePartnerAdminRole")]
         public async Task<IActionResult> GetDailyOrderByManagementUnitId(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByManagementUnit(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
-        [HttpGet("delivery")]
-        public async Task<IActionResult> GetDailyOrderByDeliveryUnit(int pageIndex = 0, int pageSize = 10)
+        /// <summary>
+        /// API For Delivery Admin
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        [HttpGet("delivery"),Authorize(Policy = "RequireDeliveryAdminRole")]
+        public async Task<IActionResult> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByDeliveryUnit(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

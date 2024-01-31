@@ -1,3 +1,4 @@
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Models.DaliyOrder.Response;
@@ -7,4 +8,4 @@ public record DailyOrderModelResponse(
     decimal? TotalPrice,
     int? OrderQuantity ,
     string Status,
-    Company? Company);
+    CompanyDto? Company);

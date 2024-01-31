@@ -138,18 +138,35 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryUnitInclude);
                 // check xem user đó có phải là trong đơn vị không và role của user có phải là Admin hay không 
-                //
                 
+                
+                // get Companies of Delivery
                 var companyIds = user.Delivery.Companies.Select(u => u.Id).ToList();
-                
                 // Xây dựng predicate để lọc DailyOrder theo các CompanyId
-                Expression<Func<DailyOrder, bool>> predicate = x => companyIds.Contains(x.CompanyId.Value);
-                var dailyOrderPages = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize,predicate);
-
-                var dailyOrderResponse = dailyOrderPages.Items.Select(x =>
+                Expression<Func<DailyOrder, bool>> predicate = order => companyIds.Contains(order.CompanyId.Value);
+                // Get Paging
+                var companyInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Company
+                };
+                var dailyOrderPages = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize,predicate,companyInclude);
+                // Group by Booking Order
+                var dailyOrderByBookingOrder = dailyOrderPages.Items.GroupBy(x => x.BookingDate)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                // custom output
+                var dailyOrderResponse = dailyOrderByBookingOrder.Select(x =>
                     new DailyOrderForDeliveryUnitResponse(
-                        x.BookingDate,
-                        new List<DailyOrderModelResponse>())).ToList();
+                        x.Key, // BookingDate từ Dictionary
+                        _mapper.Map<List<DailyOrderModelResponse>>(x.Value)
+                    )).ToList();
+                
+                result.Payload = new Pagination<DailyOrderForDeliveryUnitResponse>
+                {
+                    PageIndex = dailyOrderPages.PageIndex,
+                    PageSize = dailyOrderPages.PageSize,
+                    TotalItemsCount = dailyOrderPages.TotalItemsCount,
+                    Items = dailyOrderResponse
+                };
             }
             catch (Exception e)
             {
