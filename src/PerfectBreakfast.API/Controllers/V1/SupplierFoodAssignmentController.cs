@@ -27,4 +27,30 @@ public class SupplierFoodAssignmentController : BaseController
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("partner")]
+    public async Task<IActionResult> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentByPartner(pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("supplier")]
+    public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentByPartner(pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

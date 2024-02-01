@@ -33,7 +33,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var dailyOrder = _mapper.Map<DailyOrder>(dailyOrderRequest);
-                dailyOrder.Status = DailyOrderStatus.Pending;
+                dailyOrder.Status = DailyOrderStatus.Đang_chờ_xử_lý;
                 dailyOrder.OrderQuantity = 0;
                 dailyOrder.TotalPrice = 0;
                 await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
@@ -53,63 +53,43 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
-                var now = _currentTime.GetCurrentTime();
-                var partners = await _unitOfWork.PartnerRepository.GetPartners();
-                var partner = partners.SingleOrDefault(m => m.Id == user.PartnerId);
-
-                if (partner == null)
+                var partnerInclude = new IncludeInfo<User>
                 {
-                    result.AddUnknownError("managementUnit does not exist");
-                    return result;
-                }
-
-                // Lấy danh sách các công ty thuộc MU
-                var companies = partner.Companies;
-                var dailyOrderForPartnerResponses = new List<DailyOrderForPartnerResponse>();
-
-                // xử lý mỗi cty
-                foreach (var company in companies)
-                {
-                    var dailyOrders = company.DailyOrders.ToList();
-
-                    foreach (var dailyOrder in dailyOrders)
+                    NavigationProperty = x => x.Partner,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
                     {
-                        DailyOrderForPartnerResponse dailyOrderForPartner = new DailyOrderForPartnerResponse()
-                        {
-                            Id = company.Id,
-                            Name = company.Name,
-                            Address = company.Address,
-                            StartWorkHour = company.StartWorkHour,
-                            OrderQuantity = dailyOrder.OrderQuantity,
-                            TotalPrice = dailyOrder.TotalPrice,
-                            BookingDate = dailyOrder.BookingDate,
-                            Status = GetEnumDescription(dailyOrder.Status)
-                        };
-                        dailyOrderForPartnerResponses.Add(dailyOrderForPartner);
+                        sp => ((Partner)sp).Companies
                     }
-                }
-
-                // Sắp xếp theo BookingDate
-                dailyOrderForPartnerResponses.Sort((x, y) => y.BookingDate.CompareTo(x.BookingDate));
-
-                // Phân trang danh sách
-                var paginatedList = dailyOrderForPartnerResponses
-                    .Skip(pageIndex * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                var paginationResult = new Pagination<DailyOrderForPartnerResponse>()
-                {
-                    PageIndex = pageIndex,
-                    PageSize = pageSize,
-                    TotalItemsCount = dailyOrderForPartnerResponses.Count,
-                    Items = paginatedList,
                 };
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+                // get Companies of Delivery
+                var companyIds = user.Partner.Companies.Select(u => u.Id).ToList();
 
-                result.Payload = paginationResult;
-
+                // Xây dựng predicate để lọc DailyOrder theo các CompanyId
+                Expression<Func<DailyOrder, bool>> predicate = order => companyIds.Contains(order.CompanyId.Value);
+                // Get Paging
+                var companyInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Company
+                };
+                var dailyOrderPages = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize,predicate,companyInclude);
+                // Group by Booking Order
+                var dailyOrderByBookingOrder = dailyOrderPages.Items.GroupBy(x => x.BookingDate)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                // custom output
+                var dailyOrderResponse = dailyOrderByBookingOrder.Select(x =>
+                    new DailyOrderForPartnerResponse(
+                        x.Key, // BookingDate từ Dictionary
+                        _mapper.Map<List<DailyOrderModelResponse>>(x.Value)
+                    )).ToList();
+                
+                result.Payload = new Pagination<DailyOrderForPartnerResponse>
+                {
+                    PageIndex = dailyOrderPages.PageIndex,
+                    PageSize = dailyOrderPages.PageSize,
+                    TotalItemsCount = dailyOrderPages.TotalItemsCount,
+                    Items = dailyOrderResponse
+                };
             }
             catch (NotFoundIdException)
             {
@@ -301,16 +281,6 @@ namespace PerfectBreakfast.Application.Services
                 result.AddUnknownError(e.Message);
             }
             return result;
-        }
-
-        public static string GetEnumDescription(Enum value)
-        {
-            var fieldInfo = value.GetType().GetField(value.ToString());
-
-            var attributes = (DescriptionAttribute[])fieldInfo.GetCustomAttributes(
-                typeof(DescriptionAttribute), false);
-
-            return attributes.Length > 0 ? attributes[0].Description : value.ToString();
         }
 
     }
