@@ -29,12 +29,13 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.GetSupplierCommissionRateId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    // [HttpGet("GetSupplierMoreFood/{supplierId}")]
-    // public async Task<IActionResult> GetSupplierMoreFood(Guid supplierId)
-    // {
-    //     var response = await _supplierCommissionRate.GetSupplierMoreFood(supplierId);
-    //     return response.IsError ? BadRequest(response.Errors) : Ok(response.Payload);
-    // }
+
+    [HttpGet("food/{supplierId}")]
+    public async Task<IActionResult> GetSupplierMoreFood(Guid supplierId)
+    {
+        var response = await _supplierCommissionRate.GetSupplierMoreFood(supplierId);
+        return response.IsError ? BadRequest(response.Errors) : Ok(response.Payload);
+    }
 
     [HttpPost]
     public async Task<IActionResult> CreateSupplierCommissionRate(CreateSupplierCommissionRateRequest supplierCommissionRateRequest)
