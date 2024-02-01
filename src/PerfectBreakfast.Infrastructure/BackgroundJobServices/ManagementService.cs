@@ -36,7 +36,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                     var dailyOrder = new DailyOrder();
                     dailyOrder.CompanyId = company.Id;
                     dailyOrder.BookingDate = bookingDate.AddDays(1);
-                    dailyOrder.Status = DailyOrderStatus.Pending;
+                    dailyOrder.Status = DailyOrderStatus.Đang_chờ_xử_lý;
                     dailyOrder.OrderQuantity = 0;
                     dailyOrder.TotalPrice = 0;
                     await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
@@ -64,7 +64,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                         var totalOrder = orders.Count();
                         dailyOrderEntity.TotalPrice = totalOrderPrice;
                         dailyOrderEntity.OrderQuantity = totalOrder;
-                        dailyOrderEntity.Status = DailyOrderStatus.Fulfilled;
+                        dailyOrderEntity.Status = DailyOrderStatus.Đã_xử_lý;
                         _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                     }
                     await _unitOfWork.SaveChangeAsync();

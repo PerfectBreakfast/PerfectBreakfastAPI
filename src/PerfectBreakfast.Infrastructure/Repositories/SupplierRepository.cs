@@ -21,17 +21,36 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
         return supplier;
     }
 
-    public async Task<List<Supplier>?> GetSupplierByPartner(Guid managementUnitId)
+    public async Task<List<Supplier>?> GetSupplierByPartner(Guid id)
     {
         var suppliers = await _dbSet
-            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == managementUnitId))
+            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == id))
             .ToListAsync();
-
         return suppliers;
     }
 
     public async Task<Supplier?> GetSupplierById(Guid id, params Expression<Func<Supplier, object>>[] includeProperties)
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
+    }
+
+    public　async Task<List<Supplier>?> GetSupplierFoodAssignmentByPartner(Guid id)
+    {
+        var suppliers = await _dbSet
+            .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == id))
+            .Include(s => s.SupplierCommissionRates)
+            .ThenInclude(s => s.SupplierFoodAssignments)
+            .ToListAsync();
+        return suppliers;
+    }
+
+    public async Task<Supplier?> GetSupplierFoodAssignmentBySupplier(Guid id)
+    {
+        var suppliers = await _dbSet
+            .Where(supplier => supplier.Id == id)
+            .Include(s => s.SupplierCommissionRates)
+            .ThenInclude(s => s.SupplierFoodAssignments)
+            .SingleOrDefaultAsync();
+        return suppliers;
     }
 }

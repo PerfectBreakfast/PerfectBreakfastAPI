@@ -2,7 +2,9 @@
 {
     public record FoodAssignmentResponse
     {
-        public int AmountCooked { get; set; }
         public string? FoodName { get; set; }
+        public int AmountCooked { get; set; }
+        public DateOnly DateCooked { get; set; }
+        public decimal? ReceivedAmount { get; set; }
     }
 }
