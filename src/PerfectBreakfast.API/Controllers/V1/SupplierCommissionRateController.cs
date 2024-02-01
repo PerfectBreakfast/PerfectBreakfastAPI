@@ -30,7 +30,7 @@ public class SupplierCommissionRateController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpGet("GetSupplierMoreFood/{supplierId}")]
+    [HttpGet("Food/{supplierId}")]
     public async Task<IActionResult> GetSupplierMoreFood(Guid supplierId)
     {
         var response = await _supplierCommissionRate.GetSupplierMoreFood(supplierId);
