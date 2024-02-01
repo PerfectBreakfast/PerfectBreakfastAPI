@@ -126,10 +126,6 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 
 
         }
-        catch (NotFoundIdException e)
-        {
-            result.AddError(ErrorCode.NotFound, e.Message);
-        }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
