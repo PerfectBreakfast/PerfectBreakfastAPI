@@ -181,6 +181,6 @@ public class DeliveryService : IDeliveryService
     private async Task<bool> CheckIfUserIsAdmin(User user)
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains("DELIVERY UNIT ADMIN");
+        return roles.Contains("DELIVERY ADMIN");
     }
 }

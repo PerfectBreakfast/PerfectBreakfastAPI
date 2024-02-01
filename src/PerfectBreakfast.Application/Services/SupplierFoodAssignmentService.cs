@@ -58,7 +58,7 @@ namespace PerfectBreakfast.Application.Services
                     //Tìm supplier khớp với supplier truyền vào và tìm % ăn chia supplier 
                     var foodAssignmentsResult = new List<SupplierFoodAssignment>();
                     var supplierFoodAssignmentRequest = request.SingleOrDefault(request => request.SupplierId == supplier.Id);
-                    var supplierCommissionRates = await _unitOfWork.SupplierCommissionRateRepository.GetBySupplier(supplier.Id);
+                    var supplierCommissionRates = await _unitOfWork.SupplierCommissionRateRepository.GetBySupplierId(supplier.Id);
 
                     //Duyệt theo % ăn chia với mỗi loại thức ăn 
                     foreach (var foodAssignmentRequest in supplierFoodAssignmentRequest.foodAssignmentRequests)
