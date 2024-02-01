@@ -7,5 +7,5 @@ public interface ISupplierCommissionRateRepository : IGenericRepository<Supplier
 {
 
     Task<bool> AnyAsync(Expression<Func<SupplierCommissionRate, bool>> predicate);
-    Task<List<SupplierCommissionRate>?> GetBySupplier(Guid id);
+    Task<List<SupplierCommissionRate>?> GetBySupplierId(Guid id);
 }

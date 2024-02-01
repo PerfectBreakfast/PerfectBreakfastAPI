@@ -17,8 +17,8 @@ public class SupplierCommissionRateRepository : GenericRepository<SupplierCommis
         return await _dbSet.AnyAsync(predicate);
     }
 
-    public async Task<List<SupplierCommissionRate>?> GetBySupplier(Guid id)
+    public async Task<List<SupplierCommissionRate>?> GetBySupplierId(Guid id)
     {
-        return await _dbSet.Where(s => s.SupplierId == id).ToListAsync();
+        return await _dbSet.Where(s => s.SupplierId == id).Include(s=>s.Food).ToListAsync();
     }
 }
