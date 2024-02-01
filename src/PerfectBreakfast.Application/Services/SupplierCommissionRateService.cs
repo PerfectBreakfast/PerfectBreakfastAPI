@@ -122,13 +122,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
                 return result;
             }
 
-            var food = supp.Select(x => x.Food);
-
-            //var supplier = _mapper.Map<List<FoodResponse>>(food);
-
-            //supplier.Food = _mapper.Map<List<FoodResponse>>(food);
-
-            result.Payload = _mapper.Map<List<FoodResponse>>(food); 
+            result.Payload = _mapper.Map<List<FoodResponse>>(supp.Select(x => x.Food)); 
 
 
         }
