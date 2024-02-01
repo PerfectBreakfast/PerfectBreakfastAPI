@@ -205,6 +205,6 @@ public class PartnerService : IPartnerService
     private async Task<bool> CheckIfUserIsAdmin(User user)
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains("MANAGEMENT UNIT ADMIN");
+        return roles.Contains("PARTNER ADMIN");
     }
 }

@@ -33,7 +33,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _dailyOrderService.CreateDailyOrder(dailyOrderRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
-
+        
         [HttpGet("pagination")]
         public async Task<IActionResult> GetDailyOrderPagination(int pageIndex = 0, int pageSize = 10)
         {
