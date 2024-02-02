@@ -24,6 +24,7 @@ public class MapsterConfig : IRegister
         config.NewConfig<DailyOrder, DailyOrderModelResponse>()
             .Map(dest => dest.Company,src => src.Company);
         config.NewConfig<Order, OrderHistoryResponse>()
-            .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum());
+            .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum())
+            .Map(dest => dest.CompanyName,src => src.Worker.Company.Name);
     }
 }

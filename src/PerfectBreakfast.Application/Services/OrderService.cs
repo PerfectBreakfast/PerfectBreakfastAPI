@@ -182,6 +182,7 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Company);
                 var orderdetailInclude = new IncludeInfo<Order>
                 {
                     NavigationProperty = x => x.OrderDetails,
@@ -190,7 +191,15 @@ namespace PerfectBreakfast.Application.Services
                         sp => ((OrderDetail)sp).Combo
                     }
                 };
-                var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,orderdetailInclude);
+                var workerInclude = new IncludeInfo<Order>
+                {
+                    NavigationProperty = x => x.Worker,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
+                    {
+                        sp => ((User)sp).Company
+                    }
+                };
+                var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,orderdetailInclude,workerInclude);
                 result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
             }
             catch (Exception e)

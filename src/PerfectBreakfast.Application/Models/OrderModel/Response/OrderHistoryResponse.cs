@@ -7,4 +7,5 @@ public sealed record OrderHistoryResponse(
     string OrderStatus,
     int OrderCode,
     DateTime CreationDate,
-    int ComboCount);
+    int ComboCount,
+    string CompanyName);
