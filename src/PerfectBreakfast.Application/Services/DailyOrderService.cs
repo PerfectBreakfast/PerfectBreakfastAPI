@@ -156,9 +156,9 @@ namespace PerfectBreakfast.Application.Services
         }
 
 
-        public async Task<OperationResult<List<TotalFoodResponse>>> GetDailyOrderDetailByPartner(Guid id, DateOnly bookingDate)
+        public async Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetailByPartner(Guid id, DateOnly bookingDate)
         {
-            var result = new OperationResult<List<TotalFoodResponse>>();
+            var result = new OperationResult<TotalFoodForCompanyResponse>();
             try
             {
                 var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
@@ -218,7 +218,15 @@ namespace PerfectBreakfast.Application.Services
                 }
                 // Tạo danh sách totalFoodList từ foodCounts
                 var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse { Name = pair.Key, Quantity = pair.Value }).ToList();
-                result.Payload = totalFoodList;
+                var totalFoodForCompany = new TotalFoodForCompanyResponse()
+                {
+                    CompanyName = company.Name,
+                    PhoneNumber = company.PhoneNumber,
+                    BookingDate = dailyOrder.BookingDate,
+                    Status = dailyOrder.Status.ToString(),
+                    TotalFoodResponses = totalFoodList
+                };
+                result.Payload = totalFoodForCompany;
             }
             catch (NotFoundIdException)
             {
