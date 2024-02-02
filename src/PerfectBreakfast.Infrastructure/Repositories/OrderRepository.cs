@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -22,10 +23,29 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Order>> GetOrderHistory(Guid userId, params IncludeInfo<Order>[] includeProperties)
+        {
+            var itemsQuery = _dbSet.Where(x => x.WorkerId == userId);
+            itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
+            // Xử lý các thuộc tính include và thenInclude
+            foreach (var includeProperty in includeProperties)
+            {
+                var queryWithInclude = itemsQuery.Include(includeProperty.NavigationProperty);
+                foreach (var thenInclude in includeProperty.ThenIncludes)
+                {
+                    queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+                }
+                itemsQuery = queryWithInclude;
+            }
+            return await itemsQuery.AsNoTracking().ToListAsync();
+        }
+
 
         public Task<Order> GetOrderByOrderCode(int orderCode)
         {
             return _dbSet.SingleAsync(x => x.OrderCode == orderCode);
         }
+        
+        
     }
 }

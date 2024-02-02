@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -175,15 +176,22 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<OrderResponse>>> GetOrderHistory(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory()
         {
-            var result = new OperationResult<Pagination<OrderResponse>>();
+            var result = new OperationResult<List<OrderHistoryResponse>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                Expression<Func<Order, bool>>? predicate = x => x.WorkerId == userId;
-                var order = await _unitOfWork.OrderRepository.ToPagination(pageIndex, pageSize,predicate);
-                result.Payload = _mapper.Map<Pagination<OrderResponse>>(order);
+                var orderdetailInclude = new IncludeInfo<Order>
+                {
+                    NavigationProperty = x => x.OrderDetails,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
+                    {
+                        sp => ((OrderDetail)sp).Combo
+                    }
+                };
+                var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,orderdetailInclude);
+                result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
             }
             catch (Exception e)
             {

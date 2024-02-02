@@ -13,7 +13,7 @@ namespace PerfectBreakfast.Application.Interfaces
         Task<OperationResult<OrderResponse>> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest);
         Task<OperationResult<OrderResponse>> DeleteOrder(Guid id);
         public Task<OperationResult<Pagination<OrderResponse>>> GetOrderPaginationAsync(int pageIndex = 0, int pageSize = 10);
-        public Task<OperationResult<Pagination<OrderResponse>>> GetOrderHistory(int pageIndex = 0, int pageSize = 10);
+        public Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory();
         public Task<OperationResult<OrderResponse>> RemoveOrder(Guid id);
     }
 }

@@ -3,6 +3,7 @@ using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
@@ -22,5 +23,7 @@ public class MapsterConfig : IRegister
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
         config.NewConfig<DailyOrder, DailyOrderModelResponse>()
             .Map(dest => dest.Company,src => src.Company);
+        config.NewConfig<Order, OrderHistoryResponse>()
+            .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum());
     }
 }
