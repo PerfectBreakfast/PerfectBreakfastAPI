@@ -149,7 +149,24 @@ namespace PerfectBreakfast.Application.Services
                     result.AddUnknownError("Id is not exsit");
                     return result;
                 }
-                var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
+                //var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
+                var orderDetails = new List<OrderDetailResponse>();
+                foreach(var detail in order.OrderDetails)
+                {
+                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(detail.ComboId);
+                    var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var orderDetailResponse = new OrderDetailResponse
+                    {
+                        ComboName = combo.Name,
+                        Quantity = detail.Quantity,
+                        UnitPrice = detail.UnitPrice,
+                        Image = combo.Image,
+                        Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}"
+                    };
+
+                    orderDetails.Add(orderDetailResponse);
+                }
+
                 var or = _mapper.Map<OrderResponse>(order);
                 or.orderDetails = orderDetails;
                 result.Payload = or;
