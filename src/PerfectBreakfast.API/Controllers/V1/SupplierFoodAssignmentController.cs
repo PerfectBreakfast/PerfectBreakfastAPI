@@ -42,7 +42,7 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
-    /// API For Partner Admin
+    /// API For Supplier Admin
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -50,7 +50,7 @@ public class SupplierFoodAssignmentController : BaseController
     [HttpGet("supplier")]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentByPartner(pageIndex, pageSize);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using System.Linq.Expressions;
+using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -73,7 +74,7 @@ namespace PerfectBreakfast.Application.Services
                         }
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
-                        supplierFoodAssignment.Partner = partner;
+                        supplierFoodAssignment.PartnerId = partner.Id;
                         supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
                         supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Sent;
 
@@ -98,6 +99,7 @@ namespace PerfectBreakfast.Application.Services
                         var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
                         FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
                         {
+                            PartnerName = partner.Name,
                             AmountCooked = item.AmountCooked,
                             FoodName = food.Name,
                             DateCooked = item.DateCooked,
@@ -143,36 +145,70 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<SupplierFoodAssignmentForSupplier>> GetSupplierFoodAssignmentBySupplier()
+        public async Task<OperationResult<Pagination<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<SupplierFoodAssignmentForSupplier>();
+            var result = new OperationResult<Pagination<SupplierFoodAssignmentForSupplier>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var supplier = await _unitOfWork.SupplierRepository.GetSupplierFoodAssignmentBySupplier((Guid)user.SupplierId);
-                var supplierFoodAssignments = supplier.SupplierCommissionRates
-                    .SelectMany(scr => scr.SupplierFoodAssignments)
-                    .ToList();
-                var foodAssignmentResponses = new List<FoodAssignmentResponse>();
-                foreach (var item in supplierFoodAssignments)
+                var supplierInclude = new IncludeInfo<User>
                 {
-                    var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
-                    FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
+                    NavigationProperty = x => x.Supplier,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
                     {
-                        AmountCooked = item.AmountCooked,
-                        FoodName = food.Name,
-                        DateCooked = item.DateCooked,
-                        ReceivedAmount = item.ReceivedAmount
-                    };
-                    foodAssignmentResponses.Add(foodAssignmentResponse);
-                }
-                SupplierFoodAssignmentForSupplier supplierFoodAssignmentResponse = new SupplierFoodAssignmentForSupplier()
-                {
-                    PartnerName = supplier.Name,
-                    FoodAssignmentResponses = foodAssignmentResponses
+                        sp => ((Supplier)sp).SupplierCommissionRates
+                    }
                 };
-                result.Payload = supplierFoodAssignmentResponse;
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, supplierInclude);
+                var supplierCommissionRateIds = user.Supplier.SupplierCommissionRates.Select(s => s.Id).ToList();
+                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value);
+                
+                // Get Paging
+                var foodInclude = new IncludeInfo<SupplierFoodAssignment>
+                {
+                    NavigationProperty = x => x.Food
+                };
+                var partnerInclude = new IncludeInfo<SupplierFoodAssignment>
+                {
+                    NavigationProperty = x => x.Partner
+                };
+                var supplierFoodAssignmentPages =
+                    await _unitOfWork.SupplierFoodAssignmentRepository.ToPagination(pageIndex, pageSize, predicate,
+                         foodInclude, partnerInclude);
+                
+                var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.DateCooked)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                
+                // custom output
+                var supplierFoodAssignmentResponse = supplierFoodAssignmentByDateCooked.Select(x =>
+                {
+                    var dateCooked = x.Key; // BookingDate từ Dictionary
+
+                    // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                    var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                    {
+                        // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                        return new FoodAssignmentResponse
+                        {
+                            PartnerName = supplierFoodAssignment.Partner?.Name,
+                            FoodName = supplierFoodAssignment.Food?.Name,
+                            AmountCooked = supplierFoodAssignment.AmountCooked,
+                            DateCooked = supplierFoodAssignment.DateCooked,
+                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount
+                        };
+                    }).ToList();
+
+                    // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
+                    return new SupplierFoodAssignmentForSupplier(dateCooked, foodAssignmentResponses);
+                }).ToList();
+                
+                result.Payload = new Pagination<SupplierFoodAssignmentForSupplier>
+                {
+                    PageIndex = supplierFoodAssignmentPages.PageIndex,
+                    PageSize = supplierFoodAssignmentPages.PageSize,
+                    TotalItemsCount = supplierFoodAssignmentPages.TotalItemsCount,
+                    Items = supplierFoodAssignmentResponse
+                };
             }
             catch (NotFoundIdException ex)
             {
@@ -186,64 +222,75 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<SupplierFoodAssignmentResponse>>> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<SupplierFoodAssignmetForPartner>>> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<Pagination<SupplierFoodAssignmentResponse>>();
+            var result = new OperationResult<Pagination<SupplierFoodAssignmetForPartner>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var supplierFoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
-
-                // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierFoodAssignmentByPartner((Guid)user.PartnerId);
-
-                if (suppliers == null)
+                var partnerInclude = new IncludeInfo<User>
                 {
-                    result.AddUnknownError("Partner khong co supplier");
-                    return result;
-                }
-                
-                foreach (var supplier in suppliers)
-                {
-                    var supplierFoodAssignments = supplier.SupplierCommissionRates
-                        .SelectMany(s => s.SupplierFoodAssignments)
-                        .ToList();
-                    var foodAssignmentResponses = new List<FoodAssignmentResponse>();
-                    foreach (var item in supplierFoodAssignments)
+                    NavigationProperty = x => x.Partner,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
                     {
-                        var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
-                        FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
-                        {
-                            AmountCooked = item.AmountCooked,
-                            FoodName = food.Name,
-                            DateCooked = item.DateCooked,
-                            ReceivedAmount = item.ReceivedAmount
-                        };
-                        foodAssignmentResponses.Add(foodAssignmentResponse);
+                        sp => ((Partner)sp).SupplierFoodAssignments
                     }
-                    SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
-                    {
-                        SupplierName = supplier.Name,
-                        FoodAssignmentResponses = foodAssignmentResponses
-                    };
-                    supplierFoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
-                    
-                }
-                // Phân trang danh sách
-                var paginatedList = supplierFoodAssignmentsResult
-                    .Skip(pageIndex * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-                    
-                var paginationResult = new Pagination<SupplierFoodAssignmentResponse>()
-                {
-                    PageIndex = pageIndex,
-                    PageSize = pageSize,
-                    TotalItemsCount = supplierFoodAssignmentsResult.Count,
-                    Items = paginatedList,
                 };
-                result.Payload = paginationResult;
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+                var partnerId = user.Partner.SupplierFoodAssignments.Select(s => s.PartnerId).ToList();
+                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => partnerId.Contains(s.PartnerId.Value);
+                
+                // Get Paging
+                var foodInclude = new IncludeInfo<SupplierFoodAssignment>
+                {
+                    NavigationProperty = x => x.Food
+                };
+                var supplierInclude = new IncludeInfo<SupplierFoodAssignment>
+                {
+                    NavigationProperty = x => x.SupplierCommissionRate,
+                    ThenIncludes = new List<Expression<Func<object, object>>>
+                    {
+                        sp => ((SupplierCommissionRate)sp).Supplier
+                    }
+                };
+                var supplierFoodAssignmentPages =
+                    await _unitOfWork.SupplierFoodAssignmentRepository.ToPagination(pageIndex, pageSize, predicate,
+                        foodInclude, supplierInclude);
+                
+                var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.DateCooked)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                
+                // custom output
+                var supplierFoodAssignmentResponse = supplierFoodAssignmentByDateCooked.Select(x =>
+                {
+                    var dateCooked = x.Key; // BookingDate từ Dictionary
+
+                    // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                    var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                    {
+                        // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                        return new FoodAssignmentResponse
+                        {
+                            SupplierName = supplierFoodAssignment.SupplierCommissionRate?.Supplier?.Name,
+                            FoodName = supplierFoodAssignment.Food?.Name,
+                            AmountCooked = supplierFoodAssignment.AmountCooked,
+                            DateCooked = supplierFoodAssignment.DateCooked,
+                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount
+                        };
+                    }).ToList();
+
+                    // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
+                    return new SupplierFoodAssignmetForPartner(dateCooked, foodAssignmentResponses);
+                }).ToList();
+                
+                result.Payload = new Pagination<SupplierFoodAssignmetForPartner>
+                {
+                    PageIndex = supplierFoodAssignmentPages.PageIndex,
+                    PageSize = supplierFoodAssignmentPages.PageSize,
+                    TotalItemsCount = supplierFoodAssignmentPages.TotalItemsCount,
+                    Items = supplierFoodAssignmentResponse
+                };
+                
             }
             catch (NotFoundIdException ex)
             {
