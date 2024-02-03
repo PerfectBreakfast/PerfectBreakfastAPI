@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -14,11 +15,13 @@ public class SupplierService : ISupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IClaimsService _claimsService;
 
-    public SupplierService(IUnitOfWork unitOfWork,IMapper mapper)
+    public SupplierService(IUnitOfWork unitOfWork,IMapper mapper, IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _claimsService = claimsService;
     }
     
     public async Task<OperationResult<List<SupplierResponse>>> GetSuppliers()
@@ -217,5 +220,46 @@ public class SupplierService : ISupplierService
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
         return roles.Contains("SUPPLIER ADMIN");
+    }
+
+    public async Task<OperationResult<List<SupplierDTO>>> GetSupplierByPartner()
+    {
+        var result = new OperationResult<List<SupplierDTO>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var user = await _unitOfWork.UserRepository.GetUserById(userId);
+            if (user == null)
+            {
+                result.AddValidationError("User not found");
+                return result;
+            }
+            if (user.PartnerId.HasValue) // Assuming PartnerId is nullable
+            {
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value);
+                
+                var supplierDtos = suppliers.Select(s => new SupplierDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Address = s.Address,
+                    PhoneNumber = s.PhoneNumber,
+                    Longitude = s.Longitude,
+                    Latitude = s.Latitude
+                }).ToList();
+
+                result.Payload = supplierDtos;
+            }
+            else
+            {
+                result.AddValidationError("User does not have a partner ID.");
+            }
+
+        }
+        catch (Exception e) 
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
     }
 }

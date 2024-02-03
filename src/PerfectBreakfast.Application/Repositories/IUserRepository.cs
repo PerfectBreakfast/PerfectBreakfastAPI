@@ -15,4 +15,5 @@ public interface IUserRepository : IBaseRepository<User>
     public Task<int> CalculateSupplierCode(Guid supplierId);
     Task<List<User>?> GetUserByPartnerId(Guid partnerId);
     Task<User> GetUserByIdAsync(Guid id,params IncludeInfo<User>[]? includeProperties);
+    Task<User> GetUserById(Guid id);
 }

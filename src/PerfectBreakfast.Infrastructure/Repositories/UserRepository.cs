@@ -129,4 +129,13 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         
         return await query.SingleAsync();
     }
+
+    public async Task<User> GetUserById(Guid id)
+    {
+        var user = await _dbSet
+            .Where(x => x.Id == id)
+            .Include(x => x.Partner)
+            .SingleOrDefaultAsync();
+        return user ;
+    }
 }

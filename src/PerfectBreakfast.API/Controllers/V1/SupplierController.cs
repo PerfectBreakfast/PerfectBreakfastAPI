@@ -84,4 +84,14 @@ public class SupplierController : BaseController
         var response = await _supplierService.GetSupplierId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    /// <summary>
+    /// API for Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("partner"),Authorize(Policy = "RequirePartnerAdminRole")]
+    public async Task<IActionResult> GetSupplierByPartner()
+    {
+        var response = await _supplierService.GetSupplierByPartner();
+        return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
+    }
 }
