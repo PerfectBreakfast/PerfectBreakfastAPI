@@ -125,7 +125,7 @@ namespace PerfectBreakfast.Application.Services
 
                 // Lấy danh sách các công ty thuộc MU
                 var companies = managementUnit.Companies;
-                var foodCounts = new Dictionary<string, int>();
+                var foodCounts = new Dictionary<Food, int>();
 
                 // xử lý mỗi cty
                 foreach (var company in companies)
@@ -149,40 +149,40 @@ namespace PerfectBreakfast.Application.Services
                             // Với mỗi food trong combo, cộng dồn số lượng
                             foreach (var comboFood in comboFoods)
                             {
-                                var foodName = comboFood.Food.Name;
+                                var food = comboFood.Food;
                                 // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                                if (foodCounts.ContainsKey(foodName))
+                                if (foodCounts.ContainsKey(food))
                                 {
                                     // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                                    foodCounts[foodName] += orderDetail.Quantity;
+                                    foodCounts[food] += orderDetail.Quantity;
                                 }
                                 else
                                 {
                                     // Nếu chưa tồn tại, thêm mới vào foodCounts
-                                    foodCounts[foodName] = orderDetail.Quantity;
+                                    foodCounts[food] = orderDetail.Quantity;
                                 }
                             }
                         }
                         else if (orderDetail.Food != null)
                         {
                             // Xử lý order detail là food đơn lẻ
-                            var foodName = orderDetail.Food.Name;
+                            var food = orderDetail.Food;
                             // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                            if (foodCounts.ContainsKey(foodName))
+                            if (foodCounts.ContainsKey(food))
                             {
                                 // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                                foodCounts[foodName] += orderDetail.Quantity;
+                                foodCounts[food] += orderDetail.Quantity;
                             }
                             else
                             {
                                 // Nếu chưa tồn tại, thêm mới vào foodCounts
-                                foodCounts[foodName] = orderDetail.Quantity;
+                                foodCounts[food] = orderDetail.Quantity;
                             }
                         }
                     }
                 }
                 // Tạo danh sách totalFoodList từ foodCounts
-                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse { Name = pair.Key, Quantity = pair.Value }).ToList();
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse {Id = pair.Key.Id, Name = pair.Key.Name, Quantity = pair.Value }).ToList();
                 result.Payload = totalFoodList;
             }
             catch (NotFoundIdException)
