@@ -14,11 +14,13 @@ namespace PerfectBreakfast.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentTime _currentTime;
 
-        public MenuService(IUnitOfWork unitOfWork, IMapper mapper)
+        public MenuService(IUnitOfWork unitOfWork, IMapper mapper,ICurrentTime currentTime)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentTime = currentTime;
         }
 
         public async Task<OperationResult<MenuResponse>> ChooseMenu(Guid id)
@@ -185,9 +187,9 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<MenuResponse>> GetMenuByStatus()
+        public async Task<OperationResult<MenuIsSelectedResponse>> GetMenuByStatus()
         {
-            var result = new OperationResult<MenuResponse>();
+            var result = new OperationResult<MenuIsSelectedResponse>();
             try
             {
                 var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
@@ -227,9 +229,10 @@ namespace PerfectBreakfast.Application.Services
                 }
 
                 // Ánh xạ Menu chi tiết sang DTO
-                var menuResponse = _mapper.Map<MenuResponse>(menu);
-                menuResponse.ComboFoodResponses = foodResponses;
-                menuResponse.ComboFoodResponses = comboResponses;
+                var menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
+                menuResponse = menuResponse with { MenuDate =  _currentTime.GetCurrentTime()};
+                menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
+                menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
                 result.Payload = menuResponse;
             }
             catch (Exception e)

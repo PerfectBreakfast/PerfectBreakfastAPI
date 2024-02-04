@@ -131,7 +131,7 @@ namespace PerfectBreakfast.Application.Services
                 foreach (var company in companies)
                 {
                     // Lấy daily order
-                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);
+                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date == now.Date);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
 
                     // Lấy chi tiết các order detail
                     var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
