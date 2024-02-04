@@ -230,7 +230,7 @@ namespace PerfectBreakfast.Application.Services
 
                 // Ánh xạ Menu chi tiết sang DTO
                 var menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
-                menuResponse = menuResponse with { MenuDate =  _currentTime.GetCurrentTime()};
+                menuResponse = menuResponse with { MenuDate =  _currentTime.GetCurrentTime().AddDays(1)};
                 menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
                 menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
                 result.Payload = menuResponse;
