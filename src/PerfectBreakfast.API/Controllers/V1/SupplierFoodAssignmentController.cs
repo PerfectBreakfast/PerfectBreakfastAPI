@@ -22,9 +22,21 @@ public class SupplierFoodAssignmentController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
+    public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodsAssignmentRequest> supplierFoodAssignmentRequest)
     {
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [Authorize]
+    [HttpPost("supplierFoodAssignment")]
+    public async Task<IActionResult> CreateSupplierFoodAssignmentUpdate(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
+    {
+        var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignmentUpdate(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

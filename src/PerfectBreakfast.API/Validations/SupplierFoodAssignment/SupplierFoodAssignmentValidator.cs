@@ -3,7 +3,7 @@ using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 
 namespace PerfectBreakfast.API.Validations.SupplierFoodAssignment
 {
-    public class SupplierFoodAssignmentValidator : AbstractValidator<SupplierFoodAssignmentRequest>
+    public class SupplierFoodAssignmentValidator : AbstractValidator<SupplierFoodsAssignmentRequest>
     {
         public SupplierFoodAssignmentValidator()
         {
