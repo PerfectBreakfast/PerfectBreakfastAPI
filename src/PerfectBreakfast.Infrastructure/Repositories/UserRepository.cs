@@ -138,4 +138,13 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .SingleOrDefaultAsync();
         return user ;
     }
+
+    public async Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId)
+    {
+        var deliveryUnit = await _dbSet
+            .Where(x => x.Id == deliveryId)
+            .Include(x=>x.DeliveryId)
+            .SingleOrDefaultAsync();
+        return deliveryUnit;
+    }
 }

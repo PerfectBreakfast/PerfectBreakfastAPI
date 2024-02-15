@@ -96,4 +96,10 @@ public class UserController : BaseController
         var response = await _userService.UpdateImageUser(id,image);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    [HttpGet("deliverystaff")]
+    public async Task<IActionResult> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _userService.GetDeliveryStaffByDelieryAdmin(pageIndex,pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
