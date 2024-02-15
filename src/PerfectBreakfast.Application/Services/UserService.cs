@@ -296,18 +296,19 @@ public class UserService : IUserService
             {
                 NavigationProperty = c => c.Delivery
             };
-            var deliveryAdmin = _unitOfWork.UserRepository.GetUserByIdAsync(deliveryAdminId, deliveryInclude);
+            var deliveryAdmin = await _unitOfWork.UserRepository.GetUserByIdAsync(deliveryAdminId, deliveryInclude);
             if (deliveryAdmin == null) { }
             // Tạo biểu thức tìm kiếm (predicate)
-            Expression<Func<User, bool>>? perdicate =  u => u.DeliveryId == deliveryAdminId;
-               
+            Expression<Func<User, bool>>? perdicate =  u => u.DeliveryId == deliveryAdmin.DeliveryId;
+             
+            var userPages = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize, perdicate);
 
-            var userPages = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize, perdicate,new IncludeInfo<User>());
+            result.Payload = _mapper.Map<Pagination<UserResponse>>(userPages);
 
         }
-        catch 
+        catch (Exception e)
         {
-
+            result.AddUnknownError(e.Message);
         }
         return result;
     }
