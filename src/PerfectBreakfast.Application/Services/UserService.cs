@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.AuthModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -281,6 +282,32 @@ public class UserService : IUserService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<UserResponse>>();
+        var deliveryAdminId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var deliveryInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.Delivery
+            };
+            var deliveryAdmin = _unitOfWork.UserRepository.GetUserByIdAsync(deliveryAdminId, deliveryInclude);
+            if (deliveryAdmin == null) { }
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<User, bool>>? perdicate =  u => u.DeliveryId == deliveryAdminId;
+               
+
+            var userPages = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize, perdicate,new IncludeInfo<User>());
+
+        }
+        catch 
+        {
+
         }
         return result;
     }
