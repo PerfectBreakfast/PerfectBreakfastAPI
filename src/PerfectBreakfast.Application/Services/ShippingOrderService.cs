@@ -26,6 +26,7 @@ public class ShippingOrderService : IShippingOrderService
         {
             // map model to Entity
             var shippingOrder = _mapper.Map<ShippingOrder>(requestModel);
+            shippingOrder.Status = Domain.Enums.ShippingStatus.Chờ_lấy_hàng;
             // Add to DB
             var entity = await _unitOfWork.ShippingOrderRepository.AddAsync(shippingOrder);
             // save change 

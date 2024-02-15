@@ -6,7 +6,7 @@ namespace PerfectBreakfast.Application.Models.ShippingOrder.Response;
 
 public record class ShippingOrderRespone
 {
-    public ShippingStatus Status { get; set; }
+    public String Status { get; set; }
     public Guid? DailyOrderId { get; set; }
     public Guid? ShipperId { get; set; }
 }
