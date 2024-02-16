@@ -215,9 +215,9 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserResponse>> CreateUser(CreateUserRequestModel requestModel)
+    public async Task<OperationResult<bool>> CreateUser(CreateUserRequestModel requestModel)
     {
-        var result = new OperationResult<UserResponse>();
+        var result = new OperationResult<bool>();
         try
         {
             var user = _mapper.Map<User>(requestModel);
@@ -241,6 +241,7 @@ public class UserService : IUserService
             user.CreationDate = _currentTime.GetCurrentTime();
             await _unitOfWork.UserManager.CreateAsync(user,"123456");
             await _unitOfWork.UserManager.AddToRoleAsync(user, requestModel.RoleName);
+            result.Payload = true;
         }
         catch (Exception e)
         {
