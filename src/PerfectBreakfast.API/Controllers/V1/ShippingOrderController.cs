@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
@@ -17,7 +18,7 @@ namespace PerfectBreakfast.API.Controllers.V1
             _shippingOrderService = shippingOrderService;
         }
 
-        [HttpPost]
+        [HttpPost("DeliveryAdmin"),Authorize(Policy = "RequireDeliveryAdminRole")]
         public async Task<IActionResult> CreateShippingOrder(CreateShippingOrderRequest requestModel)
         {
             var response = await _shippingOrderService.CreateShippingOrder(requestModel);
