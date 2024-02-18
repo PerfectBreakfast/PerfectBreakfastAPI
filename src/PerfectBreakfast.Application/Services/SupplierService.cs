@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -219,7 +220,7 @@ public class SupplierService : ISupplierService
     private async Task<bool> CheckIfUserIsAdmin(User user)
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains("SUPPLIER ADMIN");
+        return roles.Contains(ConstantRole.SUPPLIER_ADMIN);
     }
 
     public async Task<OperationResult<List<SupplierDTO>>> GetSupplierByPartner()

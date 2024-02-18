@@ -32,6 +32,14 @@ public class AccountController : BaseController
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpPost("deliverystaff/login")]
+    [ApiVersionNeutral]
+    public async Task<IActionResult> SignInDeliveryStaff(SignInModel request)
+    {
+        var response = await _userService.DeliveryStaffSignIn(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     [HttpGet("refresh-user-token")]
     [Authorize]

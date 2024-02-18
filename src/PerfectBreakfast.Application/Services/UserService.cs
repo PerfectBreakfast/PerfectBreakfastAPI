@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -66,6 +67,43 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<OperationResult<UserLoginResponse>> DeliveryStaffSignIn(SignInModel request)
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.FindSingleAsync(x => x.UserName == request.Email);
+            if (user is null)
+            {
+                result.AddError(ErrorCode.UnAuthorize,"wrong email");
+                return result;
+            }
+            // check role account 
+            if (!await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.DELIVERY_STAFF))
+            {
+                result.AddError(ErrorCode.NotFound,"Đây không phải Account DELIVERY_STAFF");
+                return result;
+            }
+            var signInResult = await _unitOfWork.SignInManager.CheckPasswordSignInAsync(user, request.Password, false);
+            if (!signInResult.Succeeded)
+            {
+                if (signInResult.IsNotAllowed)
+                {
+                    result.AddError(ErrorCode.UnAuthorize,"need confirm account");
+                    return result;
+                }
+                result.AddError(ErrorCode.UnAuthorize,"wrong pass");
+                return result;
+            }
+            result.Payload = await _jwtService.CreateJWT(user);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
     public async Task<OperationResult<bool>> SignUp(SignUpModel request)
     {
         var result = new OperationResult<bool>();
@@ -87,7 +125,7 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.ServerError,identityResult.Errors.Select(x => x.Description).ToString());
                 return result;
             }
-            var identityRe = await _unitOfWork.UserManager.AddToRoleAsync(user, "CUSTOMER");
+            var identityRe = await _unitOfWork.UserManager.AddToRoleAsync(user, ConstantRole.CUSTOMER);
             if (!identityRe.Succeeded)
             {
                 result.AddError(ErrorCode.ServerError,identityRe.Errors.Select(x => x.Description).ToString());
@@ -201,7 +239,7 @@ public class UserService : IUserService
         var result = new OperationResult<UserResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(id);
             result.Payload = _mapper.Map<UserResponse>(user);
         }
         catch (NotFoundIdException e)

@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 namespace PerfectBreakfast.Application.Services;
 
@@ -44,7 +45,7 @@ public class ShippingOrderService : IShippingOrderService
                     result.AddError(ErrorCode.NotFound, "The user with the provided ID was not found.");
                     return result;
                 }
-                if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, "DELIVERY STAFF")))
+                if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_STAFF)))
                 {
                     result.AddError(ErrorCode.NotFound, "The user is not a Delivery Staff.");
                     return result;

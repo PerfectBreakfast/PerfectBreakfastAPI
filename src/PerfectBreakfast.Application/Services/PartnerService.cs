@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PartnerModels.Request;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -205,6 +206,6 @@ public class PartnerService : IPartnerService
     private async Task<bool> CheckIfUserIsAdmin(User user)
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains("PARTNER ADMIN");
+        return roles.Contains(ConstantRole.PARTNER_ADMIN);
     }
 }

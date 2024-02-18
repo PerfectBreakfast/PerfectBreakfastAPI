@@ -5,6 +5,7 @@ using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -181,6 +182,6 @@ public class DeliveryService : IDeliveryService
     private async Task<bool> CheckIfUserIsAdmin(User user)
     {
         var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains("DELIVERY ADMIN");
+        return roles.Contains(ConstantRole.DELIVERY_ADMIN);
     }
 }
