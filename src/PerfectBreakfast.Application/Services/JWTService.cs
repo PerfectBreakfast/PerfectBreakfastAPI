@@ -40,6 +40,6 @@ public class JWTService
             expires: DateTime.Now.AddMinutes(_appConfiguration.JwtSettings.ExpiryMinutes),
             signingCredentials: credentials);
 
-        return new UserLoginResponse(roles.ToList(), new JwtSecurityTokenHandler().WriteToken(token));
+        return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles.ToList(), new JwtSecurityTokenHandler().WriteToken(token));
     }
 }

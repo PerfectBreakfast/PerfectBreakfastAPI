@@ -19,7 +19,7 @@ public interface IUserService
     public Task<OperationResult<List<UserResponse>>> GetUsers();
     public Task<OperationResult<Pagination<UserResponse>>> GetUserPaginationAsync(int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<UserResponse>> GetUser(Guid id);
-    public Task<OperationResult<UserResponse>> CreateUser(CreateUserRequestModel requestModel);
+    public Task<OperationResult<bool>> CreateUser(CreateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateUser(Guid id,UpdateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateImageUser(Guid id,IFormFile image);
     public Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10);
