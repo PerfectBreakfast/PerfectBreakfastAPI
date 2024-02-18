@@ -147,4 +147,11 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .SingleOrDefaultAsync();
         return deliveryUnit;
     }
+
+    //public async Task<User> CheckDeliveryStaff(Guid shipperId)
+    //{
+    //    //var id = await _dbSet
+    //    //    .Where(x => x.Id == shipperId);
+    //    //return id;
+    //}
 }

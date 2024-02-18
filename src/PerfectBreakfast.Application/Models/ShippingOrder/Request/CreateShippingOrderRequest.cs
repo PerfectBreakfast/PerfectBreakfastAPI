@@ -1,8 +1,11 @@
 ﻿
 
+using PerfectBreakfast.Domain.Enums;
+
 namespace PerfectBreakfast.Application.Models.ShippingOrder.Request;
 
-record class CreateShippingOrderRequest
+public record class CreateShippingOrderRequest
 {
-
+    public Guid? DailyOrderId { get; set; }
+    public Guid? ShipperId { get; set; }
 }

@@ -17,4 +17,5 @@ public interface IUserRepository : IBaseRepository<User>
     Task<User> GetUserByIdAsync(Guid id,params IncludeInfo<User>[]? includeProperties);
     Task<User> GetUserById(Guid id);
     Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId);//get ds nhân viên của đơn vị đó
+    //Task<User> CheckDeliveryStaff(Guid shipperId);
 }
