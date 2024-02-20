@@ -75,7 +75,8 @@ public class ShippingOrderService : IShippingOrderService
         var userId = _claimsService.GetCurrentUserId;
         try
         {
-            var shippingOrders = await _unitOfWork.ShippingOrderRepository.FindAll(so => so.ShipperId == userId).ToListAsync();
+            //var shippingOrders = await _unitOfWork.ShippingOrderRepository.FindAll(so => so.ShipperId == userId).ToListAsync();
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperId(userId);
             result.Payload = _mapper.Map<List<ShippingOrderForShipperResponse>>(shippingOrders);
         }
         catch (Exception e)

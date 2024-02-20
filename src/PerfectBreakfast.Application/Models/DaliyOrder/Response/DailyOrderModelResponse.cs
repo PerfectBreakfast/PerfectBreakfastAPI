@@ -8,4 +8,5 @@ public record DailyOrderModelResponse(
     decimal? TotalPrice,
     int? OrderQuantity ,
     string Status,
+    DateOnly BookingDate,
     CompanyDto? Company);

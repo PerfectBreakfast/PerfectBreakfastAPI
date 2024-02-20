@@ -20,6 +20,11 @@ public class ShippingOrderController : BaseController
         _shippingOrderService = shippingOrderService;
     }
 
+    /// <summary>
+    /// Api for Delivery Admin 
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
     [HttpPost("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> CreateShippingOrder(CreateShippingOrderRequest requestModel)
     {
@@ -27,6 +32,10 @@ public class ShippingOrderController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Delivery Staff 
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("deliverystaff"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
     public async Task<IActionResult> GetDailyOrderByDeliveryStaff()
     {
