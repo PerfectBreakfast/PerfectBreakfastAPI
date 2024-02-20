@@ -48,7 +48,7 @@ public class ShippingOrderService : IShippingOrderService
                 }
                 if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_STAFF)))
                 {
-                    result.AddError(ErrorCode.NotFound, "The user is not a Delivery Staff.");
+                    result.AddError(ErrorCode.BadRequest, "The user is not a Delivery Staff.");
                     return result;
                 }
             }

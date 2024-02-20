@@ -96,10 +96,17 @@ public class UserController : BaseController
         var response = await _userService.UpdateImageUser(id,image);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api for Delivery Admin
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
     [HttpGet("deliverystaff")]
-    public async Task<IActionResult> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _userService.GetDeliveryStaffByDelieryAdmin(pageIndex,pageSize);
+        var response = await _userService.GetDeliveryStaffByDeliveryAdmin(pageIndex,pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

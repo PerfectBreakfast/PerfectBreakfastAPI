@@ -325,7 +325,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<UserResponse>>();
         var deliveryAdminId = _claimsService.GetCurrentUserId;

@@ -23,5 +23,5 @@ public interface IUserService
     public Task<OperationResult<bool>> CreateUser(CreateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateUser(Guid id,UpdateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateImageUser(Guid id,IFormFile image);
-    public Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDelieryAdmin(int pageIndex = 0, int pageSize = 10);
+    public Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10);
 }

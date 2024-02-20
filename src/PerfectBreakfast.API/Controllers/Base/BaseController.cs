@@ -24,6 +24,6 @@ public class BaseController : ControllerBase
             var error = errors.FirstOrDefault(e => e.Code == ErrorCode.ServerError);
             return StatusCode(500, new ErrorResponse(500,"Server Error",error.Message ,DateTime.Now));
         }
-        return StatusCode(400, new ErrorResponse(400,"Bad Request",errors,DateTime.Now));
+        return StatusCode(400, new ErrorResponse(400,"Bad Request",errors.First().Message,DateTime.Now));
     }
 }
