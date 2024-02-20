@@ -23,6 +23,7 @@ public class User : IdentityUser<Guid>
     
     public ICollection<OrderHistory?> OrderHistories { get; set; }
     public ICollection<Order?> OrdersWorker { get; set; }
+    public ICollection<Order?> OrdersDeliveryStaff { get; set; }
     public ICollection<DailyOrder?> DailyOrders { get; set; }
     public ICollection<ShippingOrder?> ShippingOrders { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }

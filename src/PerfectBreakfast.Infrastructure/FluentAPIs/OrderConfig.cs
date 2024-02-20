@@ -23,9 +23,9 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
             .WithMany(ur => ur.Orders)
             .HasForeignKey(pk => pk.DailyOrderId);
         
-        builder.HasOne(r => r.Partner)
-            .WithMany(ur => ur.Orders)
-            .HasForeignKey(pk => pk.PartnerId);
+        builder.HasOne(r => r.DeliveryStaff)
+            .WithMany(ur => ur.OrdersDeliveryStaff)
+            .HasForeignKey(pk => pk.DeliveryStaffId);
 
         builder.HasOne(x => x.PaymentMethod)
             .WithOne(x => x.Order)

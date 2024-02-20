@@ -10,7 +10,6 @@ public class Partner : BaseEntity
     public double? Latitude { get; set; } 
     
     public ICollection<User?> Users { get; set; }
-    public ICollection<Order?> Orders { get; set; }
     public ICollection<SupplyAssignment?> SupplyAssignments { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
     public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
