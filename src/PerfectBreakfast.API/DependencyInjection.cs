@@ -15,6 +15,7 @@ using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.API.Services;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Infrastructure;
 
@@ -179,10 +180,11 @@ public static class DependencyInjection
         //==================================================================================================================================
         services.AddAuthorization(opt =>
         {
-            opt.AddPolicy("RequireDeliveryAdminRole", policy => policy.RequireRole("DELIVERY ADMIN"));
-            opt.AddPolicy("RequirePartnerAdminRole", policy => policy.RequireRole("PARTNER ADMIN"));
-            opt.AddPolicy("RequireSuperAdminRole", policy => policy.RequireRole("SUPER ADMIN"));
-            opt.AddPolicy("RequireCustomerRole", policy => policy.RequireRole("CUSTOMER"));
+            opt.AddPolicy(ConstantRole.RequireDeliveryAdminRole, policy => policy.RequireRole(ConstantRole.DELIVERY_ADMIN));
+            opt.AddPolicy(ConstantRole.RequirePartnerAdminRole, policy => policy.RequireRole(ConstantRole.PARTNER_ADMIN));
+            opt.AddPolicy(ConstantRole.RequireSuperAdminRole, policy => policy.RequireRole(ConstantRole.SUPER_ADMIN));
+            opt.AddPolicy(ConstantRole.RequireCustomerRole, policy => policy.RequireRole(ConstantRole.CUSTOMER));
+            opt.AddPolicy(ConstantRole.RequireDeliveryStaffRole, policy => policy.RequireRole(ConstantRole.DELIVERY_STAFF));
             //opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
         });
         //==================================================================================================================================

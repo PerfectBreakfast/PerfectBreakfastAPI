@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -88,7 +89,7 @@ public class SupplierController : BaseController
     /// API for Partner Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet("partner"),Authorize(Policy = "RequirePartnerAdminRole")]
+    [HttpGet("partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> GetSupplierByPartner()
     {
         var response = await _supplierService.GetSupplierByPartner();

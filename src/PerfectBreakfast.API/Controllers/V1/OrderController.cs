@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.OrderModel.Request;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
@@ -41,7 +42,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// Api For Customer
         /// </summary>
         /// <returns></returns>s
-        [HttpGet("history"),Authorize(policy:"RequireCustomerRole")]
+        [HttpGet("history"),Authorize(policy:ConstantRole.RequireCustomerRole)]
         public async Task<IActionResult> GetOrderHistoryByCustomer()
         {
             var response = await _orderService.GetOrderHistory();

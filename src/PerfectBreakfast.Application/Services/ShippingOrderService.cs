@@ -1,11 +1,12 @@
 ﻿using MapsterMapper;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
+
 namespace PerfectBreakfast.Application.Services;
 
 public class ShippingOrderService : IShippingOrderService
@@ -23,9 +24,9 @@ public class ShippingOrderService : IShippingOrderService
         
     }
     
-    public async Task<OperationResult<ShippingOrderRespone>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
+    public async Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
     {
-        var result = new OperationResult<ShippingOrderRespone>();
+        var result = new OperationResult<bool>();
         try
         {
             if (requestModel.DailyOrderId.HasValue)
@@ -57,9 +58,25 @@ public class ShippingOrderService : IShippingOrderService
             // Add to DB
             var entity = await _unitOfWork.ShippingOrderRepository.AddAsync(shippingOrder);
             // save change 
-            await _unitOfWork.SaveChangeAsync();
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             // map model to response
-            result.Payload = _mapper.Map<ShippingOrderRespone>(entity);
+            result.Payload = isSuccess;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderByDeliveryStaff()
+    {
+        var result = new OperationResult<List<ShippingOrderForShipperResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository.FindAll(so => so.ShipperId == userId).ToListAsync();
+            result.Payload = _mapper.Map<List<ShippingOrderForShipperResponse>>(shippingOrders);
         }
         catch (Exception e)
         {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DaliyOrder.Request;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
@@ -58,7 +59,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("partner"),Authorize(Policy = "RequirePartnerAdminRole")]
+        [HttpGet("partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
         public async Task<IActionResult> GetDailyOrderByPartnerId(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByPartner(pageIndex, pageSize);
@@ -71,7 +72,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// <param name="pageIndex"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        [HttpGet("delivery"),Authorize(Policy = "RequireDeliveryAdminRole")]
+        [HttpGet("delivery"),Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
         public async Task<IActionResult> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByDelivery(pageIndex, pageSize);

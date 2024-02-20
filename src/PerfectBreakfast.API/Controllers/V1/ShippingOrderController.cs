@@ -6,24 +6,31 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Services;
+using PerfectBreakfast.Application.Utils;
 
-namespace PerfectBreakfast.API.Controllers.V1
+namespace PerfectBreakfast.API.Controllers.V1;
+
+[Route("api/v{version:apiVersion}/shippingorders")]
+public class ShippingOrderController : BaseController
 {
-    [Route("api/v{version:apiVersion}/shippingorders")]
-    public class ShippingOrderController : BaseController
+    private readonly IShippingOrderService _shippingOrderService;
+
+    public ShippingOrderController(IShippingOrderService shippingOrderService)
     {
-        private readonly IShippingOrderService _shippingOrderService;
-        public ShippingOrderController(IShippingOrderService shippingOrderService)
-        {
-            _shippingOrderService = shippingOrderService;
-        }
+        _shippingOrderService = shippingOrderService;
+    }
 
-        [HttpPost("DeliveryAdmin"),Authorize(Policy = "RequireDeliveryAdminRole")]
-        public async Task<IActionResult> CreateShippingOrder(CreateShippingOrderRequest requestModel)
-        {
-            var response = await _shippingOrderService.CreateShippingOrder(requestModel);
-            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        }
+    [HttpPost("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> CreateShippingOrder(CreateShippingOrderRequest requestModel)
+    {
+        var response = await _shippingOrderService.CreateShippingOrder(requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
+    [HttpGet("deliverystaff"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
+    public async Task<IActionResult> GetDailyOrderByDeliveryStaff()
+    {
+        var response = await _shippingOrderService.GetShippingOrderByDeliveryStaff();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
