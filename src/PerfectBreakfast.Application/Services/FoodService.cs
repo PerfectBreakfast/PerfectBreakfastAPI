@@ -119,7 +119,7 @@ namespace PerfectBreakfast.Application.Services
 
                 if (managementUnit == null)
                 {
-                    result.AddUnknownError("managementUnit does not exsit");
+                    result.AddUnknownError("managementUnit does not exist");
                     return result;
                 }
 
@@ -187,7 +187,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {

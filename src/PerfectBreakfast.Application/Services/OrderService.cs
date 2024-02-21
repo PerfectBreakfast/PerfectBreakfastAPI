@@ -106,7 +106,12 @@ namespace PerfectBreakfast.Application.Services
                     case "MOMO":          // Gọi tạo PaymentLink MoMO
                         break;
                 }
-                await _unitOfWork.SaveChangeAsync();
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, "Food or Combo is not exist");
+                    return result;
+                }
             }
             catch (NotFoundIdException e)
             {

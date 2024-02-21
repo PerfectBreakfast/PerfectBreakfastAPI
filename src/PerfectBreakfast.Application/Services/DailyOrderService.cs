@@ -37,7 +37,12 @@ namespace PerfectBreakfast.Application.Services
                 dailyOrder.OrderQuantity = 0;
                 dailyOrder.TotalPrice = 0;
                 await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
-                await _unitOfWork.SaveChangeAsync();
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, "Company or Admin is not exist");
+                    return result;
+                }
                 result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrder);
             }
             catch (Exception e)

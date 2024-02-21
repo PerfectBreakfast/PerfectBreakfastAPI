@@ -24,6 +24,15 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return a;
         }
 
+        public async Task<bool> DailyOrderCreatedForDateAsync(DateTime date)
+        {
+            // Thực hiện truy vấn để kiểm tra xem đã có DailyOrder nào được tạo cho ngày đã cho hay không
+            var existingDailyOrder = await _dbSet.AnyAsync(d => d.CreationDate.Date == date.Date);
+
+            // Trả về kết quả kiểm tra
+            return existingDailyOrder;
+        }
+
         public async Task<DailyOrder?> FindByCompanyId(Guid? companyId)
         {
             return await _dbSet.Where(d => d.CompanyId == companyId)

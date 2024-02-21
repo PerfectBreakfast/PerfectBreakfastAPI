@@ -83,7 +83,12 @@ namespace PerfectBreakfast.Application.Services
                 }
                 menu.MenuFoods = list;
                 var entity = await _unitOfWork.MenuRepository.AddAsync(menu);
-                await _unitOfWork.SaveChangeAsync();
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, "Food or Combo is not exist");
+                    return result;
+                }
                 result.Payload = _mapper.Map<MenuResponse>(entity);
             }
             catch (Exception e)

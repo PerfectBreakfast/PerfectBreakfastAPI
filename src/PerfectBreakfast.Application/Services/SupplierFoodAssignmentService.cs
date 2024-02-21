@@ -255,7 +255,12 @@ namespace PerfectBreakfast.Application.Services
                     }
                 }
 
-                await _unitOfWork.SaveChangeAsync();
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, "Food or Supplier is not exist");
+                    return result;
+                }
                 result.Payload = supplierfoodAssignmentsResult;
 
             }

@@ -44,7 +44,7 @@ namespace PerfectBreakfast.Application.Services
                         if (existingComboFoods.All(ef => comboFoods.Any(cf => cf.FoodId == ef.FoodId)))
                         {
                             // The sets of ComboFoods are the same, return or handle as needed
-                            result.AddUnknownError("Combo is already exsit. Combo is: " + existingCombo.Name);
+                            result.AddError(ErrorCode.BadRequest, "Combo is already exsit. Combo is: " + existingCombo.Name);
                             return result;
                         }
                     }
@@ -52,7 +52,12 @@ namespace PerfectBreakfast.Application.Services
                 combo.ComboFoods = comboFoods;
                 combo.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
                 await _unitOfWork.ComboRepository.AddAsync(combo);
-                await _unitOfWork.SaveChangeAsync();
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.ServerError, "Food is not exist");
+                    return result;
+                }
                 result.Payload = _mapper.Map<ComboResponse>(combo);
             }
             catch (Exception e)
@@ -74,7 +79,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {
@@ -94,7 +99,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {
@@ -111,7 +116,7 @@ namespace PerfectBreakfast.Application.Services
                 var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(id);
                 if (combo is null)
                 {
-                    result.AddUnknownError("Id is not exsit");
+                    result.AddError(ErrorCode.NotFound, "Id is not exist");
                     return result;
                 }
                 var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
@@ -220,7 +225,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {
