@@ -28,14 +28,20 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// API For Supper Admin
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost, Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
         public async Task<IActionResult> CreateDailyOrder(DailyOrderRequest dailyOrderRequest)
         {
             var response = await _dailyOrderService.CreateDailyOrder(dailyOrderRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
         
-        [HttpGet("pagination")]
+        /// <summary>
+        /// API for Super Admin
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        [HttpGet("pagination"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
         public async Task<IActionResult> GetDailyOrderPagination(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderPaginationAsync(pageIndex, pageSize);
@@ -43,11 +49,11 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Partner Admin
+        /// API For Super Admin
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPut("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
         public async Task<IActionResult> UpdateDailyOrer(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
         {
             var response = await _dailyOrderService.UpdateDailyOrder(id, updateDailyOrderRequest);
@@ -59,7 +65,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+        [HttpGet("partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
         public async Task<IActionResult> GetDailyOrderByPartnerId(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByPartner(pageIndex, pageSize);
@@ -84,7 +90,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("{id}/company")]
+        [HttpGet("{id}/company"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
         public async Task<IActionResult> GetDailyOrderByPartnerId(Guid id, DateOnly bookingDate)
         {
             var response = await _dailyOrderService.GetDailyOrderDetailByPartner(id, bookingDate);

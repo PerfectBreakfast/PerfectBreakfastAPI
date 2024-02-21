@@ -30,7 +30,12 @@ public class CompanyService : ICompanyService
         {
             var company = _mapper.Map<Company>(companyRequest);
             await _unitOfWork.CompanyRepository.AddAsync(company);
-            await _unitOfWork.SaveChangeAsync();
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError, "Partner or Delivery is not exist");
+                return result;
+            }
             result.Payload = _mapper.Map<CompanyResponse>(company);
         }
         catch (Exception e)
@@ -195,12 +200,12 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid Id, UpdateCompanyRequest companyRequest)
+    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest)
     {
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(Id);
+            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
             _mapper.Map(companyRequest, company);
             _unitOfWork.CompanyRepository.Update(company);
             await _unitOfWork.SaveChangeAsync();

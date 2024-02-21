@@ -31,6 +31,15 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             {
                 var companies = await _unitOfWork.CompanyRepository.GetAllAsync();
                 var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
+                var today = _currentTime.GetCurrentTime();
+                // Kiểm tra xem đã có đơn hàng nào được tạo cho ngày hiện tại chưa
+                bool isDailyOrderCreatedToday = await _unitOfWork.DailyOrderRepository.DailyOrderCreatedForDateAsync(today);
+        
+                // Nếu đã có đơn hàng cho ngày hiện tại, thoát khỏi hàm
+                if (isDailyOrderCreatedToday)
+                {
+                    return;
+                }
                 foreach (var company in companies)
                 {
                     var dailyOrder = new DailyOrder();

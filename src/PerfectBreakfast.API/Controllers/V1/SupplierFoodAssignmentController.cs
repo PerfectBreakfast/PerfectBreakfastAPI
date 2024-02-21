@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -21,7 +22,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// </summary>
     /// <returns></returns>
     [Authorize]
-    [HttpPost]
+    [HttpPost, Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodsAssignmentRequest> supplierFoodAssignmentRequest)
     {
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
@@ -32,8 +33,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// API For Partner Admin
     /// </summary>
     /// <returns></returns>
-    [Authorize]
-    [HttpPost("supplierFoodAssignment")]
+    [HttpPost("supplierFoodAssignment"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> CreateSupplierFoodAssignmentUpdate(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
     {
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignmentUpdate(supplierFoodAssignmentRequest);
@@ -46,7 +46,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("partner")]
+    [HttpGet("partner"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentByPartner(pageIndex, pageSize);
@@ -59,7 +59,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("supplier")]
+    [HttpGet("supplier"), Authorize(policy:ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
