@@ -3,6 +3,6 @@
 public enum ShippingStatus
 {
     Pending,
-    Delivery
+    Complete
 
 }
