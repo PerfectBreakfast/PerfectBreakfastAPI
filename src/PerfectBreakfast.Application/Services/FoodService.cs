@@ -112,19 +112,28 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<List<TotalFoodResponse>>();
             try
             {
-                var now = _currentTime.GetCurrentTime();
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var managementUnits = await _unitOfWork.PartnerRepository.GetPartnersByToday(now);
-                var managementUnit = managementUnits.SingleOrDefault(m => m.Id == user.PartnerId);
+                var now = _currentTime.GetCurrentTime(); // Lấy thời gian hiện tại
+                DateTime compareTime = DateTime.Today.AddHours(16); // Tạo một đối tượng DateTime đại diện cho 16:00 hôm nay
+                bool isAfter16 = now.TimeOfDay > compareTime.TimeOfDay; // Kiểm tra xem thời gian hiện tại có sau 16:00 không
 
-                if (managementUnit == null)
+                if (!isAfter16)
                 {
-                    result.AddUnknownError("managementUnit does not exist");
-                    return result;
+                    // Nếu thời gian hiện tại không sau 16:00
+                    result.AddError(ErrorCode.BadRequest, "Chức năng chỉ có thể được thực hiện sau 4:00 CH");
                 }
 
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                var partners = await _unitOfWork.PartnerRepository.GetPartnersByToday(now);
+                var partner = partners.SingleOrDefault(m => m.Id == user.PartnerId);
+                
+                if (partner == null)
+                {
+                    result.AddUnknownError("partner does not exist");
+                    return result;
+                }
+                
                 // Lấy danh sách các công ty thuộc MU
-                var companies = managementUnit.Companies;
+                var companies = partner.Companies;
                 var foodCounts = new Dictionary<Food, int>();
 
                 // xử lý mỗi cty

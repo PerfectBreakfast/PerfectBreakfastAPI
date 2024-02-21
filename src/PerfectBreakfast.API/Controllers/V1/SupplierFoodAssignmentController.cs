@@ -59,7 +59,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("supplier"), Authorize(policy:ConstantRole.RequireSuperAdminRole)]
+    [HttpGet("supplier"), Authorize(policy:ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
