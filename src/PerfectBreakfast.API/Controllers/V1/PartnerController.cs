@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PartnerModels.Request;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -14,43 +16,61 @@ public class PartnerController : BaseController
     {
         _partnerService = partnerService;
     }
-
-    [HttpGet]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetPartners()
     {
         var response = await _partnerService.GetPartners();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
-    [HttpPost]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreatePartner(CreatePartnerRequest requestModel)
     {
         var response = await _partnerService.CreatePartner(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    [HttpPut("{id}")]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpPut("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> UpdatePartner(Guid id, UpdatePartnerRequest requestModel)
     {
         var response = await _partnerService.UpdatePartner(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    [HttpDelete("{id}")]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpDelete("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> RemovePartner(Guid id)
     {
         var response = await _partnerService.RemovePartner(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
-    [HttpGet("{id}")]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetPartnerId(Guid id)
     {
         var response = await _partnerService.GetPartnerId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    [HttpGet("pagination")]
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("pagination"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetPartnerPagination(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var response = await _partnerService.GetPartnerPaginationAsync(searchTerm,pageIndex, pageSize);

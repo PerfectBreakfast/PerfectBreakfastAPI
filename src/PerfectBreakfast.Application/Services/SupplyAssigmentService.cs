@@ -37,6 +37,16 @@ public class SupplyAssigmentService : ISupplyAssigmentService
         var result = new OperationResult<SupplyAssigmentResponse>();
         try
         {
+            if (requestModel.PartnerId.HasValue && requestModel.SupplierId.HasValue)
+            {
+                bool isDuplicate = await _unitOfWork.SupplyAssigmentRepository
+                    .IsDuplicateAssignment(requestModel.PartnerId.Value, requestModel.SupplierId.Value);
+                if (isDuplicate)
+                {
+                    result.AddError(ErrorCode.BadRequest, "A supply assignment with the same PartnerId and SupplierId already exists.");
+                    return result;
+                }
+            }
             // map model to Entity
             var supplier = _mapper.Map<SupplyAssignment>(requestModel);
             // Add to DB

@@ -22,4 +22,10 @@ public class SupplyAssigmentRepository : BaseRepository<SupplyAssignment>,ISuppl
             .Where(sa => sa.SupplierId == supplierId)
             .ToListAsync();
     }
+
+    public async Task<bool> IsDuplicateAssignment(Guid partnerId, Guid supplierId)
+    {
+        return await _dbSet
+            .AnyAsync(sa => sa.PartnerId == partnerId && sa.SupplierId == supplierId);
+    }
 }
