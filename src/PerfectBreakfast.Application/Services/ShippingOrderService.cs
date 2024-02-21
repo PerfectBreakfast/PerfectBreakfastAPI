@@ -52,6 +52,17 @@ public class ShippingOrderService : IShippingOrderService
                     return result;
                 }
             }
+            if (requestModel.DailyOrderId.HasValue && requestModel.ShipperId.HasValue)
+            {
+                bool exists = await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShipper(
+                    requestModel.DailyOrderId.Value, requestModel.ShipperId.Value);
+
+                if (exists)
+                {
+                    result.AddError(ErrorCode.BadRequest, "A shipping order with the same DailyOrderId and ShipperId already exists.");
+                    return result;
+                }
+            }
             // map model to Entity
             var shippingOrder = _mapper.Map<ShippingOrder>(requestModel);
             shippingOrder.Status = Domain.Enums.ShippingStatus.Chờ_lấy_hàng;

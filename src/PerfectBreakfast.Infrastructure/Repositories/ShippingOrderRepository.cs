@@ -19,4 +19,10 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .ThenInclude(x => x.Company).ToListAsync();
         return shippingOrders;
     }
+
+    public async Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId)
+    {
+        return await _dbSet
+            .AnyAsync(so => so.DailyOrderId == dailyOrderId && so.ShipperId == shipperId);
+    }
 }

@@ -25,20 +25,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         //_supplierCommissionRateRepository = supplierCommissionRateRepository;
     }
 
-    public async Task<OperationResult<List<SupplierCommissionRateRespone>>> GetSupplierCommissionRates()
-    {
-        var result = new OperationResult<List<SupplierCommissionRateRespone>>();
-        try
-        {
-            var u = await _unitOfWork.SupplierCommissionRateRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<SupplierCommissionRateRespone>>(u);
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-        return result;
-    }
+    
 
     public async Task<OperationResult<SupplierCommissionRateRespone>> GetSupplierCommissionRateId(Guid id)
     {
@@ -121,10 +108,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 
                 return result;
             }
-
             result.Payload = _mapper.Map<List<FoodResponse>>(supp.Select(x => x.Food)); 
-
-
         }
         catch (Exception ex)
         {
@@ -179,20 +163,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<SupplierCommissionRateRespone>>> GetSupplierCommissionRatePaginationAsync(int pageIndex = 0, int pageSize = 10)
-    {
-        var result = new OperationResult<Pagination<SupplierCommissionRateRespone>>();
-        try
-        {
-            var sup = await _unitOfWork.SupplierCommissionRateRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<SupplierCommissionRateRespone>>(sup);
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-        return result;
-    }
+    
 
     public async Task<OperationResult<SupplierCommissionRateRespone>> Delete(Guid id)
     {
@@ -200,7 +171,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         try
         {
             var com = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-            _unitOfWork.SupplierCommissionRateRepository.Remove(com);
+            _unitOfWork.SupplierCommissionRateRepository.SoftRemove(com);
             await _unitOfWork.SaveChangeAsync();
         }
         catch (NotFoundIdException)

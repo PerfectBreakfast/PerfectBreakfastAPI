@@ -16,12 +16,7 @@ public class SupplierCommissionRateController : BaseController
         _supplierCommissionRate = supplierCommissionRate;
     }
     
-    [HttpGet]
-    public async Task<IActionResult> GetSupplierCommissionRates()
-    {
-        var response = await _supplierCommissionRate.GetSupplierCommissionRates();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
+  
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSupplierCommissionRate(Guid id)
@@ -29,7 +24,11 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.GetSupplierCommissionRateId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
+    /// <summary>
+    /// get more food by supplier
+    /// </summary>
+    /// <param name="supplierId"></param>
+    /// <returns></returns>
     [HttpGet("food/{supplierId}")]
     public async Task<IActionResult> GetSupplierMoreFood(Guid supplierId)
     {
@@ -58,12 +57,7 @@ public class SupplierCommissionRateController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpGet("pagination")]
-    public async Task<IActionResult> GetSupplierCommissionRatePagination(int pageIndex = 0, int pageSize = 10)
-    {
-        var response = await _supplierCommissionRate.GetSupplierCommissionRatePaginationAsync(pageIndex, pageSize);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
+    
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
@@ -71,10 +65,5 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.Delete(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    // [HttpPost("{id}/supplier-id")]
-    // public async Task<IActionResult> CreateSupplierMoreFood(CreateSupplierMoreFood supplierMoreFood)
-    // {
-    //     var response = await _supplierCommissionRate.CreateSupplierMoreFood(supplierMoreFood);
-    //     return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    // }
+    
 }
