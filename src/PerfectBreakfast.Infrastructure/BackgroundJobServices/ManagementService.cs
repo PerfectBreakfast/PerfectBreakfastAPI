@@ -25,7 +25,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             _currentTime = currentTime;
             _mapper = mapper;
         }
-        public async Task AutoCreateDailyOrderEachDay1AM()
+        public async Task AutoCreateDailyOrderEachDay4PM()
         {
             try
             {
@@ -44,8 +44,8 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 {
                     var dailyOrder = new DailyOrder();
                     dailyOrder.CompanyId = company.Id;
-                    dailyOrder.BookingDate = bookingDate.AddDays(1);
-                    dailyOrder.Status = DailyOrderStatus.Đang_chờ_xử_lý;
+                    dailyOrder.BookingDate = bookingDate.AddDays(2);
+                    dailyOrder.Status = DailyOrderStatus.Initial;
                     dailyOrder.OrderQuantity = 0;
                     dailyOrder.TotalPrice = 0;
                     await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
@@ -73,7 +73,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                         var totalOrder = orders.Count();
                         dailyOrderEntity.TotalPrice = totalOrderPrice;
                         dailyOrderEntity.OrderQuantity = totalOrder;
-                        dailyOrderEntity.Status = DailyOrderStatus.Đã_xử_lý;
+                        dailyOrderEntity.Status = DailyOrderStatus.Processing;
                         _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                     }
                     await _unitOfWork.SaveChangeAsync();

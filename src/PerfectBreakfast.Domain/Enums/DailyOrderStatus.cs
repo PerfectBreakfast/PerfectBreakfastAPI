@@ -4,9 +4,9 @@ namespace PerfectBreakfast.Domain.Enums;
 
 public enum DailyOrderStatus
 {
-    Đang_chờ_xử_lý,
+    Initial,
         
-    Đã_xử_lý ,
+    Processing ,
         
-    Đã_hủy 
+    Complete 
 }

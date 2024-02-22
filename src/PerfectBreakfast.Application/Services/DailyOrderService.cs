@@ -33,7 +33,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var dailyOrder = _mapper.Map<DailyOrder>(dailyOrderRequest);
-                dailyOrder.Status = DailyOrderStatus.Đang_chờ_xử_lý;
+                dailyOrder.Status = DailyOrderStatus.Initial;
                 dailyOrder.OrderQuantity = 0;
                 dailyOrder.TotalPrice = 0;
                 await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);

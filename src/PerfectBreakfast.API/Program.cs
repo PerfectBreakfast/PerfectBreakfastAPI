@@ -50,9 +50,9 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     }
 });
 var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
-// set Job create DailyOrder everyDay 1AM
+// set Job create DailyOrder everyDay 4PM
 recurringJobs.AddOrUpdate<IManagementService>("recurringJob1",d =>
-    d.AutoCreateDailyOrderEachDay1AM(),Cron.Daily(18),new RecurringJobOptions()
+    d.AutoCreateDailyOrderEachDay4PM(),Cron.Daily(9),new RecurringJobOptions()
 {
     //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });

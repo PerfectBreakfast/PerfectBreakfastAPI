@@ -4,6 +4,6 @@ public enum OrderStatus
 {
     Complete,  
     Pending,   // chờ thanh toán
-    Cancle,    // đã hủy 
+    Cancel,    // đã hủy 
     Paid       // đã thanh toán
 }
