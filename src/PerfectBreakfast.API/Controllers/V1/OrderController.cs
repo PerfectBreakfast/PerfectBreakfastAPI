@@ -95,6 +95,18 @@ namespace PerfectBreakfast.API.Controllers.V1
         {
             var response = await _orderService.DeleteOrder(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-        } 
+        }
+
+        /// <summary>
+        /// Api for Delivery Staff or Delivery Admin
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPatch("{id}/status-complete")]
+        public async Task<IActionResult> CompleteOrder(Guid id)
+        {
+            var response = await _orderService.CompleteOrder(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }

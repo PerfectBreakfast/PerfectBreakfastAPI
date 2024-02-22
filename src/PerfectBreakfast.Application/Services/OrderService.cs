@@ -259,6 +259,35 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
+        public async Task<OperationResult<bool>> CompleteOrder(Guid id)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                // find supplier by ID
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id,x=>x.DailyOrder);
+                // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Proccesing 
+                if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Processing)
+                {
+                    result.AddError(ErrorCode.BadRequest,"Đơn không hợp lệ");
+                    return result;
+                }
+                // Change Status
+                order.OrderStatus = OrderStatus.Complete;
+                // update 
+                _unitOfWork.OrderRepository.Update(order);
+                // saveChange
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                // map 
+                result.Payload = isSuccess;
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<List<OrderResponse>>> GetOrders()
         {
             var result = new OperationResult<List<OrderResponse>>();
