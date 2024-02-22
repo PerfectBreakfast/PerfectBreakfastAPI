@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.OrderModel.Request;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -150,13 +151,13 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<OrderResponse>();
             try
             {
-                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails);
+                // get Order include OrderDetail , Worker
+                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails,x => x.Worker);
                 if (order is null)
                 {
                     result.AddError(ErrorCode.NotFound, "Id is not exist");
                     return result;
                 }
-                //var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
                 var orderDetails = new List<OrderDetailResponse>();
                 foreach(var detail in order.OrderDetails)
                 {
@@ -173,9 +174,9 @@ namespace PerfectBreakfast.Application.Services
 
                     orderDetails.Add(orderDetailResponse);
                 }
-
                 var or = _mapper.Map<OrderResponse>(order);
                 or.orderDetails = orderDetails;
+                or.User = _mapper.Map<UserResponse>(order.Worker);
                 result.Payload = or;
             }
             catch (Exception e)
@@ -246,6 +247,35 @@ namespace PerfectBreakfast.Application.Services
                 await _unitOfWork.SaveChangeAsync();
                 // map entity to SupplierResponse
                 result.Payload = _mapper.Map<OrderResponse>(entity);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<bool>> CompleteOrder(Guid id)
+        {
+            var result = new OperationResult<bool>();
+            try
+            {
+                // find supplier by ID
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id,x=>x.DailyOrder);
+                // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Proccesing 
+                if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Processing)
+                {
+                    result.AddError(ErrorCode.BadRequest,"Đơn không hợp lệ");
+                    return result;
+                }
+                // Change Status
+                order.OrderStatus = OrderStatus.Complete;
+                // update 
+                _unitOfWork.OrderRepository.Update(order);
+                // saveChange
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                // map 
+                result.Payload = isSuccess;
             }
             catch (Exception e)
             {
