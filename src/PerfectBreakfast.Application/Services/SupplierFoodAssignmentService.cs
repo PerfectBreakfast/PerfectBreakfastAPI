@@ -69,14 +69,14 @@ namespace PerfectBreakfast.Application.Services
                         var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)supplierFoodAssignment.FoodId);
                         if (supplierCommissionRate == null)
                         {
-                            result.AddUnknownError(" NCC chua co comission Rate");
+                            result.AddUnknownError(" NCC chua co commission Rate");
                             return result;
                         }
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
                         supplierFoodAssignment.PartnerId = partner.Id;
                         supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
-                        supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Sent;
+                        supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
 
                         // Add food vao totalFoodReceive de so sanh
                         string foodName = food.Name;
@@ -125,7 +125,7 @@ namespace PerfectBreakfast.Application.Services
                     if (!totalFoodReceive.ContainsKey(foodName) || totalFoodReceive[foodName] != count)
                     {
                         // Có lỗi: Số lượng không khớp
-                        result.AddUnknownError(foodName + " khong du so luong");
+                        result.AddError(ErrorCode.BadRequest, foodName + " doesn't enough amount");
                         return result;
                     }
                 }
@@ -136,7 +136,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException ex)
             {
-                result.AddUnknownError("Food khong ton tai");
+                result.AddError(ErrorCode.NotFound, "Food is not exist");
             }
             catch (Exception e)
             {
@@ -158,7 +158,7 @@ namespace PerfectBreakfast.Application.Services
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
                 if (suppliers == null)
                 {
-                    result.AddUnknownError("Partner khong co supplier");
+                    result.AddError(ErrorCode.BadRequest, "Partner doesn't have supplier");
                     return result;
                 }
                 
@@ -194,14 +194,14 @@ namespace PerfectBreakfast.Application.Services
                         var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)supplierFoodAssignment.FoodId);
                         if (supplierCommissionRate == null)
                         {
-                            result.AddUnknownError(" NCC chua co comission Rate");
+                            result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
                             return result;
                         }
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
                         supplierFoodAssignment.PartnerId = partner.Id;
                         supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
-                        supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Sent;
+                        supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
 
                         // Add food vao totalFoodReceive de so sanh
                         string foodName = food.Name;
@@ -250,7 +250,7 @@ namespace PerfectBreakfast.Application.Services
                     if (!totalFoodReceive.ContainsKey(foodName) || totalFoodReceive[foodName] != count)
                     {
                         // Có lỗi: Số lượng không khớp
-                        result.AddUnknownError(foodName + " khong du so luong");
+                        result.AddError(ErrorCode.BadRequest, foodName + " doesn't enough amount");
                         return result;
                     }
                 }
@@ -258,7 +258,7 @@ namespace PerfectBreakfast.Application.Services
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
                 if (!isSuccess)
                 {
-                    result.AddError(ErrorCode.ServerError, "Food or Supplier is not exist");
+                    result.AddError(ErrorCode.ServerError, "Food or Supplier are not exist");
                     return result;
                 }
                 result.Payload = supplierfoodAssignmentsResult;
@@ -266,7 +266,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException ex)
             {
-                result.AddUnknownError("Food khong ton tai");
+                result.AddError(ErrorCode.NotFound, "Food is not exist");
             }
             catch (Exception e)
             {
@@ -342,7 +342,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException ex)
             {
-                result.AddUnknownError("Food khong ton tai");
+                result.AddError(ErrorCode.NotFound, "Food is not exist");
             }
             catch (Exception e)
             {
@@ -424,7 +424,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException ex)
             {
-                result.AddUnknownError("Food khong ton tai");
+                result.AddError(ErrorCode.NotFound, "Food is not exist");
             }
             catch (Exception e)
             {

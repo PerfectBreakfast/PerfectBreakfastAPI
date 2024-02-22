@@ -100,10 +100,10 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API for Super Admin, menu is selected
+        /// API for Customer, menu is selected
         /// </summary>
         /// <returns></returns>
-        [HttpGet("menu-is-selected"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+        [HttpGet("menu-is-selected"), Authorize(Policy = ConstantRole.RequireCustomerRole)]
         public async Task<IActionResult> GetMenuToShow()
         {
             var response = await _menuService.GetMenuByStatus();

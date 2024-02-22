@@ -37,7 +37,13 @@ namespace PerfectBreakfast.Application.Services
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
                 if (dailyOrder is null)
                 {
-                    result.AddUnknownError("CompanyId is not exsit");
+                    result.AddError(ErrorCode.NotFound, "Company is not exist");
+                    return result;
+                }
+
+                if (dailyOrder.Status != DailyOrderStatus.Initial)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Don't have daily order to order");
                     return result;
                 }
                 var order = _mapper.Map<Order>(orderRequest);
@@ -48,7 +54,7 @@ namespace PerfectBreakfast.Application.Services
                     var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
                     if (combo is null)
                     {
-                        result.AddUnknownError("ComboId is not exsit");
+                        result.AddError(ErrorCode.NotFound, "Combo is not exist");
                         return result;
                     }
                     if (combo != null)
@@ -56,7 +62,7 @@ namespace PerfectBreakfast.Application.Services
                         var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
                         if (foods is null)
                         {
-                            result.AddUnknownError("Combo khong co thuc an");
+                            result.AddError(ErrorCode.BadRequest, "Combo khong co thuc an");
                             return result;
                         }
                         decimal totalFoodPrice = foods.Sum(food => food.Price);
@@ -115,7 +121,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException e)
             {
-                result.AddUnknownError("UserId is not exsit");
+                result.AddError(ErrorCode.NotFound, "UserId is not exist");
             }
             catch (Exception e)
             {
@@ -135,7 +141,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {
@@ -152,7 +158,7 @@ namespace PerfectBreakfast.Application.Services
                 var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails);
                 if (order is null)
                 {
-                    result.AddUnknownError("Id is not exsit");
+                    result.AddError(ErrorCode.NotFound, "Id is not exist");
                     return result;
                 }
                 //var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
@@ -280,7 +286,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
             }
             catch (Exception e)
             {
