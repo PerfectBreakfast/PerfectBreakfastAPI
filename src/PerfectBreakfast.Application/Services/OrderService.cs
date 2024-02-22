@@ -152,7 +152,11 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 // get Order include OrderDetail , Worker
-                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails,x => x.Worker);
+                var order = await _unitOfWork.OrderRepository.FindSingleAsync(
+                    o => o.Id == id, 
+                    or => or.OrderDetails,
+                    x => x.Worker,
+                    x=>x.DailyOrder);
                 if (order is null)
                 {
                     result.AddError(ErrorCode.NotFound, "Id is not exist");
@@ -171,10 +175,10 @@ namespace PerfectBreakfast.Application.Services
                         Image = combo.Image,
                         Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}"
                     };
-
                     orderDetails.Add(orderDetailResponse);
                 }
                 var or = _mapper.Map<OrderResponse>(order);
+                or.BookingDate = order.DailyOrder!.BookingDate;
                 or.orderDetails = orderDetails;
                 or.User = _mapper.Map<UserResponse>(order.Worker);
                 result.Payload = or;

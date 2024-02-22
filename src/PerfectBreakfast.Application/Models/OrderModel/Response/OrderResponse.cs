@@ -3,7 +3,7 @@ using PerfectBreakfast.Application.Models.UserModels.Response;
 
 namespace PerfectBreakfast.Application.Models.OrderModel.Response
 {
-    public record OrderResponse
+    public sealed record OrderResponse
     {
         public Guid Id { get; set; }
         public string Note { get; set; } = string.Empty;
@@ -11,8 +11,8 @@ namespace PerfectBreakfast.Application.Models.OrderModel.Response
         public string OrderStatus { get; set; }
         public int OrderCode { get; set; }
         public DateTime CreationDate { get; set; }
+        public DateOnly BookingDate { get; set; }
         public UserResponse? User { get; set; }
         public List<OrderDetailResponse> orderDetails { get; set; }
-
     }
 }
