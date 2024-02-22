@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.OrderModel.Request;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -155,13 +156,13 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<OrderResponse>();
             try
             {
-                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails);
+                // get Order include OrderDetail , Worker
+                var order = await _unitOfWork.OrderRepository.FindSingleAsync(o => o.Id == id, or => or.OrderDetails,x => x.Worker);
                 if (order is null)
                 {
                     result.AddError(ErrorCode.NotFound, "Id is not exist");
                     return result;
                 }
-                //var orderDetails = _mapper.Map<List<OrderDetailResponse>>(order.OrderDetails);
                 var orderDetails = new List<OrderDetailResponse>();
                 foreach(var detail in order.OrderDetails)
                 {
@@ -178,9 +179,9 @@ namespace PerfectBreakfast.Application.Services
 
                     orderDetails.Add(orderDetailResponse);
                 }
-
                 var or = _mapper.Map<OrderResponse>(order);
                 or.orderDetails = orderDetails;
+                or.User = _mapper.Map<UserResponse>(order.Worker);
                 result.Payload = or;
             }
             catch (Exception e)

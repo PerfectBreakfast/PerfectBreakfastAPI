@@ -1,4 +1,6 @@
 ﻿
+using PerfectBreakfast.Application.Models.UserModels.Response;
+
 namespace PerfectBreakfast.Application.Models.OrderModel.Response
 {
     public record OrderResponse
@@ -9,6 +11,7 @@ namespace PerfectBreakfast.Application.Models.OrderModel.Response
         public string OrderStatus { get; set; }
         public int OrderCode { get; set; }
         public DateTime CreationDate { get; set; }
+        public UserResponse? User { get; set; }
         public List<OrderDetailResponse> orderDetails { get; set; }
 
     }
