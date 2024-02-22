@@ -15,6 +15,7 @@ public class Order : BaseEntity
     //public Guid? PartnerId { get; set; }
     public Guid? DeliveryStaffId { get; set; }
     public Guid? DailyOrderId { get; set; }
+    public Guid? PaymentMethodId { get; set; }
    
     public PaymentMethod? PaymentMethod { get; set; } // 1-1
     public User? Worker { get; set; }
