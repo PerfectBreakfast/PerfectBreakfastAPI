@@ -8,6 +8,7 @@ namespace PerfectBreakfast.Application.Models.OrderModel.Response
         public decimal TotalPrice { get; set; }
         public string OrderStatus { get; set; }
         public int OrderCode { get; set; }
+        public DateTime CreationDate { get; set; }
         public List<OrderDetailResponse> orderDetails { get; set; }
 
     }
