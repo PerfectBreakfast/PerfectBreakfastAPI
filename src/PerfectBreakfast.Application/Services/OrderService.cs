@@ -40,12 +40,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.NotFound, "Company is not exist");
                     return result;
                 }
-
-                if (dailyOrder.Status != DailyOrderStatus.Initial)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Don't have daily order to order");
-                    return result;
-                }
+                
                 var order = _mapper.Map<Order>(orderRequest);
                 var orderDetail = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
                 foreach (var od in orderDetail)

@@ -52,16 +52,10 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
 // set Job create DailyOrder everyDay 4PM
 recurringJobs.AddOrUpdate<IManagementService>("recurringJob1",d =>
-    d.AutoCreateDailyOrderEachDay4PM(),Cron.Daily(9),new RecurringJobOptions()
+    d.AutoUpdateAndCreateDailyOrderAfter4PM(),Cron.Daily(9),new RecurringJobOptions()
 {
     //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
 });
 
-// set Job Update DailyOrder everyDay 16PM
-recurringJobs.AddOrUpdate<IManagementService>("recurringJob2",d =>
-    d.AutoUpdateDailyOrderAfter4PM(),Cron.Daily(9),new RecurringJobOptions()
-{
-    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
-});
 
 app.Run();

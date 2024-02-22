@@ -120,7 +120,7 @@ namespace PerfectBreakfast.Application.Services
                 if (!isAfter16)
                 {
                     // Nếu thời gian hiện tại không sau 16:00
-                    result.AddError(ErrorCode.BadRequest, "Chức năng chỉ có thể được thực hiện sau 4:00 CH");
+                    result.AddError(ErrorCode.BadRequest, "Chức năng chỉ có thể được thực hiện sau 4:00 PM");
                 }
 
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
@@ -144,7 +144,7 @@ namespace PerfectBreakfast.Application.Services
                     var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date.AddDays(1) == now.Date && x.Status == DailyOrderStatus.Processing);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
                     if (dailyOrder is null)
                     {
-                        result.AddError(ErrorCode.BadRequest, "");
+                        result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
                         return result;
                     }
                     // Lấy chi tiết các order detail
