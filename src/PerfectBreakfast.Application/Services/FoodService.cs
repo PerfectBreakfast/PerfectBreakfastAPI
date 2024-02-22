@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -140,8 +141,12 @@ namespace PerfectBreakfast.Application.Services
                 foreach (var company in companies)
                 {
                     // Lấy daily order
-                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date.AddDays(1) == now.Date);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
-
+                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date.AddDays(1) == now.Date && x.Status == DailyOrderStatus.Processing);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
+                    if (dailyOrder is null)
+                    {
+                        result.AddError(ErrorCode.BadRequest, "");
+                        return result;
+                    }
                     // Lấy chi tiết các order detail
                     var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
                     var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
