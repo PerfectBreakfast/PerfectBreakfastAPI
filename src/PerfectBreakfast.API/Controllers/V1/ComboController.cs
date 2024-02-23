@@ -29,7 +29,8 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// API for Super Admin, Customer
         /// </summary>
         /// <returns></returns>
-        [HttpGet("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole), Authorize(Policy = ConstantRole.RequireCustomerRole)]
+        [HttpGet("{id}")]
+        [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
         public async Task<IActionResult> GetCombo(Guid id)
         {
             var response = await _comboService.GetCombo(id);

@@ -286,8 +286,24 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
+                var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id, m => m.MenuFoods);
+                var list = new List<MenuFood>();
+                foreach (var mf in menuRequest.MenuFoodRequests)
+                {
+                    var menuFood = mf.ComboId is not null
+                        ? new MenuFood { ComboId = (Guid)mf.ComboId }
+                        : mf.FoodId is not null
+                            ? new MenuFood { FoodId = mf.FoodId }
+                            : null;
+
+                    if (menuFood != null)
+                    {
+                        list.Add(menuFood);
+                    }
+                }
+                menuEntity.MenuFoods.Clear();
                 _mapper.Map(menuRequest, menuEntity);
+                menuEntity.MenuFoods = list;
                 _unitOfWork.MenuRepository.Update(menuEntity);
                 await _unitOfWork.SaveChangeAsync();
                 result.Payload = _mapper.Map<MenuResponse>(menuEntity);
