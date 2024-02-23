@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PerfectBreakfast.Infrastructure;
 
@@ -10,9 +11,11 @@ using PerfectBreakfast.Infrastructure;
 namespace PerfectBreakfast.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240222170100_add-index-payment-method")]
+    partial class addindexpaymentmethod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -593,9 +596,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<int>("OrderStatus")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("PaymentMethodId")
-                        .HasColumnType("char(36)");
-
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
@@ -610,8 +610,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("OrderCode")
                         .IsUnique();
-
-                    b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("WorkerId");
 
@@ -872,9 +870,15 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("OrderId")
                         .IsUnique();
 
                     b.ToTable("PaymentMethod", (string)null);
@@ -1364,10 +1368,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .WithMany("OrdersDeliveryStaff")
                         .HasForeignKey("DeliveryStaffId");
 
-                    b.HasOne("PerfectBreakfast.Domain.Entities.PaymentMethod", "PaymentMethod")
-                        .WithMany("Orders")
-                        .HasForeignKey("PaymentMethodId");
-
                     b.HasOne("PerfectBreakfast.Domain.Entities.User", "Worker")
                         .WithMany("OrdersWorker")
                         .HasForeignKey("WorkerId");
@@ -1375,8 +1375,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("DailyOrder");
 
                     b.Navigation("DeliveryStaff");
-
-                    b.Navigation("PaymentMethod");
 
                     b.Navigation("Worker");
                 });
@@ -1449,6 +1447,15 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("SupperAdmin");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.PaymentMethod", b =>
+                {
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Order", "Order")
+                        .WithOne("PaymentMethod")
+                        .HasForeignKey("PerfectBreakfast.Domain.Entities.PaymentMethod", "OrderId");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.ShippingOrder", b =>
@@ -1612,6 +1619,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("PaymentMethod");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Partner", b =>
@@ -1625,11 +1634,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("SupplyAssignments");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.PaymentMethod", b =>
-                {
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Supplier", b =>
