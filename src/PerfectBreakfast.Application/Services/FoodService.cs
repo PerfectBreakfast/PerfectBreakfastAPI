@@ -141,7 +141,7 @@ namespace PerfectBreakfast.Application.Services
                 foreach (var company in companies)
                 {
                     // Lấy daily order
-                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.CreationDate.Date.AddDays(1) == now.Date && x.Status == DailyOrderStatus.Processing);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
+                    var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.BookingDate == DateOnly.FromDateTime(now).AddDays(1) && x.Status == DailyOrderStatus.Processing);  // hàm này sẽ bị lỗi nếu now vào khoảng 12h - 1h vì lúc đó DailyOrder chưa được tao
                     if (dailyOrder is null)
                     {
                         result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
