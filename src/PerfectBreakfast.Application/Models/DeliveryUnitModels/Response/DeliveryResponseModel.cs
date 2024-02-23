@@ -5,7 +5,7 @@ public record DeliveryResponseModel(
     string Name,
     string Address,
     string PhoneNumber ,
-    //int CommissionRate,
+    int CommissionRate,
     double? Longitude,
     double? Latitude,
     List<string> Owners,
