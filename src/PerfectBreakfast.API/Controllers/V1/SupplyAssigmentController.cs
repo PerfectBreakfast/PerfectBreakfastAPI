@@ -16,22 +16,22 @@ public class SupplyAssigmentController : BaseController
         _supplyAssigmentService = supplyAssigmentService;
     }
     /// <summary>
-    /// API FOR PARTNER ADMIN
+    /// API FOR Super Admin 
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetSupplyAssigment()
     {
         var response = await _supplyAssigmentService.GetSupplyAssigment();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     /// <summary>
-    /// API FOR PARTNER ADMIN
+    /// API FOR Super Admin 
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpPost,Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    [HttpPost,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreateSupplyAssigment(CreateSupplyAssigment requestModel)
     {
         var response = await _supplyAssigmentService.CreateSupplyAssigment(requestModel);
