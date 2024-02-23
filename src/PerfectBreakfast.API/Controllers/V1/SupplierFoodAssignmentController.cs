@@ -25,7 +25,7 @@ public class SupplierFoodAssignmentController : BaseController
     [HttpPost, Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
     {
-        var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignmentUpdate(supplierFoodAssignmentRequest);
+        var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -48,10 +48,36 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("supplier"), Authorize(policy:ConstantRole.SUPPLIER_ADMIN)]
+    [HttpGet("supplier")]
+    [Authorize(Roles = "SUPPLIER ADMIN")]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/status-completion"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> CompleteFoodAssignmentByPartner(Guid id)
+    {
+        var response = await _supplierFoodAssignmentService.CompleteFoodAssignment(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Supplier Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/status-confirmation")]
+    [Authorize(Roles = "SUPPLIER ADMIN")]
+    public async Task<IActionResult> ConfirmFoodAssignmentBySupplier(Guid id)
+    {
+        var response = await _supplierFoodAssignmentService.ConfirmFoodAssignment(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    } 
 }
