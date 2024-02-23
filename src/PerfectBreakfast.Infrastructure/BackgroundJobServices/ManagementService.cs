@@ -66,6 +66,13 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             {
                 //Update daily order each day after 4PM
                 var now = _currentTime.GetCurrentTime();
+                
+                // Kiểm tra xem hiện tại đã qua 16h (4 PM) chưa
+                if (now.Hour < 16)
+                {
+                    Console.WriteLine("Job just run after 4PM");
+                    return;
+                }
                 var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByCreationDate(now);
                 if (dailyOrders.Count > 0)
                 {
@@ -209,7 +216,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             }
             catch (Exception e)
             {
-                Console.WriteLine("looix gi do ");
+                Console.WriteLine("ERROR");
                 throw new Exception($"{e.Message}");
             }
         }
