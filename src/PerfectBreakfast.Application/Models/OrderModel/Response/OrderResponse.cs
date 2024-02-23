@@ -1,4 +1,5 @@
 ﻿
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 
 namespace PerfectBreakfast.Application.Models.OrderModel.Response
@@ -13,6 +14,7 @@ namespace PerfectBreakfast.Application.Models.OrderModel.Response
         public DateTime CreationDate { get; set; }
         public DateOnly BookingDate { get; set; }
         public UserResponse? User { get; set; }
+        public CompanyDto? Company { get; set; }
         public List<OrderDetailResponse> orderDetails { get; set; }
     }
 }

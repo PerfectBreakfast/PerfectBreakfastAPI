@@ -3,6 +3,7 @@ using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Request;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
@@ -174,6 +175,9 @@ public class OrderService : IOrderService
                 return result;
             }
 
+            // lấy thông tin công ty của worker 
+            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(order.Worker.CompanyId.Value);
+            
             var orderDetails = new List<OrderDetailResponse>();
             foreach (var detail in order.OrderDetails)
             {
@@ -192,6 +196,7 @@ public class OrderService : IOrderService
 
             var or = _mapper.Map<OrderResponse>(order);
             or.BookingDate = order.DailyOrder!.BookingDate;
+            or.Company = _mapper.Map<CompanyDto>(company);
             or.orderDetails = orderDetails;
             or.User = _mapper.Map<UserResponse>(order.Worker);
             result.Payload = or;
@@ -200,7 +205,6 @@ public class OrderService : IOrderService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
