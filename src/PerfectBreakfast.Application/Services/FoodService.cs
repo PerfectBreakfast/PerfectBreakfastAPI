@@ -129,7 +129,7 @@ namespace PerfectBreakfast.Application.Services
                 
                 if (partner == null)
                 {
-                    result.AddUnknownError("partner does not exist");
+                    result.AddError(ErrorCode.NotFound, "partner does not exist");
                     return result;
                 }
                 
