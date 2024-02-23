@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.UserModels.Request;
+using PerfectBreakfast.Application.Utils;
 
 
 namespace PerfectBreakfast.API.Controllers.V1;
@@ -103,10 +104,21 @@ public class UserController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("deliverystaff")]
+    [HttpGet("deliverystaff/pagination")]
     public async Task<IActionResult> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _userService.GetDeliveryStaffByDeliveryAdmin(pageIndex,pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    ///  Api for Delivery Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("deliverystaff"),Authorize(policy: ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> GetDeliveryStaffByDeliveryAdminList()
+    {
+        var response = await _userService.GetDeliveryStaffByDeliveryAdminList();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

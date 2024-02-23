@@ -113,7 +113,7 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var deliveryUnitInclude = new IncludeInfo<User>
+                var deliveryInclude = new IncludeInfo<User>
                 {
                     NavigationProperty = x => x.Delivery,
                     ThenIncludes = new List<Expression<Func<object, object>>>
@@ -121,7 +121,7 @@ namespace PerfectBreakfast.Application.Services
                         sp => ((Delivery)sp).Companies
                     }
                 };
-                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryUnitInclude);
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
                 // check xem user đó có phải là trong đơn vị không và role của user có phải là Admin hay không 
                 
                 

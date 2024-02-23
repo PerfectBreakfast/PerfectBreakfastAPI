@@ -294,14 +294,14 @@ public class OrderService : IOrderService
             // kiểm tra xem thg quét có được giao cho cái dailyOrder 
             if (!(await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShipper(order.DailyOrder!.Id, userId))) 
             {
-                result.AddError(ErrorCode.BadRequest, "Bạn không được giao thể hoàn thành đơn này!");
+                result.AddError(ErrorCode.BadRequest, "Bạn không được giao");
                 return result;
             }
             
             // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Proccesing 
             if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Processing)
             {
-                result.AddError(ErrorCode.BadRequest, $"Thời gian giao hàng không phù hợp! {order.DailyOrder.Status}");
+                result.AddError(ErrorCode.BadRequest, $"Thời gian giao hàng không phù hợp!");
                 return result;
             }
 

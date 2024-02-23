@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.Application.Services;
@@ -343,6 +344,28 @@ public class UserService : IUserService
             var userPages = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize, perdicate);
 
             result.Payload = _mapper.Map<Pagination<UserResponse>>(userPages);
+
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDeliveryAdminList()
+    {
+        var result = new OperationResult<List<UserResponse>>();
+        var deliveryAdminId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var deliveryInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.Delivery
+            };
+            var deliveryAdmin = await _unitOfWork.UserRepository.GetUserByIdAsync(deliveryAdminId, deliveryInclude);
+            var users = await _unitOfWork.UserRepository.FindAll(x => x.DeliveryId == deliveryAdmin.DeliveryId).ToListAsync();
+            result.Payload = _mapper.Map<List<UserResponse>>(users);
 
         }
         catch (Exception e)
