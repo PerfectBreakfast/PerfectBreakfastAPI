@@ -192,6 +192,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 // Nếu đã có đơn hàng cho ngày hiện tại, thoát khỏi hàm
                 if (isDailyOrderCreated)
                 {
+                    Console.WriteLine("Daily order is already created");
                     return;
                 }
                 foreach (var company in companiesv2)

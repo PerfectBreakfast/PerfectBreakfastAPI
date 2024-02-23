@@ -45,10 +45,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<List<DailyOrder>> FindByCreationDate(DateTime dateTime)
         {
-            var dateToCompare = dateTime.Date;
-
             return await _dbSet
-                .Where(d => d.CreationDate.AddDays(1) == dateToCompare.AddHours(16) && d.Status == DailyOrderStatus.Initial)
+                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) && d.Status == DailyOrderStatus.Initial)
                 .Include(d => d.Orders)
                 .Include(d => d.Company)
                 .ToListAsync();
