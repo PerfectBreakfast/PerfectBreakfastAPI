@@ -286,14 +286,22 @@ public class OrderService : IOrderService
     public async Task<OperationResult<bool>> CompleteOrder(Guid id)
     {
         var result = new OperationResult<bool>();
+        var userId = _claimsService.GetCurrentUserId;
         try
         {
             // find supplier by ID
-            var order = await _unitOfWork.OrderRepository.GetByIdAsync(id, x => x.DailyOrder);
+            var order = await _unitOfWork.OrderRepository.GetByIdAsync(id, x => x.DailyOrder!);
+            // kiểm tra xem thg quét có được giao cho cái dailyOrder 
+            if (!(await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShipper(order.DailyOrder!.Id, userId))) 
+            {
+                result.AddError(ErrorCode.BadRequest, "Bạn không được giao thể hoàn thành đơn này!");
+                return result;
+            }
+            
             // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Proccesing 
             if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Processing)
             {
-                result.AddError(ErrorCode.BadRequest, "Đơn không hợp lệ");
+                result.AddError(ErrorCode.BadRequest, $"Thời gian giao hàng không phù hợp! {order.DailyOrder.Status}");
                 return result;
             }
 
