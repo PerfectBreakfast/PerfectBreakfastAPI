@@ -168,7 +168,8 @@ public class OrderService : IOrderService
                 o => o.Id == id,
                 or => or.OrderDetails,
                 x => x.Worker,
-                x => x.DailyOrder);
+                x => x.DailyOrder,
+                x => x.PaymentMethod);
             if (order is null)
             {
                 result.AddError(ErrorCode.NotFound, "Id is not exist");
@@ -195,6 +196,7 @@ public class OrderService : IOrderService
             }
 
             var or = _mapper.Map<OrderResponse>(order);
+            or.PaymentMethod = order.PaymentMethod?.Name ?? null;
             or.BookingDate = order.DailyOrder!.BookingDate;
             or.Company = _mapper.Map<CompanyDto>(company);
             or.orderDetails = orderDetails;
