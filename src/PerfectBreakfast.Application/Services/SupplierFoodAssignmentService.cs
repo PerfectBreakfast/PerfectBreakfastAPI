@@ -26,126 +26,8 @@ namespace PerfectBreakfast.Application.Services
             _foodService = foodService;
             _claimsService = claimsService;
         }
-
-        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(List<SupplierFoodsAssignmentRequest> request)
-        {
-            var result = new OperationResult<List<SupplierFoodAssignmentResponse>>();
-            var userId = _claimsService.GetCurrentUserId;
-            try
-            {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var supplierfoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
-                var partner = await _unitOfWork.PartnerRepository.GetByIdAsync((Guid)user.PartnerId);
-                // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
-                if (suppliers == null)
-                {
-                    result.AddUnknownError("Partner khong co supplier");
-                    return result;
-                }
-                
-                // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
-                var totalFoodCountOperationReult = await _foodService.GetFoodsForPartner();
-                var totalFoodCount = totalFoodCountOperationReult.Payload;
-                var totalFoodReceive = new Dictionary<string, int>();
-
-                //Lay cac supplier trung voi supplier nhap vao
-                var filteredSuppliers = suppliers
-                    .Where(supplier => request.Any(request => request.SupplierId == supplier.Id))
-                    .ToList();
-
-                foreach (var supplier in filteredSuppliers)
-                {
-                    //Tìm supplier khớp với supplier truyền vào và tìm % ăn chia supplier 
-                    var foodAssignmentsResult = new List<SupplierFoodAssignment>();
-                    var supplierFoodAssignmentRequest = request.SingleOrDefault(request => request.SupplierId == supplier.Id);
-                    var supplierCommissionRates = await _unitOfWork.SupplierCommissionRateRepository.GetBySupplierId(supplier.Id);
-
-                    //Duyệt theo % ăn chia với mỗi loại thức ăn 
-                    foreach (var foodAssignmentRequest in supplierFoodAssignmentRequest.foodAssignmentRequests)
-                    {
-                        var supplierFoodAssignment = _mapper.Map<SupplierFoodAssignment>(foodAssignmentRequest);
-                        var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
-                        var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)supplierFoodAssignment.FoodId);
-                        if (supplierCommissionRate == null)
-                        {
-                            result.AddUnknownError(" NCC chua co commission Rate");
-                            return result;
-                        }
-                        supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
-                        supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
-                        supplierFoodAssignment.PartnerId = partner.Id;
-                        supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
-                        supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
-
-                        // Add food vao totalFoodReceive de so sanh
-                        string foodName = food.Name;
-                        if (totalFoodReceive.ContainsKey(foodName))
-                        {
-                            totalFoodReceive[foodName] += supplierFoodAssignment.AmountCooked;
-                        }
-                        else
-                        {
-                            totalFoodReceive.Add(foodName, supplierFoodAssignment.AmountCooked);
-                        }
-
-                        await _unitOfWork.SupplierFoodAssignmentRepository.AddAsync(supplierFoodAssignment);
-                        foodAssignmentsResult.Add(supplierFoodAssignment);
-
-                    }
-                    var foodAssignmentResponses = new List<FoodAssignmentResponse>();
-                    foreach (var item in foodAssignmentsResult)
-                    {
-                        var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
-                        FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
-                        {
-                            PartnerName = partner.Name,
-                            AmountCooked = item.AmountCooked,
-                            FoodName = food.Name,
-                            DateCooked = item.DateCooked,
-                            ReceivedAmount = item.ReceivedAmount
-                        };
-                        foodAssignmentResponses.Add(foodAssignmentResponse);
-                    }
-
-                    SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
-                    {
-                        SupplierName = supplier.Name,
-                        FoodAssignmentResponses = foodAssignmentResponses
-                    };
-                    supplierfoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
-                }
-
-                // Sau khi hoàn thành vòng lặp foreach (var supplier in suppliers)
-                foreach (var item in totalFoodCount)
-                {
-                    string foodName = item.Name; // Tên thức ăn
-                    int count = item.Quantity; // Tổng số lượng từ DailyOrderResponseExcels
-
-                    if (!totalFoodReceive.ContainsKey(foodName) || totalFoodReceive[foodName] != count)
-                    {
-                        // Có lỗi: Số lượng không khớp
-                        result.AddError(ErrorCode.BadRequest, foodName + " doesn't enough amount");
-                        return result;
-                    }
-                }
-
-                await _unitOfWork.SaveChangeAsync();
-                result.Payload = supplierfoodAssignmentsResult;
-
-            }
-            catch (NotFoundIdException ex)
-            {
-                result.AddError(ErrorCode.NotFound, "Food is not exist");
-            }
-            catch (Exception e)
-            {
-                result.AddUnknownError(e.Message);
-            }
-            return result;
-        }
-
-        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignmentUpdate(List<SupplierFoodAssignmentRequest> request)
+        
+        public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> request)
         {
             var result = new OperationResult<List<SupplierFoodAssignmentResponse>>();
             var userId = _claimsService.GetCurrentUserId;
@@ -228,7 +110,8 @@ namespace PerfectBreakfast.Application.Services
                             AmountCooked = item.AmountCooked,
                             FoodName = fo.Name,
                             DateCooked = item.DateCooked,
-                            ReceivedAmount = item.ReceivedAmount
+                            ReceivedAmount = item.ReceivedAmount,
+                            Status = item.Status.ToString()
                         };
                         foodAssignmentResponses.Add(foodAssignmentResponse);
                     }
@@ -320,11 +203,13 @@ namespace PerfectBreakfast.Application.Services
                         // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
                         return new FoodAssignmentResponse
                         {
+                            Id = supplierFoodAssignment.Id,
                             PartnerName = supplierFoodAssignment.Partner?.Name,
                             FoodName = supplierFoodAssignment.Food?.Name,
                             AmountCooked = supplierFoodAssignment.AmountCooked,
                             DateCooked = supplierFoodAssignment.DateCooked,
-                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount
+                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                            Status = supplierFoodAssignment.Status.ToString()
                         };
                     }).ToList();
 
@@ -401,11 +286,13 @@ namespace PerfectBreakfast.Application.Services
                         // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
                         return new FoodAssignmentResponse
                         {
+                            Id = supplierFoodAssignment.Id,
                             SupplierName = supplierFoodAssignment.SupplierCommissionRate?.Supplier?.Name,
                             FoodName = supplierFoodAssignment.Food?.Name,
                             AmountCooked = supplierFoodAssignment.AmountCooked,
                             DateCooked = supplierFoodAssignment.DateCooked,
-                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount
+                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                            Status = supplierFoodAssignment.Status.ToString()
                         };
                     }).ToList();
 
@@ -431,6 +318,62 @@ namespace PerfectBreakfast.Application.Services
                 result.AddUnknownError(e.Message);
             }
 
+            return result;
+        }
+
+        public async Task<OperationResult<FoodAssignmentResponse>> ConfirmFoodAssignment(Guid id)
+        {
+            var result = new OperationResult<FoodAssignmentResponse>();
+            try
+            {
+                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(id);
+                if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Pending)
+                {
+                    result.AddError(ErrorCode.BadRequest, "This order is already Confirm");
+                    return result;
+                }
+                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Confirmed;
+                _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                await _unitOfWork.SaveChangeAsync();
+                var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
+                result.Payload = foodAssignment;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Food assignment is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<FoodAssignmentResponse>> CompleteFoodAssignment(Guid id)
+        {
+            var result = new OperationResult<FoodAssignmentResponse>();
+            try
+            {
+                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(id);
+                if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Confirmed)
+                {
+                    result.AddError(ErrorCode.BadRequest, "This order is already complete or can not complete");
+                    return result;
+                }
+                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Completed;
+                _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                await _unitOfWork.SaveChangeAsync();
+                var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
+                result.Payload = foodAssignment;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Food assignment is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
             return result;
         }
     }
