@@ -13,6 +13,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<DailyOrderResponse>> UpdateDailyOrder(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest);
         public Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10);
-        public Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetailByPartner(Guid id, DateOnly bookingDate);
+        public Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetail(Guid id, DateOnly bookingDate);
     }
 }
