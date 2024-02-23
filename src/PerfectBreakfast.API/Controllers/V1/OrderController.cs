@@ -65,7 +65,8 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// <param name="id"></param>
         /// <param name="updateOrderRequest"></param>
         /// <returns></returns>
-        [HttpPut("{id}"), Authorize(policy:ConstantRole.RequireCustomerRole), Authorize(policy:ConstantRole.RequireSuperAdminRole)]
+        [HttpPut("{id}")]
+        [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
         public async Task<IActionResult> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)
         {
             var response = await _orderService.UpdateOrder(id, updateOrderRequest);
@@ -90,7 +91,8 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id}"), Authorize(policy:ConstantRole.RequireCustomerRole), Authorize(policy:ConstantRole.RequireSuperAdminRole)]
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
         public async Task<IActionResult> RemoveOrder(Guid id)
         {
             var response = await _orderService.DeleteOrder(id);
@@ -103,6 +105,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPatch("{id}/status-complete")]
+        [Authorize]
         public async Task<IActionResult> CompleteOrder(Guid id)
         {
             var response = await _orderService.CompleteOrder(id);
