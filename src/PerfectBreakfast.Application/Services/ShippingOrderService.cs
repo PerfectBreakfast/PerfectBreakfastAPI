@@ -80,15 +80,15 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderByDeliveryStaff()
+    public async Task<OperationResult<List<ShippingOrderHistoryForShipperResponse>>> GetShippingOrderByDeliveryStaff()
     {
-        var result = new OperationResult<List<ShippingOrderForShipperResponse>>();
+        var result = new OperationResult<List<ShippingOrderHistoryForShipperResponse>>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
             //var shippingOrders = await _unitOfWork.ShippingOrderRepository.FindAll(so => so.ShipperId == userId).ToListAsync();
             var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperId(userId);
-            result.Payload = _mapper.Map<List<ShippingOrderForShipperResponse>>(shippingOrders);
+            result.Payload = _mapper.Map<List<ShippingOrderHistoryForShipperResponse>>(shippingOrders);
         }
         catch (Exception e)
         {
