@@ -307,6 +307,8 @@ public class OrderService : IOrderService
 
             // Change Status
             order.OrderStatus = OrderStatus.Complete;
+            // add id của thằng đã giao cái đơn đó 
+            order.DeliveryStaffId = userId;
             // update 
             _unitOfWork.OrderRepository.Update(order);
             // saveChange
