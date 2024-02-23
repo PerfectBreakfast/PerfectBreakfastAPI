@@ -90,7 +90,8 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("{id}/company"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+        [HttpGet("{id}/company")]
+        [Authorize(Roles = "PARTNER ADMIN, DELIVERY ADMIN")]
         public async Task<IActionResult> GetDailyOrderByPartnerId(Guid id, DateOnly bookingDate)
         {
             var response = await _dailyOrderService.GetDailyOrderDetailByPartner(id, bookingDate);
