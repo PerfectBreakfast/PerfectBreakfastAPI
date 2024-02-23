@@ -8,5 +8,5 @@ namespace PerfectBreakfast.Application.Interfaces;
 public interface IShippingOrderService
 {
     public Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel);
-    public Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderByDeliveryStaff();
+    public Task<OperationResult<List<ShippingOrderHistoryForShipperResponse>>> GetShippingOrderByDeliveryStaff();
 }
