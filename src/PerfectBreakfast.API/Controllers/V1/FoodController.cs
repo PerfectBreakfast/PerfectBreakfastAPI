@@ -91,7 +91,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("partner")]//, Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+        [HttpGet("partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
         public async Task<IActionResult> GetFoodForPartner()
         {
             var response = await _foodService.GetFoodsForPartner();

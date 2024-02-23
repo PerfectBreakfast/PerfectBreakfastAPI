@@ -40,7 +40,8 @@ public class CompanyController : BaseController
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id}/users"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    [HttpGet("{id}/users")]
+    [Authorize(Roles = "SUPER ADMIN, PARTNER ADMIN")]
     public async Task<IActionResult> GetUsersByCompany(Guid id)
     {
         var response = await _companyService.GetUsersByCompanyId(id);
