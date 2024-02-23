@@ -16,5 +16,5 @@ public class ConstantRole
     public const string RequireSuperAdminRole = "RequireSuperAdminRole";
     public const string RequireCustomerRole = "RequireCustomerRole";
     public const string RequireDeliveryStaffRole = "RequireDeliveryStaffRole";
-    
+    public const string RequireSuperAdminAndCustomerRole = "RequireSuperAdminAndCustomerRole";
 }

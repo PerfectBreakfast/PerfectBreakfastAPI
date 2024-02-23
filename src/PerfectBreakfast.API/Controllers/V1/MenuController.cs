@@ -103,7 +103,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// API for Customer, menu is selected
         /// </summary>
         /// <returns></returns>
-        [HttpGet("menu-is-selected")]//, Authorize(Policy = ConstantRole.RequireCustomerRole)]
+        [HttpGet("menu-is-selected"), Authorize(Policy = ConstantRole.RequireCustomerRole)]
         public async Task<IActionResult> GetMenuToShow()
         {
             var response = await _menuService.GetMenuByStatus();

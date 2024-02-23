@@ -7,9 +7,11 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 {
     public class MenuRepository : GenericRepository<Menu>, IMenuRepository
     {
+        private readonly AppDbContext _context;
         public MenuRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
             : base(context, timeService, claimsService)
         {
+            _context = context;
         }
 
         //to do
@@ -39,6 +41,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             }
             return u;
         }
-
+        
     }
 }
