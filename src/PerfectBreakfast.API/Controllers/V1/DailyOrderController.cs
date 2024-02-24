@@ -86,7 +86,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Partner Admin
+        /// API For Partner Admin, Delivery Admin
         /// </summary>
         /// <returns></returns>
         [Authorize]
@@ -94,7 +94,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         [Authorize(Roles = "PARTNER ADMIN, DELIVERY ADMIN")]
         public async Task<IActionResult> GetDailyOrderByPartnerId(Guid id, DateOnly bookingDate)
         {
-            var response = await _dailyOrderService.GetDailyOrderDetailByPartner(id, bookingDate);
+            var response = await _dailyOrderService.GetDailyOrderDetail(id, bookingDate);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 

@@ -161,7 +161,7 @@ namespace PerfectBreakfast.Application.Services
         }
 
 
-        public async Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetailByPartner(Guid id, DateOnly bookingDate)
+        public async Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetail(Guid id, DateOnly bookingDate)
         {
             var result = new OperationResult<TotalFoodForCompanyResponse>();
             try
@@ -225,8 +225,10 @@ namespace PerfectBreakfast.Application.Services
                 var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse { Name = pair.Key, Quantity = pair.Value }).ToList();
                 var totalFoodForCompany = new TotalFoodForCompanyResponse()
                 {
+                    DailyOrderId = dailyOrder.Id,
                     CompanyName = company.Name,
                     PhoneNumber = company.PhoneNumber,
+                    Address = company.Address,
                     BookingDate = dailyOrder.BookingDate,
                     Status = dailyOrder.Status.ToString(),
                     TotalFoodResponses = totalFoodList
