@@ -4,7 +4,6 @@ using OfficeOpenXml;
 using PerfectBreakfast.API;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.Application.Commons;
-using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,13 +48,4 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
         }
     }
 });
-var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
-// set Job create DailyOrder everyDay 4PM
-recurringJobs.AddOrUpdate<IManagementService>("recurringJob1",d =>
-    d.AutoUpdateAndCreateDailyOrderAfter4PM(),Cron.Daily(9),new RecurringJobOptions()
-{
-    //TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
-});
-
-
 app.Run();

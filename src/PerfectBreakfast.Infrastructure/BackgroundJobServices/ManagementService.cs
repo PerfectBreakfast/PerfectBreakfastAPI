@@ -60,7 +60,9 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             }
         }
 
-        public async Task AutoUpdateAndCreateDailyOrderAfter4PM()
+        
+        // có nghĩa là cứ khi nào hàm này được gọi nó sẽ chuyển status và create DailyOrder mới
+        public async Task AutoUpdateAndCreateDailyOrder()
         {
             try
             {

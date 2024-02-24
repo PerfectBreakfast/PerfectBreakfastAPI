@@ -2,6 +2,6 @@
 
 public interface IManagementService
 {
-    public Task AutoUpdateAndCreateDailyOrderAfter4PM();
+    public Task AutoUpdateAndCreateDailyOrder();
     public Task AutoCreateDailyOrderEachDay4PM();
 }
