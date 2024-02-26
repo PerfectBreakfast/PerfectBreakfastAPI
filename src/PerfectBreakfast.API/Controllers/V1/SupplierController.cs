@@ -18,7 +18,7 @@ public class SupplierController : BaseController
     }
 
     /// <summary>
-    /// API For Supper Admin
+    /// API For Super Admin
     /// </summary>
     /// <returns></returns>
     [HttpGet]
@@ -29,7 +29,7 @@ public class SupplierController : BaseController
     }
     
     /// <summary>
-    /// API For Supper Admin
+    /// API For Super Admin
     /// </summary>
     /// <param name="searchTerm"></param>
     /// <param name="pageIndex"></param>
@@ -43,7 +43,7 @@ public class SupplierController : BaseController
     }
 
     /// <summary>
-    /// Api for Supper Admin
+    /// Api for Super Admin
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
@@ -55,7 +55,7 @@ public class SupplierController : BaseController
     }
 
     /// <summary>
-    /// Api for Supper Admin
+    /// Api for Super Admin
     /// </summary>
     /// <param name="id"></param>
     /// <param name="requestModel"></param>
@@ -68,7 +68,7 @@ public class SupplierController : BaseController
     }
 
     /// <summary>
-    /// Api for Supper Admin
+    /// Api for Super Admin
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -90,9 +90,9 @@ public class SupplierController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet("partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
-    public async Task<IActionResult> GetSupplierByPartner()
+    public async Task<IActionResult> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _supplierService.GetSupplierByPartner();
+        var response = await _supplierService.GetSupplierByPartner(searchTerm, pageIndex, pageSize);
         return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
     }
 }

@@ -9,6 +9,7 @@ using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
+using CompanyResponse = PerfectBreakfast.Application.Models.CompanyModels.Response.CompanyResponse;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -16,11 +17,12 @@ public class CompanyService : ICompanyService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-
-    public CompanyService(IUnitOfWork unitOfWork, IMapper mapper)
+    private readonly IClaimsService _claimsService;
+    public CompanyService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _claimsService = claimsService;
     }
 
     public async Task<OperationResult<CompanyResponse>> CreateCompany(CompanyRequest companyRequest)
@@ -79,6 +81,94 @@ public class CompanyService : ICompanyService
             result.AddError(ErrorCode.NotFound, e.Message);
         }
         catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByPartner(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<CompanyResponsePaging>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            
+            var partnerInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Partner,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Partner)sp).Companies
+                }
+            };
+            
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+            var companyIds = user.Partner.Companies.Select(s => s.Id).ToList();
+            Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id);
+            
+            var companyPages =
+                await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
+            
+            var companyResponses = _mapper.Map<List<CompanyResponsePaging>>(companyPages.Items);
+            
+            result.Payload = new Pagination<CompanyResponsePaging>()
+            {
+                PageIndex = companyPages.PageIndex,
+                PageSize = companyPages.PageSize,
+                TotalItemsCount = companyPages.TotalItemsCount,
+                Items = companyResponses
+            };
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound, "User is not exist");
+        }
+        catch (Exception e) 
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByDelivery(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<CompanyResponsePaging>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            
+            var deliveryInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Delivery,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Delivery)sp).Companies
+                }
+            };
+            
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
+            var companyIds = user.Delivery.Companies.Select(s => s.Id).ToList();
+            Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id);
+            
+            var companyPages =
+                await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
+            
+            var companyResponses = _mapper.Map<List<CompanyResponsePaging>>(companyPages.Items);
+            
+            result.Payload = new Pagination<CompanyResponsePaging>()
+            {
+                PageIndex = companyPages.PageIndex,
+                PageSize = companyPages.PageSize,
+                TotalItemsCount = companyPages.TotalItemsCount,
+                Items = companyResponses
+            };
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound, "User is not exist");
+        }
+        catch (Exception e) 
         {
             result.AddUnknownError(e.Message);
         }

@@ -69,7 +69,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 //Update daily order each day after 4PM
                 var now = _currentTime.GetCurrentTime();
                 
-                // Kiểm tra xem hiện tại đã qua 16h (4 PM) chưa
+                //Kiểm tra xem hiện tại đã qua 16h (4 PM) chưa
                 if (now.Hour < 16)
                 {
                     Console.WriteLine("Job just run after 4PM");
@@ -94,7 +94,6 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 else
                 {
                     Console.WriteLine("Không có dailyOrders được tạo hôm nay.");
-                    return;
                 }
 
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty

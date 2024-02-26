@@ -98,4 +98,32 @@ public class CompanyController : BaseController
         var response = await _companyService.DeleteCompany(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <param name="searchTerm"></param>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("pagination/partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetCompaniesByPartner(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _companyService.GetCompanyByPartner(searchTerm, pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Delivery Admin
+    /// </summary>
+    /// <param name="searchTerm"></param>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("pagination/delivery"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> GetCompaniesByDelivery(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _companyService.GetCompanyByDelivery(searchTerm, pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
