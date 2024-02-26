@@ -223,39 +223,44 @@ public class SupplierService : ISupplierService
         return roles.Contains(ConstantRole.SUPPLIER_ADMIN);
     }
 
-    public async Task<OperationResult<List<SupplierDTO>>> GetSupplierByPartner()
+    public async Task<OperationResult<Pagination<SupplierDTO>>> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<List<SupplierDTO>>();
+        var result = new OperationResult<Pagination<SupplierDTO>>();
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            var user = await _unitOfWork.UserRepository.GetUserById(userId);
-            if (user == null)
+            var partnerInclude = new IncludeInfo<User>
             {
-                result.AddValidationError("User not found");
-                return result;
-            }
-            if (user.PartnerId.HasValue) // Assuming PartnerId is nullable
-            {
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value);
-                
-                var supplierDtos = suppliers.Select(s => new SupplierDTO
+                NavigationProperty = x => x.Partner,
+                ThenIncludes = new List<Expression<Func<object, object>>>
                 {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Address = s.Address,
-                    PhoneNumber = s.PhoneNumber,
-                    Longitude = s.Longitude,
-                    Latitude = s.Latitude
-                }).ToList();
+                    sp => ((Partner)sp).SupplyAssignments
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+            var supplierIds = user.Partner.SupplyAssignments.Select(s => s.SupplierId).ToList();
+            Expression<Func<Supplier, bool>> predicate = s => supplierIds.Contains(s.Id);
+            
+            Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? null 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
 
-                result.Payload = supplierDtos;
-            }
-            else
+            var supplierPages =
+                await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize, predicate);
+
+            var supplierResponses = _mapper.Map<List<SupplierDTO>>(supplierPages.Items);
+            
+            result.Payload = new Pagination<SupplierDTO>()
             {
-                result.AddValidationError("User does not have a partner ID.");
-            }
-
+                PageIndex = supplierPages.PageIndex,
+                PageSize = supplierPages.PageSize,
+                TotalItemsCount = supplierPages.TotalItemsCount,
+                Items = supplierResponses
+            };
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound, "User is not exist");
         }
         catch (Exception e) 
         {

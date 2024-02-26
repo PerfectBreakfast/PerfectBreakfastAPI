@@ -25,7 +25,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Supper Admin
+        /// API For Super Admin
         /// </summary>
         /// <returns></returns>
         [HttpPost, Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
