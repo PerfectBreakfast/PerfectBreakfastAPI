@@ -3,6 +3,7 @@ using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Request;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
@@ -52,7 +53,7 @@ public class PartnerService : IPartnerService
             var suppliers = partner.SupplyAssignments.Select(o => o.Supplier).ToList();
             var mana = _mapper.Map<PartnerDetailResponse>(partner);
             mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
-
+            mana.Companies = _mapper.Map<List<CompanyResponsePaging>>(partner.Companies);
             result.Payload = mana;
         }
         catch (NotFoundIdException e)
