@@ -23,6 +23,7 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
     public async Task<Partner?> GetPartnerDetail(Guid id)
     {
         var managementUnit = await _dbSet.Where(x => x.Id == id)
+            .Include(x => x.Companies)
             .Include(x => x.SupplyAssignments)
             .ThenInclude(x => x.Supplier).SingleOrDefaultAsync();
         return managementUnit;
