@@ -1,5 +1,6 @@
 using Mapster;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
+using PerfectBreakfast.Application.Models.CompanyModels.Request;
 using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
@@ -21,8 +22,8 @@ public class MapsterConfig : IRegister
         config.NewConfig<Delivery, DeliveryResponseModel>();
         config.NewConfig<Partner, PartnerResponseModel>();
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
-        config.NewConfig<DailyOrder, DailyOrderModelResponse>()
-            .Map(dest => dest.Company,src => src.Company);
+        /*config.NewConfig<DailyOrder, DailyOrderModelResponse>()
+            .Map(dest => dest.Company,src => src.Company);*/
         config.NewConfig<Order, OrderHistoryResponse>()
             .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum())
             .Map(dest => dest.CompanyName,src => src.Worker.Company.Name);

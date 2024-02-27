@@ -82,7 +82,7 @@ namespace PerfectBreakfast.Application.Services
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
                         supplierFoodAssignment.PartnerId = partner.Id;
-                        supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
+                        //supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
                         supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
 
                         // Add food vao totalFoodReceive de so sanh
@@ -109,7 +109,7 @@ namespace PerfectBreakfast.Application.Services
                             PartnerName = partner.Name,
                             AmountCooked = item.AmountCooked,
                             FoodName = fo.Name,
-                            DateCooked = item.DateCooked,
+                            //DateCooked = item.DateCooked,
                             ReceivedAmount = item.ReceivedAmount,
                             Status = item.Status.ToString()
                         };
@@ -164,7 +164,7 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var supplierInclude = new IncludeInfo<User>
+                /*var supplierInclude = new IncludeInfo<User>
                 {
                     NavigationProperty = x => x.Supplier,
                     ThenIncludes = new List<Expression<Func<object, object>>>
@@ -207,7 +207,7 @@ namespace PerfectBreakfast.Application.Services
                             PartnerName = supplierFoodAssignment.Partner?.Name,
                             FoodName = supplierFoodAssignment.Food?.Name,
                             AmountCooked = supplierFoodAssignment.AmountCooked,
-                            DateCooked = supplierFoodAssignment.DateCooked,
+                            //DateCooked = supplierFoodAssignment.DateCooked,
                             ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
                             Status = supplierFoodAssignment.Status.ToString()
                         };
@@ -223,7 +223,7 @@ namespace PerfectBreakfast.Application.Services
                     PageSize = supplierFoodAssignmentPages.PageSize,
                     TotalItemsCount = supplierFoodAssignmentPages.TotalItemsCount,
                     Items = supplierFoodAssignmentResponse
-                };
+                };*/
             }
             catch (NotFoundIdException ex)
             {
@@ -243,7 +243,7 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var partnerInclude = new IncludeInfo<User>
+                /*var partnerInclude = new IncludeInfo<User>
                 {
                     NavigationProperty = x => x.Partner,
                     ThenIncludes = new List<Expression<Func<object, object>>>
@@ -306,7 +306,7 @@ namespace PerfectBreakfast.Application.Services
                     PageSize = supplierFoodAssignmentPages.PageSize,
                     TotalItemsCount = supplierFoodAssignmentPages.TotalItemsCount,
                     Items = supplierFoodAssignmentResponse
-                };
+                };*/
                 
             }
             catch (NotFoundIdException ex)

@@ -151,6 +151,7 @@ public static class DependencyInjection
                 
                 // for email configuration
                 //options.SignIn.RequireConfirmedEmail = true;
+                options.User.RequireUniqueEmail = true;
                 
                 // Cấu hình về User.
                 options.User.AllowedUserNameCharacters = // các ký tự đặt tên user

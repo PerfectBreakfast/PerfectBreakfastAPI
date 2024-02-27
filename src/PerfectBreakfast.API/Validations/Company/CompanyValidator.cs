@@ -24,9 +24,6 @@ namespace PerfectBreakfast.API.Validations.Company
                 .NotNull().WithMessage("Phone cannot be null")
                 .MaximumLength(10)
                 .Matches(@"^0\d{9}$").WithMessage("Invalid phone number format");
-            
-            RuleFor(p => p.StartWorkHour).NotEmpty().WithMessage("Start Work Hour cannot be empty")
-                .NotNull().WithMessage("Work Hour cannot be null");
 
             RuleFor(p => p.PartnerId).NotEmpty().WithMessage("Partner Id cannot be empty")
                .NotNull().WithMessage("Partner Unit Id cannot be null");

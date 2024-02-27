@@ -7,6 +7,4 @@ public record DailyOrderModelResponse(
     Guid Id,
     decimal? TotalPrice,
     int? OrderQuantity ,
-    string Status,
-    DateOnly BookingDate,
-    CompanyDto? Company);
+    string Status);

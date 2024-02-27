@@ -16,7 +16,9 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
     {
         var shippingOrders = await _dbSet.Where(x => x.ShipperId == shipperId)
             .Include(x => x.DailyOrder)
-            .ThenInclude(x => x.Company).ToListAsync();
+                .ThenInclude(x => x.MealSubscription)
+                    .ThenInclude(x => x.Company)
+            .ToListAsync();
         return shippingOrders;
     }
 

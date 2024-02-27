@@ -67,7 +67,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
             try
             {
                 //Update daily order each day after 4PM
-                var now = _currentTime.GetCurrentTime();
+                /*var now = _currentTime.GetCurrentTime();
                 
                 //Kiểm tra xem hiện tại đã qua 16h (4 PM) chưa
                 if (now.Hour < 16)
@@ -94,7 +94,8 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 else
                 {
                     Console.WriteLine("Không có dailyOrders được tạo hôm nay.");
-                }
+                }*/
+                
 
                 //// Xử lý dữ liệu để đẩy cho các đối tác theo cty
                 // var managementUnits = await _unitOfWork.PartnerRepository.GetPartnersByToday(now);
@@ -190,7 +191,7 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 //}
                 
                 //Create daily order after update
-                var companiesv2 = await _unitOfWork.CompanyRepository.GetAllAsync();
+                /*var companiesv2 = await _unitOfWork.CompanyRepository.GetAllAsync();
                 var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
                 var today = _currentTime.GetCurrentTime();
                 
@@ -206,14 +207,14 @@ namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
                 foreach (var company in companiesv2)
                 {
                     var dailyOrder = new DailyOrder();
-                    dailyOrder.CompanyId = company.Id;
+                    //dailyOrder.CompanyId = company.Id;
                     dailyOrder.BookingDate = bookingDate.AddDays(2);
                     dailyOrder.Status = DailyOrderStatus.Initial;
                     dailyOrder.OrderQuantity = 0;
                     dailyOrder.TotalPrice = 0;
                     await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
                     await _unitOfWork.SaveChangeAsync();
-                }
+                }*/
             }
             catch (Exception e)
             {

@@ -37,10 +37,11 @@ public class OrderService : IOrderService
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
+            //var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscriptionId(orderRequest.MealSubscriptionId);
             if (dailyOrder is null)
             {
-                result.AddError(ErrorCode.NotFound, "Company is not exist");
+                result.AddError(ErrorCode.NotFound, "Meal is not exist");
                 return result;
             }
 

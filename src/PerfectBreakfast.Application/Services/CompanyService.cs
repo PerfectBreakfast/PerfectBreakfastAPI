@@ -18,6 +18,7 @@ public class CompanyService : ICompanyService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+
     public CompanyService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
@@ -30,20 +31,36 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
+            // map to Company 
             var company = _mapper.Map<Company>(companyRequest);
-            await _unitOfWork.CompanyRepository.AddAsync(company);
+            // add to return CompanyId 
+            var entity = await _unitOfWork.CompanyRepository.AddAsync(company);
+            foreach (var mealSubscription in companyRequest.Meals.Select(mealModel =>
+                         new MealSubscription
+                         {
+                             CompanyId = entity.Id,
+                             MealId = mealModel.MealId,
+                             StartTime = mealModel.StartTime,
+                             EndTime = mealModel.EndTime
+                         }))
+            {
+                await _unitOfWork.MealSubscriptionRepository.AddAsync(mealSubscription);
+            }
+
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
             {
-                result.AddError(ErrorCode.ServerError, "Partner or Delivery is not exist");
+                result.AddError(ErrorCode.ServerError, "Partner or Delivery or Meal is not exist");
                 return result;
             }
+
             result.Payload = _mapper.Map<CompanyResponse>(company);
         }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -64,6 +81,7 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -84,16 +102,18 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
-    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByPartner(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByPartner(string? searchTerm,
+        int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<CompanyResponsePaging>>();
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            
+
             var partnerInclude = new IncludeInfo<User>
             {
                 NavigationProperty = x => x.Partner,
@@ -102,16 +122,16 @@ public class CompanyService : ICompanyService
                     sp => ((Partner)sp).Companies
                 }
             };
-            
+
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
             var companyIds = user.Partner.Companies.Select(s => s.Id).ToList();
             Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id);
-            
+
             var companyPages =
                 await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
-            
+
             var companyResponses = _mapper.Map<List<CompanyResponsePaging>>(companyPages.Items);
-            
+
             result.Payload = new Pagination<CompanyResponsePaging>()
             {
                 PageIndex = companyPages.PageIndex,
@@ -124,20 +144,22 @@ public class CompanyService : ICompanyService
         {
             result.AddError(ErrorCode.NotFound, "User is not exist");
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
-    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByDelivery(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByDelivery(string? searchTerm,
+        int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<CompanyResponsePaging>>();
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            
+
             var deliveryInclude = new IncludeInfo<User>
             {
                 NavigationProperty = x => x.Delivery,
@@ -146,16 +168,16 @@ public class CompanyService : ICompanyService
                     sp => ((Delivery)sp).Companies
                 }
             };
-            
+
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
             var companyIds = user.Delivery.Companies.Select(s => s.Id).ToList();
             Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id);
-            
+
             var companyPages =
                 await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
-            
+
             var companyResponses = _mapper.Map<List<CompanyResponsePaging>>(companyPages.Items);
-            
+
             result.Payload = new Pagination<CompanyResponsePaging>()
             {
                 PageIndex = companyPages.PageIndex,
@@ -168,10 +190,11 @@ public class CompanyService : ICompanyService
         {
             result.AddError(ErrorCode.NotFound, "User is not exist");
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -192,6 +215,7 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -207,6 +231,7 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -215,12 +240,15 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var companyEntity = await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.Delivery, c => c.Partner);
+            var companyEntity =
+                await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.Delivery,
+                    c => c.Partner);
             if (companyEntity is null)
             {
                 result.AddUnknownError("Id is not exsit");
                 return result;
             }
+
             var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
             var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
@@ -232,10 +260,12 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
-    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyPaginationAsync(string? searchTerm,
+        int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<CompanyResponsePaging>>();
         try
@@ -259,7 +289,8 @@ public class CompanyService : ICompanyService
                 ? null
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
 
-            var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, searchPredicate, userInclude, managementUnitInclude, deliveryUnitInclude);
+            var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, searchPredicate,
+                userInclude, managementUnitInclude, deliveryUnitInclude);
             var companyResponses = companyPages.Items.Select(c =>
                 new CompanyResponsePaging
                 {
@@ -269,7 +300,6 @@ public class CompanyService : ICompanyService
                     PhoneNumber = c.PhoneNumber,
                     Name = c.Name,
                     IsDeleted = c.IsDeleted,
-                    StartWorkHour = c.StartWorkHour,
                     MemberCount = c.Workers.Count,
                     ManagementUnit = c.Partner.Name,
                     DeliveryUnit = c.Delivery.Name
@@ -287,6 +317,7 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
@@ -309,6 +340,7 @@ public class CompanyService : ICompanyService
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 }

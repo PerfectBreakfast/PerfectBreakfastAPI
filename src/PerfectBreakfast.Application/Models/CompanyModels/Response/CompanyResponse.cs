@@ -10,7 +10,7 @@ public record CompanyResponse
     public string PhoneNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
-    public TimeOnly? StartWorkHour { get; set; }
+    //public TimeOnly? StartWorkHour { get; set; }
     public bool IsDeleted { get; set; }
     public int MemberCount { get; set; }
     public PartnerResponseModel? Partner { get; set; }

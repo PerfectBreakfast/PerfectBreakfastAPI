@@ -29,4 +29,6 @@ public interface IUnitOfWork : IDisposable
     public ISupplyAssigmentRepository SupplyAssigmentRepository { get; }
     public ISupplierFoodAssignmentRepository SupplierFoodAssignmentRepository { get; }
     public IShippingOrderRepository ShippingOrderRepository { get; }
+    public IMealRepository MealRepository { get; }
+    public IMealSubscriptionRepository MealSubscriptionRepository { get; }
 }

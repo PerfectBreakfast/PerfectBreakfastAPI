@@ -294,9 +294,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)");
 
-                    b.Property<TimeOnly?>("StartWorkHour")
-                        .HasColumnType("time(6)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DeliveryId");
@@ -310,9 +307,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("AdminId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateOnly>("BookingDate")
@@ -336,6 +330,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<Guid?>("MealSubscriptionId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid?>("ModificationBy")
                         .HasColumnType("char(36)");
 
@@ -353,10 +350,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdminId");
+                    b.HasIndex("CompanyId");
 
-                    b.HasIndex("CompanyId", "BookingDate")
-                        .IsUnique();
+                    b.HasIndex("MealSubscriptionId");
 
                     b.ToTable("DailyOrder", (string)null);
                 });
@@ -464,6 +460,91 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Food", (string)null);
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Meal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("MealType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Meal", (string)null);
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MealSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid?>("MealId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("MealId");
+
+                    b.ToTable("MealSubscription", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Menu", b =>
@@ -580,6 +661,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<Guid?>("MealId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid?>("ModificationBy")
                         .HasColumnType("char(36)");
 
@@ -587,7 +671,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Note")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("OrderCode")
@@ -610,6 +693,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("DailyOrderId");
 
                     b.HasIndex("DeliveryStaffId");
+
+                    b.HasIndex("MealId");
 
                     b.HasIndex("OrderCode")
                         .IsUnique();
@@ -672,54 +757,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderDetail", (string)null);
-                });
-
-            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.OrderHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("Action")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid?>("DailyOrderId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("DeleteBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<Guid?>("ModificationBy")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("OrderStatus")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DailyOrderId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("OrderHistory", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Partner", b =>
@@ -1071,8 +1108,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateOnly>("DateCooked")
-                        .HasColumnType("date");
+                    b.Property<Guid?>("DailyOrderId")
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid?>("DeleteBy")
                         .HasColumnType("char(36)");
@@ -1105,6 +1142,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DailyOrderId");
 
                     b.HasIndex("FoodId");
 
@@ -1312,17 +1351,15 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.DailyOrder", b =>
                 {
-                    b.HasOne("PerfectBreakfast.Domain.Entities.User", "Admin")
-                        .WithMany("DailyOrders")
-                        .HasForeignKey("AdminId");
-
-                    b.HasOne("PerfectBreakfast.Domain.Entities.Company", "Company")
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Company", null)
                         .WithMany("DailyOrders")
                         .HasForeignKey("CompanyId");
 
-                    b.Navigation("Admin");
+                    b.HasOne("PerfectBreakfast.Domain.Entities.MealSubscription", "MealSubscription")
+                        .WithMany("DailyOrders")
+                        .HasForeignKey("MealSubscriptionId");
 
-                    b.Navigation("Company");
+                    b.Navigation("MealSubscription");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Food", b =>
@@ -1332,6 +1369,21 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MealSubscription", b =>
+                {
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Company", "Company")
+                        .WithMany("MealSubscriptions")
+                        .HasForeignKey("CompanyId");
+
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Meal", "Meal")
+                        .WithMany("MealSubscriptions")
+                        .HasForeignKey("MealId");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Meal");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MenuFood", b =>
@@ -1367,6 +1419,10 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .WithMany("OrdersDeliveryStaff")
                         .HasForeignKey("DeliveryStaffId");
 
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Meal", "Meal")
+                        .WithMany("Orders")
+                        .HasForeignKey("MealId");
+
                     b.HasOne("PerfectBreakfast.Domain.Entities.PaymentMethod", "PaymentMethod")
                         .WithMany("Orders")
                         .HasForeignKey("PaymentMethodId");
@@ -1378,6 +1434,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("DailyOrder");
 
                     b.Navigation("DeliveryStaff");
+
+                    b.Navigation("Meal");
 
                     b.Navigation("PaymentMethod");
 
@@ -1404,21 +1462,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("Food");
 
                     b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.OrderHistory", b =>
-                {
-                    b.HasOne("PerfectBreakfast.Domain.Entities.DailyOrder", "DailyOrder")
-                        .WithMany("OrderHistories")
-                        .HasForeignKey("DailyOrderId");
-
-                    b.HasOne("PerfectBreakfast.Domain.Entities.User", "User")
-                        .WithMany("OrderHistories")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("DailyOrder");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.PartnerPayment", b =>
@@ -1488,6 +1531,10 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.SupplierFoodAssignment", b =>
                 {
+                    b.HasOne("PerfectBreakfast.Domain.Entities.DailyOrder", "DailyOrder")
+                        .WithMany("SupplierFoodAssignments")
+                        .HasForeignKey("DailyOrderId");
+
                     b.HasOne("PerfectBreakfast.Domain.Entities.Food", "Food")
                         .WithMany("SupplierFoodAssignments")
                         .HasForeignKey("FoodId");
@@ -1499,6 +1546,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasOne("PerfectBreakfast.Domain.Entities.SupplierCommissionRate", "SupplierCommissionRate")
                         .WithMany("SupplierFoodAssignments")
                         .HasForeignKey("SupplierCommissionRateId");
+
+                    b.Navigation("DailyOrder");
 
                     b.Navigation("Food");
 
@@ -1571,18 +1620,20 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                 {
                     b.Navigation("DailyOrders");
 
+                    b.Navigation("MealSubscriptions");
+
                     b.Navigation("Workers");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.DailyOrder", b =>
                 {
-                    b.Navigation("OrderHistories");
-
                     b.Navigation("Orders");
 
                     b.Navigation("PartnerPayments");
 
                     b.Navigation("ShippingOrders");
+
+                    b.Navigation("SupplierFoodAssignments");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Delivery", b =>
@@ -1605,6 +1656,18 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("SupplierCommissionRates");
 
                     b.Navigation("SupplierFoodAssignments");
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Meal", b =>
+                {
+                    b.Navigation("MealSubscriptions");
+
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MealSubscription", b =>
+                {
+                    b.Navigation("DailyOrders");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Menu", b =>
@@ -1653,10 +1716,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.User", b =>
                 {
-                    b.Navigation("DailyOrders");
-
-                    b.Navigation("OrderHistories");
-
                     b.Navigation("OrdersDeliveryStaff");
 
                     b.Navigation("OrdersWorker");

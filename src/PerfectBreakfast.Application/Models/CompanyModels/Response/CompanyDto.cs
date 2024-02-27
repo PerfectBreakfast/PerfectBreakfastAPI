@@ -1,3 +1,3 @@
 namespace PerfectBreakfast.Application.Models.CompanyModels.Response;
 
-public record CompanyDto(Guid Id,string Name,string Address,TimeOnly StartWorkHour);
+public record CompanyDto(Guid Id,string Name,string Address);

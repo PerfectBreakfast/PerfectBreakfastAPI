@@ -123,13 +123,13 @@ public class UserService : IUserService
             var identityResult = await _unitOfWork.UserManager.CreateAsync(user, request.Password);
             if (!identityResult.Succeeded)
             {
-                result.AddError(ErrorCode.ServerError,identityResult.Errors.Select(x => x.Description).ToString());
+                result.AddError(ErrorCode.BadRequest,identityResult.Errors.Select(x => x.Description.ToString()).First());
                 return result;
             }
             var identityRe = await _unitOfWork.UserManager.AddToRoleAsync(user, ConstantRole.CUSTOMER);
             if (!identityRe.Succeeded)
             {
-                result.AddError(ErrorCode.ServerError,identityRe.Errors.Select(x => x.Description).ToString());
+                result.AddError(ErrorCode.ServerError,identityRe.Errors.Select(x => x.Description.ToString()).First());
                 return result;
             }
             result.Payload = identityRe.Succeeded;
@@ -278,8 +278,18 @@ public class UserService : IUserService
             user.UserName = requestModel.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
-            await _unitOfWork.UserManager.CreateAsync(user,"123456");
-            await _unitOfWork.UserManager.AddToRoleAsync(user, requestModel.RoleName);
+            var identityResult = await _unitOfWork.UserManager.CreateAsync(user,"123456");
+            if (!identityResult.Succeeded)
+            {
+                result.AddError(ErrorCode.BadRequest,identityResult.Errors.Select(x => x.Description.ToString()).First());
+                return result;
+            }
+            var identityRe = await _unitOfWork.UserManager.AddToRoleAsync(user, requestModel.RoleName);
+            if (!identityRe.Succeeded)
+            {
+                result.AddError(ErrorCode.BadRequest,identityResult.Errors.Select(x => x.Description.ToString()).First());
+                return result;
+            }
             result.Payload = true;
         }
         catch (Exception e)

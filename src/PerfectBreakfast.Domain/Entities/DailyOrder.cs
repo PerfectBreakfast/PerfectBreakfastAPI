@@ -10,15 +10,12 @@ public class DailyOrder : BaseEntity
     public DailyOrderStatus Status { get; set; }
 
     // relationship
-    public Guid? CompanyId { get; set; }
-    public Guid? AdminId { get; set; }
-
-    public Company? Company { get; set; }
-    public User? Admin { get; set; }
-
-    public ICollection<OrderHistory?> OrderHistories { get; set; }
+    public Guid? MealSubscriptionId { get; set; }
+    
+    public MealSubscription? MealSubscription { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
     public ICollection<ShippingOrder?> ShippingOrders { get; set; }
     public ICollection<Order?> Orders { get; set; }
+    public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
 
 }
