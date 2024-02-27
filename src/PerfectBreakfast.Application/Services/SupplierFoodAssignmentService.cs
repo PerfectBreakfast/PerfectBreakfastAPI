@@ -65,8 +65,16 @@ namespace PerfectBreakfast.Application.Services
                     var supplierCommissionRates =
                         await _unitOfWork.SupplierCommissionRateRepository.GetBySupplierId(supplier.Id);
                     // Lấy các phần tử từ danh sách request có SupplierId khớp với supplier.Id
-                    var supplierFoodAssignmentRequests = request.Where(request => request.SupplierId == supplier.Id).ToList();
-    
+                    var supplierFoodAssignments = request.Where(request => request.SupplierId == supplier.Id).ToList();
+                    var supplierFoodAssignmentRequests = supplierFoodAssignments
+                        .GroupBy(request => new { request.SupplierId, request.FoodId }) // Nhóm theo SupplierId và FoodId
+                        .Select(group => new SupplierFoodAssignmentRequest
+                        {
+                            SupplierId = group.Key.SupplierId, // Lấy SupplierId từ Key của mỗi nhóm
+                            FoodId = group.Key.FoodId, // Lấy FoodId từ Key của mỗi nhóm
+                            AmountCooked = group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
+                        }).ToList();
+                    
                     // Xử lý mỗi trường hợp riêng lẻ
                     foreach (var supplierFoodAssignmentRequest in supplierFoodAssignmentRequests)
                     {
@@ -189,13 +197,16 @@ namespace PerfectBreakfast.Application.Services
                     await _unitOfWork.SupplierFoodAssignmentRepository.ToPagination(pageIndex, pageSize, predicate,
                          foodInclude, partnerInclude);
                 
-                var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.DateCooked)
+                var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.CreationDate.Date)
                     .ToDictionary(x => x.Key, g => g.ToList());
                 
                 // custom output
                 var supplierFoodAssignmentResponse = supplierFoodAssignmentByDateCooked.Select(x =>
                 {
-                    var dateCooked = x.Key; // BookingDate từ Dictionary
+                    var creationDated = x.Key; // BookingDate từ Dictionary
+                    
+                    var foodAssignmentGroupByPartner = x.Value.GroupBy(y => y.Partner.Name)
+                        .ToDictionary(y => y.Key, g => g.ToList());
 
                     // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
                     var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
@@ -211,10 +222,30 @@ namespace PerfectBreakfast.Application.Services
                             ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
                             Status = supplierFoodAssignment.Status.ToString()
                         };
+                    var foodAssignmentGroupByPartnerResponse = foodAssignmentGroupByPartner.Select(x =>
+                    {
+                        var partnerName = x.Key;
+                        
+                        // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                        var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                        {
+                            // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                            return new FoodAssignmentResponse
+                            {
+                                Id = supplierFoodAssignment.Id,
+                                FoodName = supplierFoodAssignment.Food?.Name,
+                                AmountCooked = supplierFoodAssignment.AmountCooked,
+                                DateCooked = supplierFoodAssignment.DateCooked,
+                                ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                                Status = supplierFoodAssignment.Status.ToString()
+                            };
+                        }).ToList();
+                        return new FoodAssignmentGroupByPartner(partnerName, foodAssignmentResponses);
                     }).ToList();
+                    
 
                     // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
-                    return new SupplierFoodAssignmentForSupplier(dateCooked, foodAssignmentResponses);
+                    return new SupplierFoodAssignmentForSupplier(DateOnly.FromDateTime(creationDated), foodAssignmentGroupByPartnerResponse);
                 }).ToList();
                 
                 result.Payload = new Pagination<SupplierFoodAssignmentForSupplier>
@@ -237,9 +268,9 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<Pagination<SupplierFoodAssignmetForPartner>>> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<SupplierFoodAssignmentForPartner>>> GetSupplierFoodAssignmentByPartner(int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<Pagination<SupplierFoodAssignmetForPartner>>();
+            var result = new OperationResult<Pagination<SupplierFoodAssignmentForPartner>>();
             var userId = _claimsService.GetCurrentUserId;
             try
             {
@@ -253,7 +284,7 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
                 var partnerId = user.Partner.SupplierFoodAssignments.Select(s => s.PartnerId).ToList();
-                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => partnerId.Contains(s.PartnerId.Value);
+                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => partnerId.Contains(s.PartnerId);
                 
                 // Get Paging
                 var foodInclude = new IncludeInfo<SupplierFoodAssignment>
@@ -272,35 +303,41 @@ namespace PerfectBreakfast.Application.Services
                     await _unitOfWork.SupplierFoodAssignmentRepository.ToPagination(pageIndex, pageSize, predicate,
                         foodInclude, supplierInclude);
                 
-                var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.DateCooked)
+                var supplierFoodAssignmentByCreationDated = supplierFoodAssignmentPages.Items.GroupBy(x => x.CreationDate.Date)
                     .ToDictionary(x => x.Key, g => g.ToList());
                 
                 // custom output
-                var supplierFoodAssignmentResponse = supplierFoodAssignmentByDateCooked.Select(x =>
+                var supplierFoodAssignmentResponse = supplierFoodAssignmentByCreationDated.Select(x =>
                 {
-                    var dateCooked = x.Key; // BookingDate từ Dictionary
+                    var creationDated = x.Key; // Creation từ Dictionary
+                    var foodAssignmentGroupBySupplier = x.Value.GroupBy(y => y.SupplierCommissionRate.Supplier.Name)
+                        .ToDictionary(y => y.Key, g => g.ToList());
 
-                    // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
-                    var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                    var foodAssignmentGroupBySupplierResponse = foodAssignmentGroupBySupplier.Select(x =>
                     {
-                        // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
-                        return new FoodAssignmentResponse
+                        var supplierName = x.Key;
+                        // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                        var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
                         {
-                            Id = supplierFoodAssignment.Id,
-                            SupplierName = supplierFoodAssignment.SupplierCommissionRate?.Supplier?.Name,
-                            FoodName = supplierFoodAssignment.Food?.Name,
-                            AmountCooked = supplierFoodAssignment.AmountCooked,
-                            DateCooked = supplierFoodAssignment.DateCooked,
-                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
-                            Status = supplierFoodAssignment.Status.ToString()
-                        };
+                            // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                            return new FoodAssignmentResponse
+                            {
+                                Id = supplierFoodAssignment.Id,
+                                FoodName = supplierFoodAssignment.Food?.Name,
+                                AmountCooked = supplierFoodAssignment.AmountCooked,
+                                DateCooked = supplierFoodAssignment.DateCooked,
+                                ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                                Status = supplierFoodAssignment.Status.ToString()
+                            };
+                        }).ToList();
+                        return new FoodAssignmentGroupBySupplier(supplierName, foodAssignmentResponses);
                     }).ToList();
-
+                    
                     // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
-                    return new SupplierFoodAssignmetForPartner(dateCooked, foodAssignmentResponses);
+                    return new SupplierFoodAssignmentForPartner(DateOnly.FromDateTime(creationDated), foodAssignmentGroupBySupplierResponse);
                 }).ToList();
                 
-                result.Payload = new Pagination<SupplierFoodAssignmetForPartner>
+                result.Payload = new Pagination<SupplierFoodAssignmentForPartner>
                 {
                     PageIndex = supplierFoodAssignmentPages.PageIndex,
                     PageSize = supplierFoodAssignmentPages.PageSize,
