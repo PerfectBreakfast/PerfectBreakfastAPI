@@ -37,15 +37,20 @@ public class OrderService : IOrderService
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            //var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByCompanyId((Guid)user.CompanyId);
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscriptionId(orderRequest.MealSubscriptionId);
+            
+            // fix lại đoạn bốc DailyOrder này cho nó sờ mút ==================
+            // ============================================================================
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscriptionId(orderRequest.MealId);
             if (dailyOrder is null)
             {
                 result.AddError(ErrorCode.NotFound, "Meal is not exist");
                 return result;
             }
-
+             // ============================================================================
+             // ============================================================================
+             // ============================================================================
             var order = _mapper.Map<Order>(orderRequest);
+            order.MealId = orderRequest.MealId;
             var orderDetail = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
             foreach (var od in orderDetail)
             {
