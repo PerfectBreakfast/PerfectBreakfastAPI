@@ -34,7 +34,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                var supplierfoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
+                var supplierFoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
                 var partner = await _unitOfWork.PartnerRepository.GetByIdAsync((Guid)user.PartnerId);
                 // Lấy supplier từ management Unit
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
@@ -45,8 +45,8 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
-                var totalFoodCountOperationReult = await _foodService.GetFoodsForPartner();
-                var totalFoodCount = totalFoodCountOperationReult.Payload;
+                var totalFoodCountOperationResult = await _foodService.GetFoodsForPartner();
+                var totalFoodCount = totalFoodCountOperationResult.Payload;
                 var totalFoodReceive = new Dictionary<string, int>();
                 
                 //Lay cac supplier trung voi supplier nhap vao
@@ -90,7 +90,6 @@ namespace PerfectBreakfast.Application.Services
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
                         supplierFoodAssignment.SupplierCommissionRate = supplierCommissionRate;
                         supplierFoodAssignment.PartnerId = partner.Id;
-                        //supplierFoodAssignment.DateCooked = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
                         supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
 
                         // Add food vao totalFoodReceive de so sanh
@@ -129,7 +128,7 @@ namespace PerfectBreakfast.Application.Services
                         SupplierName = supplier.Name,
                         FoodAssignmentResponses = foodAssignmentResponses
                     };
-                    supplierfoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
+                    supplierFoodAssignmentsResult.Add(supplierFoodAssignmentResponse);
                 }
                 
                 // Sau khi hoàn thành vòng lặp foreach (var supplier in suppliers)
@@ -152,7 +151,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.ServerError, "Food or Supplier are not exist");
                     return result;
                 }
-                result.Payload = supplierfoodAssignmentsResult;
+                result.Payload = supplierFoodAssignmentsResult;
 
             }
             catch (NotFoundIdException ex)

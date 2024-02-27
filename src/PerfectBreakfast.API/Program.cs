@@ -5,6 +5,7 @@ using PerfectBreakfast.API;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Infrastructure;
+using PerfectBreakfast.Infrastructure.BackgroundJobServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,4 +49,8 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
         }
     }
 });
+RecurringJob.AddOrUpdate<ManagementService>(
+    "recurringJob1",
+    service => service.AutoUpdateAndCreateDailyOrder(),
+    Cron.Daily(9));
 app.Run();
