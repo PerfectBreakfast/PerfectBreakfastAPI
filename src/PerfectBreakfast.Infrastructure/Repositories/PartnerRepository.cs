@@ -13,12 +13,13 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
     {
     }
     // to do
-    public async Task<List<Partner>> GetPartners()
+    /*public async Task<List<Partner>> GetPartners()
     {
-        return await _dbSet.Include(mu => mu.Companies)
+        /*return await _dbSet.Include(mu => mu.Companies)
             .ThenInclude(c => c.DailyOrders)
-            .ToListAsync();
-    }
+            .ToListAsync();#1#
+         throw new NotImplementedException();
+    }*/
 
     public async Task<Partner?> GetPartnerDetail(Guid id)
     {

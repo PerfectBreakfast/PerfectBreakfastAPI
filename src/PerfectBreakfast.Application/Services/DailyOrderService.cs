@@ -199,7 +199,7 @@ public class DailyOrderService : IDailyOrderService
         DateOnly bookingDate)
     {
         var result = new OperationResult<TotalFoodForCompanyResponse>();
-        try
+        /*try
         {
             var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
             if (company == null)
@@ -279,7 +279,7 @@ public class DailyOrderService : IDailyOrderService
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
-        }
+        }*/
 
         return result;
     }

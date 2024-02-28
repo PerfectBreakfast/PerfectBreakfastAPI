@@ -15,6 +15,6 @@ public class Company : BaseEntity
     public Delivery? Delivery { get; set; }
     
     public ICollection<User?> Workers { get; set; }
-    public ICollection<DailyOrder?> DailyOrders { get; set; }
+    //public ICollection<DailyOrder?> DailyOrders { get; set; }
     public ICollection<MealSubscription?> MealSubscriptions { get; set; }
 }
