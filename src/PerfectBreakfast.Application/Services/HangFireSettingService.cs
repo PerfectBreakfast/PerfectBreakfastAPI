@@ -21,7 +21,7 @@ public class HangFireSettingService : IHangfireSettingService
         {
             var time = request.Time.Subtract(TimeSpan.FromHours(7));
             var cronSchedule = $"{time.Minute} {time.Hour} * * * ";  // parse qua dang chạy hàng ngày vào lúc ....
-            _recurringJobManager.AddOrUpdate<IManagementService>("recurringJob3", 
+            _recurringJobManager.AddOrUpdate<IManagementService>("recurringJob1", 
                 d => d.AutoUpdateAndCreateDailyOrder(), cronSchedule);
             result.Payload = true;
         }

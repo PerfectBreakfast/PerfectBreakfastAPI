@@ -49,8 +49,4 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
         }
     }
 });
-RecurringJob.AddOrUpdate<ManagementService>(
-    "recurringJob1",
-    service => service.AutoUpdateAndCreateDailyOrder(),
-    Cron.Daily(9));
 app.Run();
