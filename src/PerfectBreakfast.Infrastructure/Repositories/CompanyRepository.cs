@@ -15,10 +15,9 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
     // to do
     public async Task<Company?> GetCompanyById(Guid id)
     {
-        /*return await _dbSet.Include(c => c.DailyOrders)
-                            .Include(c => c. MealSubscriptions)
-                            .FirstOrDefaultAsync(c => c.Id == id);*/
-        throw new NotImplementedException();
+        return await _dbSet.Include(c => c.MealSubscriptions)
+                            .ThenInclude(c => c. DailyOrders)
+                            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
 }
