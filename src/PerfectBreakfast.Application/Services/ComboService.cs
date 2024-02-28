@@ -108,9 +108,9 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<ComboResponse>> GetCombo(Guid id)
+        public async Task<OperationResult<ComboDetailResponse>> GetCombo(Guid id)
         {
-            var result = new OperationResult<ComboResponse>();
+            var result = new OperationResult<ComboDetailResponse>();
             try
             {
                 var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(id);
@@ -121,8 +121,8 @@ namespace PerfectBreakfast.Application.Services
                 }
                 var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
                 decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
-                var listComboFood = _mapper.Map<List<FoodResponse?>>(foodEntities);
-                var co = _mapper.Map<ComboResponse>(combo);
+                var listComboFood = _mapper.Map<List<FoodResponeCategory?>>(foodEntities);
+                var co = _mapper.Map<ComboDetailResponse>(combo);
                 co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
                 co.FoodResponses = listComboFood;
                 co.comboPrice = totalFoodPrice;

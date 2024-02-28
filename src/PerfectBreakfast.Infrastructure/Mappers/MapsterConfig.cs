@@ -27,5 +27,14 @@ public class MapsterConfig : IRegister
         config.NewConfig<Order, OrderHistoryResponse>()
             .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum())
             .Map(dest => dest.CompanyName,src => src.Worker.Company.Name);
+        config.NewConfig<Food, FoodResponeCategory>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.Price, src => src.Price)
+            .Map(dest => dest.Image, src => src.Image)
+            .Map(dest => dest.CategoryResponse, src => src.Category);
+        config.NewConfig<Category, CategoryResponse>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.Name, src => src.Name);
     }
 }
