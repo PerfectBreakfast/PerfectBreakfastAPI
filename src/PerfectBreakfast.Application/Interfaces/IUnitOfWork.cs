@@ -31,4 +31,5 @@ public interface IUnitOfWork : IDisposable
     public IShippingOrderRepository ShippingOrderRepository { get; }
     public IMealRepository MealRepository { get; }
     public IMealSubscriptionRepository MealSubscriptionRepository { get; }
+    public IMenuFoodRepository MenuFoodRepository{ get;}
 }

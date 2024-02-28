@@ -287,6 +287,10 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id, m => m.MenuFoods);
+                foreach (var menuFood in menuEntity.MenuFoods)
+                {
+                    _unitOfWork.MenuFoodRepository.Remove(menuFood);
+                }
                 var list = new List<MenuFood>();
                 foreach (var mf in menuRequest.MenuFoodRequests)
                 {
@@ -301,7 +305,6 @@ namespace PerfectBreakfast.Application.Services
                         list.Add(menuFood);
                     }
                 }
-                menuEntity.MenuFoods.Clear();
                 _mapper.Map(menuRequest, menuEntity);
                 menuEntity.MenuFoods = list;
                 _unitOfWork.MenuRepository.Update(menuEntity);
