@@ -40,7 +40,13 @@ public class OrderService : IOrderService
             
             // fix lại đoạn bốc DailyOrder này cho nó sờ mút ==================
             // ============================================================================
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscriptionId(orderRequest.MealId);
+            var mealSubscription = await _unitOfWork.MealSubscriptionRepository.FindByCompanyId((Guid)user.CompanyId, orderRequest.MealId);
+            if (mealSubscription == null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Company does not have this meal");
+                return result;
+            }
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscription(mealSubscription.Id);
             if (dailyOrder is null)
             {
                 result.AddError(ErrorCode.NotFound, "Meal is not exist");
@@ -83,7 +89,6 @@ public class OrderService : IOrderService
             // lấy phương thức thanh toán
             var paymentMethod = orderRequest.Payment.ToUpper();
             
-            
             decimal totalPrice = orderDetail.Sum(detail => detail.Quantity * detail.UnitPrice);
             int orderCode = Utils.RandomCode.GenerateOrderCode();
             order.OrderCode = orderCode;
@@ -99,25 +104,26 @@ public class OrderService : IOrderService
             {
                 case ConstantPaymentMethod.BANKING: 
                     // Gọi phương thức tạo paymentLink Ngân hàng 
-                    var paymentResponse = await _payOsService.CreatePaymentLink(entity);
+                    /*var paymentResponse = await _payOsService.CreatePaymentLink(entity);
                     if (paymentResponse.IsSuccess)
                     {
                         result.Payload = paymentResponse;
-                    }
+                    }*/
 
                     // không chơi tạo link thanh toán nữa test cho dễ
-                    /*result.Payload = new PaymentResponse
+                    result.Payload = new PaymentResponse
                     {
                         IsSuccess = true,
                         DeepLink = null,
                         PaymentUrl = "thành công rồi mà không trả link",
                         QrCode = "QRcode"
                     };
-                    entity.OrderStatus = OrderStatus.Paid;*/
-                    else
-                    {
-                        throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
-                    }
+                    entity.OrderStatus = OrderStatus.Paid;
+                    
+                    // else
+                    // {
+                    //     throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
+                    // }
                     break;
 
                 case ConstantPaymentMethod.MOMO: 

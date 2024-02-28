@@ -16,7 +16,8 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
     public async Task<Company?> GetCompanyById(Guid id)
     {
         return await _dbSet.Include(c => c.DailyOrders)
-                           .FirstOrDefaultAsync(c => c.Id == id);
+                            .Include(c => c. MealSubscriptions)
+                            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
 }

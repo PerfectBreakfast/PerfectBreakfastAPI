@@ -23,7 +23,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpPost, Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
-    public async Task<IActionResult> CreateSupplierFoodAssignment(List<SupplierFoodAssignmentRequest> supplierFoodAssignmentRequest)
+    public async Task<IActionResult> CreateSupplierFoodAssignment(SupplierFoodAssignmentsRequest supplierFoodAssignmentRequest)
     {
         var response = await _supplierFoodAssignmentService.CreateSupplierFoodAssignment(supplierFoodAssignmentRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

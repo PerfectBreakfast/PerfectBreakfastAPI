@@ -12,46 +12,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
         }
 
-        /*public async Task<DailyOrder?> FindAllDataByCompanyId(Guid? companyId)
-        {
-            var a = await _dbSet.Where(d => d.CompanyId == companyId)
-                .OrderByDescending(d => d.CreationDate)
-                .Include(d => d.Orders)
-                    .ThenInclude(o => o.OrderDetails)
-                        .ThenInclude(c => c.Combo)
-                            .ThenInclude(m => m.MenuFoods)
-                                .ThenInclude(f => f.Food)
-                .FirstOrDefaultAsync();
-            return a;
-        }
-
-        public async Task<bool> IsDailyOrderCreated(DateTime date)
-        {
-            // Thực hiện truy vấn để kiểm tra xem đã có DailyOrder nào được tạo cho ngày đã cho hay không
-            var existingDailyOrder = await _dbSet
-                .AnyAsync(d => 
-                        d.Status == DailyOrderStatus.Initial && d.BookingDate == DateOnly.FromDateTime(date).AddDays(2) || d.CreationDate.AddDays(1) == date);
-
-            // Trả về kết quả kiểm tra
-            return existingDailyOrder;
-        }
-
-        public async Task<DailyOrder?> FindByCompanyId(Guid? companyId)
-        {
-            return await _dbSet.Where(d => d.CompanyId == companyId && d.Status == DailyOrderStatus.Initial)
-                .OrderByDescending(d => d.CreationDate)
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<List<DailyOrder>> FindByCreationDate(DateTime dateTime)
-        {
-            return await _dbSet
-                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) && d.Status == DailyOrderStatus.Initial)
-                .Include(d => d.Orders)
-                .Include(d => d.Company)
-                .ToListAsync();
-        }*/
-        public async Task<DailyOrder> FindByMealSubscriptionId(Guid? mealSubscriptionId)
+        public async Task<DailyOrder?> FindAllDataByCompanyId(Guid? mealSubscriptionId)
         {
             var a = await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId)
                 .OrderByDescending(d => d.CreationDate)
@@ -62,6 +23,51 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                                 .ThenInclude(f => f.Food)
                 .FirstOrDefaultAsync();
             return a;
+        }
+
+        public async Task<DailyOrder?> FindByCompanyId(Guid? mealSubscriptionId)
+        {
+            return await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId && d.Status == DailyOrderStatus.Initial)
+                .OrderByDescending(d => d.CreationDate)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<DailyOrder>> FindByBookingDate(DateTime dateTime)
+        {
+            return await _dbSet
+                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
+                            d.Status == DailyOrderStatus.Initial)
+                .Include(d => d.Orders)
+                .Include(d => d.MealSubscription)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsDailyOrderCreated(DateTime date)
+        {
+            // Thực hiện truy vấn để kiểm tra xem đã có DailyOrder nào được tạo cho ngày đã cho hay không
+            var existingDailyOrder = await _dbSet
+                .AnyAsync(d => 
+                    d.Status == DailyOrderStatus.Initial && d.BookingDate == DateOnly.FromDateTime(date).AddDays(2) || d.CreationDate.AddDays(1) == date);
+
+            // Trả về kết quả kiểm tra
+            return existingDailyOrder;
+        }
+
+        public async Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId)
+        {
+            var a = await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId)
+                .OrderByDescending(d => d.CreationDate)
+                .Include(d => d.Orders)
+                .FirstOrDefaultAsync();
+            return a;
+        }
+
+        public async Task<DailyOrder?> GetById(Guid id)
+        {
+            return await _dbSet.Where(d => d.Id == id)
+                .Include(d => d.MealSubscription)
+                .FirstOrDefaultAsync();
+             
         }
     }
 }
