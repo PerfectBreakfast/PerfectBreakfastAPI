@@ -24,6 +24,7 @@ public class MealSubscriptionRepository : GenericRepository<MealSubscription>,IM
     {
         return await _dbSet.Where(m => m.CompanyId == companyId)
             .Include(m => m.DailyOrders)
+            .Include(m => m.Meal)
             .ToListAsync();
     }
 }

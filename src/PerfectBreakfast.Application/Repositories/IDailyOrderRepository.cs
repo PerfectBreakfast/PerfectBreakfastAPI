@@ -9,6 +9,6 @@ namespace PerfectBreakfast.Application.Repositories
         public Task<List<DailyOrder>> FindByBookingDate(DateTime dateTime);
         public Task<bool> IsDailyOrderCreated(DateTime date);
         public Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId);
-        //public Task<DailyOrder> GetByCompanyAndMeal(Guid companyId, Guid mealId);
+        public Task<DailyOrder?> GetById(Guid id);
     }
 }

@@ -61,5 +61,13 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
             return a;
         }
+
+        public async Task<DailyOrder?> GetById(Guid id)
+        {
+            return await _dbSet.Where(d => d.Id == id)
+                .Include(d => d.MealSubscription)
+                .FirstOrDefaultAsync();
+             
+        }
     }
 }

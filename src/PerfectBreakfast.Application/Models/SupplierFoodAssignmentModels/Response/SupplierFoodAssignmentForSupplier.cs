@@ -4,5 +4,4 @@ public record SupplierFoodAssignmentForSupplier(
 
      DateOnly? Date,
      List<FoodAssignmentGroupByPartner> FoodAssignmentGroupByPartners
-     //List<FoodAssignmentResponse> FoodAssignmentForSuppliers
 );

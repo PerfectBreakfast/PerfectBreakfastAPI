@@ -3,5 +3,5 @@
 public record FoodAssignmentGroupByPartner
 (
     string partnerName,
-    List<FoodAssignmentResponse> FoodAssignmentResponses)
+    List<SupplierDeliveryTime> SupplierDeliveryTimes)
     ;

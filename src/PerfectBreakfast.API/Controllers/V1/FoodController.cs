@@ -91,10 +91,10 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
-        public async Task<IActionResult> GetFoodForPartner()
+        [HttpGet("{id}/dailyorderid/partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+        public async Task<IActionResult> GetFoodForPartner(Guid id)
         {
-            var response = await _foodService.GetFoodsForPartner();
+            var response = await _foodService.GetFoodsForPartner(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
     }

@@ -3,10 +3,10 @@
     public record FoodAssignmentResponse
     {
         public Guid Id { get; set; }
+        public Guid? DailyOrderId { get; set; }
         public string? PartnerName { get; set; } = null;
         public string? FoodName { get; set; }
         public int AmountCooked { get; set; }
-        public DateOnly DateCooked { get; set; }
         public decimal? ReceivedAmount { get; set; }
         public string Status { get; set; }
     }
