@@ -56,7 +56,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// <param name="comboRequest"></param>
         /// <returns></returns>
         [HttpPut("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-        public async Task<IActionResult> UpdateCombo(Guid id, UpdateComboRequest comboRequest)
+        public async Task<IActionResult> UpdateCombo(Guid id,[FromForm] UpdateComboRequest comboRequest)
         {
             var response = await _comboService.UpdateCombo(id, comboRequest);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

@@ -260,7 +260,9 @@ namespace PerfectBreakfast.Application.Services
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 // map from requestModel => supplier
-                _mapper.Map(requestModel, food);
+                //_mapper.Map(requestModel, food);
+                food.Name = requestModel.Name ?? food.Name;
+                food.Price = requestModel.Price ?? food.Price;
                 if (requestModel.Image is not null)
                 {
                     food.Image = await _imgurService.UploadImageAsync(requestModel.Image);

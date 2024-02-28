@@ -217,10 +217,16 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
-                _mapper.Map(updateComboRequest, comboEntity);
+                //_mapper.Map(updateComboRequest, comboEntity);
+                comboEntity.Name = updateComboRequest.Name ?? comboEntity.Name;
+                comboEntity.Content = updateComboRequest.Content ?? comboEntity.Content;
                 if (updateComboRequest.Image is not null)
                 {
                     comboEntity.Image = await _imgurService.UploadImageAsync(updateComboRequest.Image);
+                }
+                if (updateComboRequest.FoodId is not null)
+                {
+                    // chưa làm đợi tí 
                 }
                 _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();

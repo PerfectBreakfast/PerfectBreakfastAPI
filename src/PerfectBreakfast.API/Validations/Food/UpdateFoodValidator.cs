@@ -7,7 +7,7 @@ public class UpdateFoodValidator : AbstractValidator<UpdateFoodRequestModels>
 {
     public UpdateFoodValidator()
     {
-        RuleFor(x => x.Name).NotNull().NotEmpty().WithMessage("Name can not null or empty");
-        RuleFor(x => x.Price).NotNull().NotEmpty().WithMessage("Price can not null or empty");
+        RuleFor(x => x.Name).MaximumLength(100).WithMessage("Name can not too long");
+        //RuleFor(x => x.Price).NotNull().NotEmpty().WithMessage("Price can not null or empty");
     }
 }
