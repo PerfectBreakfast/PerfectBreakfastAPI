@@ -39,7 +39,6 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
     {
         var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)
-            .ThenInclude(c => c.DailyOrders)
             .ToListAsync();
     }
 }
