@@ -218,6 +218,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
                 _mapper.Map(updateComboRequest, comboEntity);
+                
                 comboEntity.Image = await _imgurService.UploadImageAsync(updateComboRequest.Image);
                 _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();

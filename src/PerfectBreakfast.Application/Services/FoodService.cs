@@ -240,7 +240,10 @@ namespace PerfectBreakfast.Application.Services
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 // map from requestModel => supplier
                 _mapper.Map(requestModel, food);
-                food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+                if (requestModel.Image is not null)
+                {
+                    food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+                }
                 // update
                 _unitOfWork.FoodRepository.Update(food);
                 // saveChange
