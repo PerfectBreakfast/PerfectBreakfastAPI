@@ -216,7 +216,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<ComboResponse>();
             try
             {
-                var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id);
+                var comboEntity = await _unitOfWork.ComboRepository.GetByIdAsync(id,x => x.ComboFoods);
                 //_mapper.Map(updateComboRequest, comboEntity);
                 comboEntity.Name = updateComboRequest.Name ?? comboEntity.Name;
                 comboEntity.Content = updateComboRequest.Content ?? comboEntity.Content;
@@ -224,9 +224,25 @@ namespace PerfectBreakfast.Application.Services
                 {
                     comboEntity.Image = await _imgurService.UploadImageAsync(updateComboRequest.Image);
                 }
+                // Xử lý danh sách FoodId mới
                 if (updateComboRequest.FoodId is not null)
                 {
-                    // chưa làm đợi tí 
+                    var existingComboFoods = comboEntity.ComboFoods.ToList();
+                    foreach (var comboFood in existingComboFoods)
+                    {
+                        _unitOfWork.ComboFoodRepository.Remove(comboFood);
+                    }
+
+                    // Tạo mới mối quan hệ ComboFood với danh sách FoodId mới
+                    foreach (var foodId in updateComboRequest.FoodId.Where(id => id.HasValue))
+                    {
+                        var newComboFood = new ComboFood
+                        {
+                            ComboId = comboEntity.Id,
+                            FoodId = foodId.Value,
+                        };
+                        await _unitOfWork.ComboFoodRepository.AddAsync(newComboFood);
+                    }
                 }
                 _unitOfWork.ComboRepository.Update(comboEntity);
                 await _unitOfWork.SaveChangeAsync();

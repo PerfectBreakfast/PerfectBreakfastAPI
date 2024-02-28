@@ -32,4 +32,5 @@ public interface IUnitOfWork : IDisposable
     public IMealRepository MealRepository { get; }
     public IMealSubscriptionRepository MealSubscriptionRepository { get; }
     public IMenuFoodRepository MenuFoodRepository{ get;}
+    public IComboFoodRepository ComboFoodRepository{ get;}
 }
