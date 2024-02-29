@@ -81,11 +81,12 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            
             var result = new Pagination<DailyOrder>()
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = items.Count,
+                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
                 Items = items,
             };
             return result;

@@ -6,5 +6,5 @@ public record CompanyForDailyOrderResponse(
     Guid Id,
     string Name,
     string Address,
-    List<DailyOrderModelResponse> DailyOrderModelResponses
+    List<DailyOrderModelResponse> DailyOrders
     );

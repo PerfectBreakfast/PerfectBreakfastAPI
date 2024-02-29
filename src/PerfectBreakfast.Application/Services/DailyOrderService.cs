@@ -177,7 +177,7 @@ public class DailyOrderService : IDailyOrderService
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderPages.TotalItemsCount,
+                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
@@ -189,7 +189,6 @@ public class DailyOrderService : IDailyOrderService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
