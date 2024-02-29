@@ -1,7 +1,5 @@
 using Mapster;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
-using PerfectBreakfast.Application.Models.CompanyModels.Request;
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;

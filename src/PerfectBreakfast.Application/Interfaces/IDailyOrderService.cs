@@ -1,6 +1,6 @@
 ﻿using PerfectBreakfast.Application.Commons;
-using PerfectBreakfast.Application.Models.DaliyOrder.Request;
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.Request;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 
 namespace PerfectBreakfast.Application.Interfaces

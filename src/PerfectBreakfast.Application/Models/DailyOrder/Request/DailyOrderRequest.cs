@@ -1,4 +1,4 @@
-﻿namespace PerfectBreakfast.Application.Models.DaliyOrder.Request
+﻿namespace PerfectBreakfast.Application.Models.DailyOrder.Request
 {
     public record DailyOrderRequest
     {

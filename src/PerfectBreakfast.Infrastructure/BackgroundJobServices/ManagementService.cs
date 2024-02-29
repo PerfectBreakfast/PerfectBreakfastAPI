@@ -1,13 +1,7 @@
-﻿using MapsterMapper;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
-using PerfectBreakfast.Application.Models.MailModels;
+﻿using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
-using System.Drawing;
-using System.Text;
+
 
 namespace PerfectBreakfast.Infrastructure.BackgroundJobServices
 {

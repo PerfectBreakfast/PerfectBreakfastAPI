@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DaliyOrder.Request;
+using PerfectBreakfast.Application.Models.DailyOrder.Request;
 using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1
