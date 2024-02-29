@@ -2,13 +2,13 @@
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DaliyOrder.Request;
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 using System.Linq.Expressions;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.Request;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -74,43 +74,43 @@ public class DailyOrderService : IDailyOrderService
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
 
             // get các bữa ăn của từng công ty
-            var mealSubscriptionIds = user.Partner.Companies.SelectMany(x => x.MealSubscriptions.Select(x => x.Id));
+            var mealSubscriptionIds = user.Partner.Companies
+                .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
 
             // Xây dựng predicate để lọc DailyOrder theo các MealSubscriptionId
             Expression<Func<DailyOrder, bool>> predicate = dOrder =>
                 mealSubscriptionIds.Contains(dOrder.MealSubscriptionId.Value);
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize, predicate);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
 
             // Group DailyOrders by BookingDate and Company
-            var groupedByDateAndCompany = dailyOrderPages.Items
-                .GroupBy(order => new { order.BookingDate, order.MealSubscription.CompanyId })
-                .Select(group => new
-                {
-                    BookingDate = group.Key.BookingDate,
-                    CompanyId = group.Key.CompanyId,
-                    Orders = group.ToList()
-                });
-
-            // Transform grouped data into response models
-            var dailyOrderResponses = groupedByDateAndCompany
-                .GroupBy(x => x.BookingDate)
-                .Select(group => new DailyOrderForPartnerResponse(
-                    group.Key,
-                    group.Select(g => new CompanyForDailyOrderResponse(
-                        g.Orders.First().MealSubscription.Company.Id,
-                        g.Orders.First().MealSubscription.Company.Name,
-                        g.Orders.First().MealSubscription.Company.Address,
-                        _mapper.Map<List<DailyOrderModelResponse>>(g.Orders)
-                    )).ToList()
+            var dailyOrderResponses = dailyOrderPages.Items
+                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .Select(dateGroup => new DailyOrderForPartnerResponse(
+                    dateGroup.Key,
+                    dateGroup
+                        .Select(d => d.MealSubscription.Company)
+                        .Distinct()
+                        .Select(company => new CompanyForDailyOrderResponse(
+                            company.Id,
+                            company.Name,
+                            company.Address,
+                            dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
+                                .Select(d => new DailyOrderModelResponse(
+                                    d.Id,
+                                    d.TotalPrice,
+                                    d.OrderQuantity,
+                                    d.Status.ToString()
+                                )).ToList()
+                        )).ToList()
                 )).ToList();
 
             result.Payload = new Pagination<DailyOrderForPartnerResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderPages.TotalItemsCount,
+                TotalItemsCount = dailyOrderResponses.Count,
                 Items = dailyOrderResponses
             };
         }

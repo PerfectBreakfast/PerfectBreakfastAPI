@@ -1,7 +1,7 @@
 ﻿using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
-namespace PerfectBreakfast.Application.Models.DaliyOrder.Response
+namespace PerfectBreakfast.Application.Models.DailyOrder.Response
 {
     public record DailyOrderResponse
     {

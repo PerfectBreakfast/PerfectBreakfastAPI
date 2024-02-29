@@ -1,6 +1,6 @@
 ﻿using PerfectBreakfast.Domain.Entities;
 
-namespace PerfectBreakfast.Application.Models.DaliyOrder.Response
+namespace PerfectBreakfast.Application.Models.DailyOrder.Response
 {
     public record DailyOrderResponseExcel
     {

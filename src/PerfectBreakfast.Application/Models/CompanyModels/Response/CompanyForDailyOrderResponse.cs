@@ -1,4 +1,4 @@
-using PerfectBreakfast.Application.Models.DaliyOrder.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 
 namespace PerfectBreakfast.Application.Models.CompanyModels.Response;
 
