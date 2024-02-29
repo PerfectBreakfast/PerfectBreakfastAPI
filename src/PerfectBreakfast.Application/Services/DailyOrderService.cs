@@ -143,39 +143,34 @@ public class DailyOrderService : IDailyOrderService
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
-            // check xem user đó có phải là trong đơn vị không và role của user có phải là Admin hay không 
 
             // get các bữa ăn của từng công ty
-            var mealSubscriptionIds = user.Partner.Companies.SelectMany(x => x.MealSubscriptions.Select(x => x.Id));
-
-            // Xây dựng predicate để lọc DailyOrder theo các MealSubscriptionId
-            Expression<Func<DailyOrder, bool>> predicate = dOrder =>
-                mealSubscriptionIds.Contains(dOrder.MealSubscriptionId.Value);
+            var mealSubscriptionIds =
+                user.Delivery.Companies
+                    .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize, predicate);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
 
-            // Group DailyOrders by BookingDate and Company
-            var groupedByDateAndCompany = dailyOrderPages.Items
-                .GroupBy(order => new { order.BookingDate, order.MealSubscription.CompanyId })
-                .Select(group => new
-                {
-                    BookingDate = group.Key.BookingDate,
-                    CompanyId = group.Key.CompanyId,
-                    Orders = group.ToList()
-                });
-
-            // Transform grouped data into response models
-            var dailyOrderResponses = groupedByDateAndCompany
-                .GroupBy(x => x.BookingDate)
-                .Select(group => new DailyOrderForDeliveryResponse(
-                    group.Key,
-                    group.Select(g => new CompanyForDailyOrderResponse(
-                        g.Orders.First().MealSubscription.Company.Id,
-                        g.Orders.First().MealSubscription.Company.Name,
-                        g.Orders.First().MealSubscription.Company.Address,
-                        _mapper.Map<List<DailyOrderModelResponse>>(g.Orders)
-                    )).ToList()
+            var dailyOrderResponses = dailyOrderPages.Items
+                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .Select(dateGroup => new DailyOrderForDeliveryResponse(
+                    dateGroup.Key,
+                    dateGroup
+                        .Select(d => d.MealSubscription.Company)
+                        .Distinct()
+                        .Select(company => new CompanyForDailyOrderResponse(
+                            company.Id,
+                            company.Name,
+                            company.Address,
+                            dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
+                                .Select(d => new DailyOrderModelResponse(
+                                    d.Id,
+                                    d.TotalPrice,
+                                    d.OrderQuantity,
+                                    d.Status.ToString()
+                                )).ToList()
+                        )).ToList()
                 )).ToList();
 
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
@@ -185,6 +180,10 @@ public class DailyOrderService : IDailyOrderService
                 TotalItemsCount = dailyOrderPages.TotalItemsCount,
                 Items = dailyOrderResponses
             };
+        }
+        catch (ArgumentNullException e)
+        {
+            result.AddError(ErrorCode.BadRequest,"User not found or user does not own delivery company");
         }
         catch (Exception e)
         {

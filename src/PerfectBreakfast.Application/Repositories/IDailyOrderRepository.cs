@@ -1,4 +1,6 @@
-﻿using PerfectBreakfast.Domain.Entities;
+﻿using System.Linq.Expressions;
+using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Repositories
 {
@@ -10,5 +12,6 @@ namespace PerfectBreakfast.Application.Repositories
         public Task<bool> IsDailyOrderCreated(DateTime date);
         public Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId);
         public Task<DailyOrder?> GetById(Guid id);
+        Task<Pagination<DailyOrder>> ToPaginationForDelivery(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
     }
 }

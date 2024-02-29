@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -68,6 +69,26 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(d => d.MealSubscription)
                 .FirstOrDefaultAsync();
              
+        }
+
+        public async Task<Pagination<DailyOrder>> ToPaginationForDelivery(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
+        {
+            var items = await _dbSet
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Include(d => d.MealSubscription)
+                .ThenInclude(ms => ms.Company)
+                .OrderBy(d => d.BookingDate)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            var result = new Pagination<DailyOrder>()
+            {
+                PageIndex = pageNumber,
+                PageSize = pageSize,
+                TotalItemsCount = items.Count,
+                Items = items,
+            };
+            return result;
         }
     }
 }

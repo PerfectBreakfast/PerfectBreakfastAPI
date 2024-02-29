@@ -80,7 +80,7 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             IQueryable<TEntity> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
             if (predicate != null) 
             {
-                itemsQuery = itemsQuery.Where(predicate); 
+                itemsQuery = _dbSet.Where(predicate); 
             }
             var itemCount = await itemsQuery.CountAsync();
             // Xử lý các thuộc tính include và thenInclude
