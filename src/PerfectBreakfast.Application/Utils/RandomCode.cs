@@ -4,7 +4,7 @@ namespace PerfectBreakfast.Application.Utils;
 
 public static class RandomCode
 {
-    public static int GenerateOrderCode()  
+    public static long GenerateOrderCode()  
     {
         var objectId = ObjectId.GenerateNewId();
         return Math.Abs(objectId.GetHashCode()); 

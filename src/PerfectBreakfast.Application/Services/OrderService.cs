@@ -90,7 +90,7 @@ public class OrderService : IOrderService
             var paymentMethod = orderRequest.Payment.ToUpper();
             
             decimal totalPrice = orderDetail.Sum(detail => detail.Quantity * detail.UnitPrice);
-            int orderCode = Utils.RandomCode.GenerateOrderCode();
+            long orderCode = Utils.RandomCode.GenerateOrderCode();
             order.OrderCode = orderCode;
             order.WorkerId = userId;
             order.OrderStatus = OrderStatus.Pending;
