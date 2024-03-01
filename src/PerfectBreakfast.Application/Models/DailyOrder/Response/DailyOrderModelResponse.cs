@@ -5,7 +5,7 @@ namespace PerfectBreakfast.Application.Models.DailyOrder.Response;
 
 public record DailyOrderModelResponse(
     Guid Id,
-    //string Meal,
+    string Meal,
     decimal? TotalPrice,
     int? OrderQuantity ,
     string Status);

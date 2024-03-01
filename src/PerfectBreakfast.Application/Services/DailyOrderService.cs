@@ -68,7 +68,8 @@ public class DailyOrderService : IDailyOrderService
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Partner)sp).Companies,
-                    sp => ((Company)sp).MealSubscriptions
+                    sp => ((Company)sp).MealSubscriptions,
+                    sp => ((MealSubscription)sp).Meal
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
@@ -99,6 +100,7 @@ public class DailyOrderService : IDailyOrderService
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
+                                    d.MealSubscription.Meal.MealType,
                                     d.TotalPrice,
                                     d.OrderQuantity,
                                     d.Status.ToString()
@@ -139,7 +141,8 @@ public class DailyOrderService : IDailyOrderService
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Delivery)sp).Companies,
-                    sp => ((Company)sp).MealSubscriptions
+                    sp => ((Company)sp).MealSubscriptions,
+                    sp => ((MealSubscription)sp).Meal
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
@@ -166,6 +169,7 @@ public class DailyOrderService : IDailyOrderService
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
+                                    d.MealSubscription.Meal.MealType,
                                     d.TotalPrice,
                                     d.OrderQuantity,
                                     d.Status.ToString()
@@ -202,7 +206,7 @@ public class DailyOrderService : IDailyOrderService
             var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
             if (company == null)
             {
-                result.AddUnknownError("Company is not exsit");
+                result.AddUnknownError("Company is not exist");
                 return result;
             }
 
