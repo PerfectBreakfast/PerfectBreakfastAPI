@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Http;
+
 namespace PerfectBreakfast.Application.Models.UserModels.Request;
 
 public record UpdateUserRequestModel
 {
-    public string Email { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string? Name { get; set; } 
+    public string? PhoneNumber { get; set; } 
+    public IFormFile? Image { get; set; }
 }
