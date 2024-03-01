@@ -206,7 +206,7 @@ public class DailyOrderService : IDailyOrderService
             var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
             if (company == null)
             {
-                result.AddUnknownError("Company is not exsit");
+                result.AddUnknownError("Company is not exist");
                 return result;
             }
 
