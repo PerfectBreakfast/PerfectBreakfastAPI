@@ -67,6 +67,7 @@ public class DeliveryService : IDeliveryService
             //_mapper.Map(requestModel, deliveryUnit);
             deliveryUnit.Name = requestModel.Name ?? deliveryUnit.Name;
             deliveryUnit.Address = requestModel.Address ?? deliveryUnit.Address;
+            deliveryUnit.PhoneNumber = requestModel.PhoneNumber ?? deliveryUnit.PhoneNumber;
             deliveryUnit.CommissionRate = requestModel.CommissionRate ?? deliveryUnit.CommissionRate;
             // update
             _unitOfWork.DeliveryRepository.Update(deliveryUnit);

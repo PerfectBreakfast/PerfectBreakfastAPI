@@ -97,7 +97,11 @@ public class PartnerService : IPartnerService
             // find supplier by ID
             var managementUnit = await _unitOfWork.PartnerRepository.GetByIdAsync(managementUnitId);
             // map from requestModel => supplier
-            _mapper.Map(requestModel, managementUnit);
+            //_mapper.Map(requestModel, managementUnit);
+            managementUnit.Name = requestModel.Name ?? managementUnit.Name;
+            managementUnit.Address = requestModel.Address ?? managementUnit.Address;
+            managementUnit.PhoneNumber = requestModel.PhoneNumber ?? managementUnit.PhoneNumber;
+            managementUnit.CommissionRate = requestModel.CommissionRate ?? managementUnit.CommissionRate;
             // update
             _unitOfWork.PartnerRepository.Update(managementUnit);
             // saveChange
