@@ -59,7 +59,7 @@ public class PayOsService : IPayOsService
         try
         {
             // khong check signature
-            //WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            //WebhookData data =  await _payOs.verifyPaymentWebhookData(type);
             var data = type.data;
             if (data.code == "00")
             {

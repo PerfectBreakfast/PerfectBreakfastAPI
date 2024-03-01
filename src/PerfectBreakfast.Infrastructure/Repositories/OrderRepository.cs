@@ -41,7 +41,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         }
 
 
-        public Task<Order> GetOrderByOrderCode(int orderCode)
+        public Task<Order> GetOrderByOrderCode(long orderCode)
         {
             return _dbSet.SingleAsync(x => x.OrderCode == orderCode);
         }

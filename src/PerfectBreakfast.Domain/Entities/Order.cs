@@ -7,7 +7,7 @@ public class Order : BaseEntity
     public string? Note { get; set; }
     public decimal TotalPrice { get; set; }
     public OrderStatus OrderStatus { get; set; }
-    public int OrderCode { get; set; }
+    public long OrderCode { get; set; }
     
     
     // relationship
