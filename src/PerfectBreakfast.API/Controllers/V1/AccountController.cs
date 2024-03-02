@@ -41,11 +41,10 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpGet("refresh-user-token")]
-    [Authorize]
-    public async Task<IActionResult> RefreshUserToken()
+    [HttpPost("refresh-user-token")]
+    public async Task<IActionResult> RefreshUserToken(TokenModel tokenModel)
     {
-        var response = await _userService.RefreshUserToken();
+        var response = await _userService.RefreshUserToken(tokenModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

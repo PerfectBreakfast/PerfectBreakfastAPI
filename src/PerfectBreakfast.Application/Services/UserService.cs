@@ -59,7 +59,12 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.UnAuthorize,"wrong pass");
                 return result;
             }
-            result.Payload = await _jwtService.CreateJWT(user);
+            
+            user.RefreshToken = user.RandomRefreshToken();             // tao RefreshToken mới
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2);  // tạo ngày hết hạn mới là sau 2 tháng 
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -96,7 +101,12 @@ public class UserService : IUserService
                 result.AddError(ErrorCode.UnAuthorize,"wrong pass");
                 return result;
             }
-            result.Payload = await _jwtService.CreateJWT(user);
+            
+            user.RefreshToken = user.RandomRefreshToken();             // tao RefreshToken mới
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2);  // tạo ngày hết hạn mới là sau 2 tháng 
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+            result.Payload = await _jwtService.CreateJWT(user,user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -141,13 +151,24 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserLoginResponse>> RefreshUserToken()
+    public async Task<OperationResult<UserLoginResponse>> RefreshUserToken(TokenModel tokenModel)
     {
         var result = new OperationResult<UserLoginResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(_claimsService.GetCurrentUserId);
-            result.Payload = await _jwtService.CreateJWT(user);
+            var principal = _jwtService.GetPrincipalFromExpiredToken(tokenModel.AccessToken);
+            var userName = principal.Identity.Name;
+
+            var user = await _unitOfWork.UserRepository.FindSingleAsync(x => x.UserName == userName);
+            if (user is null || user.RefreshToken != tokenModel.RefreshToken ||
+                user.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                result.AddError(ErrorCode.BadRequest, "Invalid client request");
+            }
+            user.RefreshToken = user.RandomRefreshToken(); 
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangeAsync();
+            result.Payload = await _jwtService.CreateJWT(user,user.RefreshToken!);
         }
         catch (Exception e)
         {

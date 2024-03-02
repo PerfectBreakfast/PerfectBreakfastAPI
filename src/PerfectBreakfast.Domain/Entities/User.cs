@@ -8,6 +8,8 @@ public class User : IdentityUser<Guid>
     public DateTime CreationDate { get; set; }
     public string? Image { get; set; }
     public string Name { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
     
     // relationship 
     public Guid? CompanyId { get; set; }
