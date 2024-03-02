@@ -1,3 +1,5 @@
+using Microsoft.IdentityModel.Tokens;
+
 namespace PerfectBreakfast.API.Middlewares;
 
 public class GlobalExceptionMiddleware : IMiddleware

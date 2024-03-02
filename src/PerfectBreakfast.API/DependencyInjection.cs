@@ -134,6 +134,7 @@ public static class DependencyInjection
                 ValidIssuer = appConfiguration.JwtSettings.Issuer,
                 IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(appConfiguration.JwtSettings.SecretKey))
             };
+            //options.Events = new JwtBearerEventsHandler();
         });
         //==================================================================================================================================
         /*services.AddIdentityApiEndpoints<User>()

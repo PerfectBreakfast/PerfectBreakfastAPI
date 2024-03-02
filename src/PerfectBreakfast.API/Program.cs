@@ -5,7 +5,6 @@ using PerfectBreakfast.API;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Infrastructure;
-using PerfectBreakfast.Infrastructure.BackgroundJobServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
