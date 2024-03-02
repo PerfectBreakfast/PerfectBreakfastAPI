@@ -284,8 +284,8 @@ namespace PerfectBreakfast.Application.Services
             {
                 // Tạo biểu thức tìm kiếm (predicate)
                 Expression<Func<Menu, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
-                    ? null
-                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                    ? (x => !x.IsDeleted)
+                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
                 var menu = await _unitOfWork.MenuRepository.ToPagination(pageIndex, pageSize, searchPredicate);
                 result.Payload = _mapper.Map<Pagination<MenuResponse>>(menu);
             }

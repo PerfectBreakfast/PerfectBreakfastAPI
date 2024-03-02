@@ -160,8 +160,8 @@ public class PartnerService : IPartnerService
             };
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Partner, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
-                ? null 
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                ? (x => !x.IsDeleted) 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
             
             var partnerPages = await _unitOfWork.PartnerRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
             var managementUnitResponses = new List<PartnerResponseModel>();

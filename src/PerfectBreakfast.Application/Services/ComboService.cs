@@ -152,8 +152,8 @@ namespace PerfectBreakfast.Application.Services
 
                 // Tạo biểu thức tìm kiếm (predicate)
                 Expression<Func<Combo, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
-                    ? null
-                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                    ? (x => !x.IsDeleted)
+                    : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted == false);
 
                 // lấy page combo 
                 var pagedCombos = await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize, searchPredicate, comboFoodInclude);
