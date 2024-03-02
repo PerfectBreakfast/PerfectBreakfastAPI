@@ -135,8 +135,8 @@ public class SupplierService : ISupplierService
             };
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
-                ? null 
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
+                ? (x => !x.IsDeleted) 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
             
             var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,managementUnitInclude);
             

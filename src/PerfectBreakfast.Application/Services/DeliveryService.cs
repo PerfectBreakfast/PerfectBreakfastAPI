@@ -134,8 +134,8 @@ public class DeliveryService : IDeliveryService
             };
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Delivery, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
-                ? null 
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()));
+                ? (x => !x.IsDeleted) 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
             var deliveryPages = await _unitOfWork.DeliveryRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,companyInclude);
             var deliveryResponses = new List<DeliveryResponseModel>();
             foreach (var du in deliveryPages.Items)
