@@ -305,7 +305,13 @@ public class UserService : IUserService
         try
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            _mapper.Map(requestModel, user);
+            //_mapper.Map(requestModel, user);
+            user.Name = requestModel.Name ?? user.Name;
+            user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
+            if (requestModel.Image is not null)
+            {
+                user.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+            }
             _unitOfWork.UserRepository.Update(user);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             result.Payload = isSuccess;

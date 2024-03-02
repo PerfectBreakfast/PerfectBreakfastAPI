@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using CompanyResponse = PerfectBreakfast.Application.Models.CompanyModels.Response.CompanyResponse;
 
@@ -240,27 +241,26 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var companyEntity =
-                await _unitOfWork.CompanyRepository.FindSingleAsync(c => c.Id == companyId, c => c.Delivery,
-                    c => c.Partner);
+            var companyEntity = await _unitOfWork.CompanyRepository.GetCompanyDetailMealById(companyId);
             if (companyEntity is null)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound,"Id is not exist");
                 return result;
             }
 
+            var meals = companyEntity.MealSubscriptions.Select(x => x.Meal).ToList();
             var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
             var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
             company.Delivery = delivery;
             company.Partner = partner;
+            company.Meals = _mapper.Map<List<MealResponse>>(meals);
             result.Payload = company;
         }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
@@ -327,7 +327,21 @@ public class CompanyService : ICompanyService
         try
         {
             var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
-            _mapper.Map(companyRequest, company);
+            //_mapper.Map(companyRequest, company);
+            company.Name = companyRequest.Name ?? company.Name;
+            company.Address = companyRequest.Address ?? company.Address;
+            company.PhoneNumber = companyRequest.PhoneNumber ?? company.PhoneNumber;
+            company.Email = companyRequest.Email ?? company.Email;
+            if (companyRequest.DeliveryId is not null)
+            {
+                // xuw ly
+                company.DeliveryId = companyRequest.DeliveryId;
+            }
+            if (companyRequest.PartnerId is not null)
+            {
+                //xu ly 
+                company.PartnerId = companyRequest.PartnerId;
+            }
             _unitOfWork.CompanyRepository.Update(company);
             await _unitOfWork.SaveChangeAsync();
             result.Payload = _mapper.Map<CompanyResponse>(company);

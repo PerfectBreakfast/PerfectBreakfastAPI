@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.MenuModels.Request;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -15,12 +16,14 @@ namespace PerfectBreakfast.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICurrentTime _currentTime;
-
-        public MenuService(IUnitOfWork unitOfWork, IMapper mapper,ICurrentTime currentTime)
+        private readonly IMemoryCache _cache;
+        private readonly string cacheKey = "hehehe";
+        public MenuService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentTime = currentTime;
+            _cache = cache;
         }
 
         public async Task<OperationResult<MenuResponse>> ChooseMenu(Guid id)
@@ -39,7 +42,6 @@ namespace PerfectBreakfast.Application.Services
                     menuEntity.IsSelected = true;
                     _unitOfWork.MenuRepository.Update(menuEntity);
                     await _unitOfWork.SaveChangeAsync();
-
                 }
                 else
                 {
@@ -48,7 +50,6 @@ namespace PerfectBreakfast.Application.Services
                     _unitOfWork.MenuRepository.Update(menuEntity);
                     await _unitOfWork.SaveChangeAsync();
                 }
-
             }
             catch (NotFoundIdException)
             {
@@ -58,6 +59,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -81,6 +83,7 @@ namespace PerfectBreakfast.Application.Services
                         list.Add(menuFood);
                     }
                 }
+
                 menu.MenuFoods = list;
                 var entity = await _unitOfWork.MenuRepository.AddAsync(menu);
                 var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -89,12 +92,14 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.ServerError, "Food or Combo is not exist");
                     return result;
                 }
+
                 result.Payload = _mapper.Map<MenuResponse>(entity);
             }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -115,6 +120,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -135,6 +141,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -165,6 +172,7 @@ namespace PerfectBreakfast.Application.Services
                     {
                         continue;
                     }
+
                     var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
 
                     // Lấy danh sách Food từ Combo
@@ -189,65 +197,87 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
         public async Task<OperationResult<MenuIsSelectedResponse>> GetMenuByStatus()
         {
             var result = new OperationResult<MenuIsSelectedResponse>();
-            try
+            if (_cache.TryGetValue(cacheKey, out MenuIsSelectedResponse menuResponse))
             {
-                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
-                if (menu is null)
-                {
-                    result.AddUnknownError("No menu selected");
-                    return result;
-                }
-                //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
-
-                // Lấy danh sách Food từ Menu
-                var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
-                var foodResponses = _mapper.Map<List<ComboAndFoodResponse?>>(foodEntities);
-
-                // Lấy danh sách Combo từ Menu
-                var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
-                var comboResponses = new List<ComboAndFoodResponse>();
-                // Duyệt qua từng Combo để lấy thông tin chi tiết
-                foreach (var combo in comboEntities)
-                {
-                    if (combo == null)
-                    {
-                        continue;
-                    }
-                    var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
-
-                    // Lấy danh sách Food từ Combo
-                    var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
-                    var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
-                    decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
-                    // Ánh xạ Combo chi tiết sang DTO
-                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
-                    comboResponse.FoodResponses = foodResponsesInCombo;
-                    comboResponse.Price = totalFoodPrice;
-                    comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
-                    comboResponses.Add(comboResponse);
-                }
-
-                // Ánh xạ Menu chi tiết sang DTO
-                var menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
-                menuResponse = menuResponse with { MenuDate =  _currentTime.GetCurrentTime().AddDays(1)};
-                menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
-                menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
+                Console.WriteLine("Đã có cache được lưu ròi");
                 result.Payload = menuResponse;
+                return result;
             }
-            catch (Exception e)
+            else
             {
-                result.AddUnknownError(e.Message);
+                try
+                {
+                    var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+                    if (menu is null)
+                    {
+                        result.AddUnknownError("No menu selected");
+                        return result;
+                    }
+                    //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
+
+                    // Lấy danh sách Food từ Menu
+                    var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
+                    var foodResponses = _mapper.Map<List<ComboAndFoodResponse?>>(foodEntities);
+
+                    // Lấy danh sách Combo từ Menu
+                    var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
+                    var comboResponses = new List<ComboAndFoodResponse>();
+                    // Duyệt qua từng Combo để lấy thông tin chi tiết
+                    foreach (var combo in comboEntities)
+                    {
+                        if (combo == null)
+                        {
+                            continue;
+                        }
+
+                        var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
+
+                        // Lấy danh sách Food từ Combo
+                        var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                        var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
+                        decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
+                        // Ánh xạ Combo chi tiết sang DTO
+                        var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
+                        comboResponse.FoodResponses = foodResponsesInCombo;
+                        comboResponse.Price = totalFoodPrice;
+                        comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
+                        comboResponses.Add(comboResponse);
+                    }
+
+                    // Ánh xạ Menu chi tiết sang DTO
+                    menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
+                    menuResponse = menuResponse with { MenuDate = _currentTime.GetCurrentTime().AddDays(1) };
+                    menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
+                    menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
+                    result.Payload = menuResponse;
+                    
+                    // tạo option cho cache 
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromSeconds(45))   // thời gian cache hết hạn nếu không có ai gọi tới 
+                        .SetAbsoluteExpiration(TimeSpan.FromSeconds(3600)) // thời gian mặc định cache sẽ phải hết hạn dù có gọi tới hay không 
+                        .SetPriority(CacheItemPriority.Normal);
+
+                    // set lại data vào cache 
+                    Console.WriteLine("- Đã save cache mới -");
+                    _cache.Set(cacheKey, menuResponse, cacheEntryOptions);
+                }
+                catch (Exception e)
+                {
+                    result.AddUnknownError(e.Message);
+                }
+                return result;
             }
-            return result;
         }
 
-        public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10)
+        public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm,
+            int pageIndex = 0, int pageSize = 10)
         {
             var result = new OperationResult<Pagination<MenuResponse>>();
             try
@@ -263,6 +293,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -278,6 +309,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
 
@@ -291,6 +323,7 @@ namespace PerfectBreakfast.Application.Services
                 {
                     _unitOfWork.MenuFoodRepository.Remove(menuFood);
                 }
+
                 var list = new List<MenuFood>();
                 foreach (var mf in menuRequest.MenuFoodRequests)
                 {
@@ -305,6 +338,7 @@ namespace PerfectBreakfast.Application.Services
                         list.Add(menuFood);
                     }
                 }
+
                 _mapper.Map(menuRequest, menuEntity);
                 menuEntity.MenuFoods = list;
                 _unitOfWork.MenuRepository.Update(menuEntity);
@@ -319,6 +353,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 result.AddUnknownError(e.Message);
             }
+
             return result;
         }
     }

@@ -198,6 +198,7 @@ public static class DependencyInjection
         services.AddFluentValidationAutoValidation();
         services.AddFluentValidationClientsideAdapters();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddMemoryCache();         // inject Memory Cache
         return services;
     }
 }

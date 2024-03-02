@@ -101,7 +101,10 @@ public class SupplierService : ISupplierService
             // find supplier by ID
             var supplier = await _unitOfWork.SupplierRepository.GetByIdAsync(supplierId);
             // map from requestModel => supplier
-            _mapper.Map(requestModel, supplier);
+            //_mapper.Map(requestModel, supplier);
+            supplier.Name = requestModel.Name ?? supplier.Name;
+            supplier.Address = requestModel.Address ?? supplier.Address;
+            supplier.PhoneNumber = requestModel.PhoneNumber ?? supplier.PhoneNumber;
             // update
             _unitOfWork.SupplierRepository.Update(supplier);
             // saveChange

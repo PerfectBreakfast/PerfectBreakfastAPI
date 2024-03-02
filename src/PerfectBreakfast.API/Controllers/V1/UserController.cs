@@ -79,7 +79,7 @@ public class UserController : BaseController
     /// <param name="requestModel"></param>
     /// <returns></returns>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(Guid id,UpdateUserRequestModel requestModel)
+    public async Task<IActionResult> UpdateUser(Guid id,[FromForm]UpdateUserRequestModel requestModel)
     {
         var response = await _userService.UpdateUser(id,requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

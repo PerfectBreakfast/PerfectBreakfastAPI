@@ -64,7 +64,11 @@ public class DeliveryService : IDeliveryService
             // find supplier by ID
             var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
             // map from requestModel => supplier
-            _mapper.Map(requestModel, deliveryUnit);
+            //_mapper.Map(requestModel, deliveryUnit);
+            deliveryUnit.Name = requestModel.Name ?? deliveryUnit.Name;
+            deliveryUnit.Address = requestModel.Address ?? deliveryUnit.Address;
+            deliveryUnit.PhoneNumber = requestModel.PhoneNumber ?? deliveryUnit.PhoneNumber;
+            deliveryUnit.CommissionRate = requestModel.CommissionRate ?? deliveryUnit.CommissionRate;
             // update
             _unitOfWork.DeliveryRepository.Update(deliveryUnit);
             // saveChange
