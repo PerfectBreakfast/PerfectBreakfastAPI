@@ -1,4 +1,6 @@
-﻿namespace PerfectBreakfast.Application.Models.CompanyModels.Request
+﻿using PerfectBreakfast.Application.Models.MealModels.Request;
+
+namespace PerfectBreakfast.Application.Models.CompanyModels.Request
 {
     public record UpdateCompanyRequest
     {
@@ -8,5 +10,6 @@
         public string? Address { get; set; } 
         public Guid? PartnerId { get; set; }
         public Guid? DeliveryId { get; set; }
+        public List<MealModel?>? Meals { get; set; }
     }
 }

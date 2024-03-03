@@ -248,13 +248,21 @@ public class CompanyService : ICompanyService
                 return result;
             }
 
-            var meals = companyEntity.MealSubscriptions.Select(x => x.Meal).ToList();
+            //var meals = companyEntity.MealSubscriptions.Select(x => x.Meal).ToList();
+            var mealsSubscription = companyEntity.MealSubscriptions.ToList();
             var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
             var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
             company.Delivery = delivery;
             company.Partner = partner;
-            company.Meals = _mapper.Map<List<MealResponse>>(meals);
+            company.Meals = mealsSubscription.Select(mealsSubscription =>
+                new MealResponse(
+                    Id: mealsSubscription.Meal.Id, 
+                    MealType: mealsSubscription.Meal.MealType, 
+                    StartTime: mealsSubscription.StartTime, 
+                    EndTime: mealsSubscription.EndTime
+                )
+            ).ToList();
             result.Payload = company;
         }
         catch (Exception e)
@@ -326,7 +334,7 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
-            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
+            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, m => m.MealSubscriptions);
             //_mapper.Map(companyRequest, company);
             company.Name = companyRequest.Name ?? company.Name;
             company.Address = companyRequest.Address ?? company.Address;
@@ -342,6 +350,36 @@ public class CompanyService : ICompanyService
                 //xu ly 
                 company.PartnerId = companyRequest.PartnerId;
             }
+            
+            var existingMealSubscriptions = company.MealSubscriptions;
+            var newMealModels = companyRequest.Meals;
+
+            foreach (var mealModel in newMealModels)
+            {
+                var existingMealSubscription = existingMealSubscriptions.FirstOrDefault(ms => ms.MealId == mealModel.MealId);
+    
+                if (existingMealSubscription != null)
+                {
+                    // Nếu MealId tồn tại, cập nhật thông tin
+                    existingMealSubscription.StartTime = mealModel.StartTime;
+                    existingMealSubscription.EndTime = mealModel.EndTime;
+                }
+                else
+                {
+                    // Nếu MealId không tồn tại, tạo mới MealSubscription và thêm vào danh sách
+                    var newMealSubscription = new MealSubscription()
+                    {
+                        CompanyId = company.Id,
+                        MealId = mealModel.MealId,
+                        StartTime = mealModel.StartTime,
+                        EndTime = mealModel.EndTime
+                    };
+                    existingMealSubscriptions.Add(newMealSubscription);
+                }
+            }
+
+            // Sau khi cập nhật, gán lại danh sách MealSubscriptions cho company
+            company.MealSubscriptions = existingMealSubscriptions;
             _unitOfWork.CompanyRepository.Update(company);
             await _unitOfWork.SaveChangeAsync();
             result.Payload = _mapper.Map<CompanyResponse>(company);
