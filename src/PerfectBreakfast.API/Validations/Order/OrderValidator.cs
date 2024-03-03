@@ -14,6 +14,10 @@ namespace PerfectBreakfast.API.Validations.Order
                 .NotNull().WithMessage("Payment cannot be null")
                 .NotEmpty().WithMessage("Payment cannot be empty")
                 .MaximumLength(100).WithMessage("Payment cannot exceed 100 characters");
+            
+            RuleFor(p => p.MealId)
+                .NotNull().WithMessage("MealId cannot be null")
+                .NotEmpty().WithMessage("MealId cannot be empty");
 
             RuleFor(p => p.OrderDetails)
                 .NotNull().WithMessage("OrderDetails cannot be null")
