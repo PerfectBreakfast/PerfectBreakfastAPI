@@ -18,6 +18,7 @@ public class SupplierCommissionRateValidator : AbstractValidator<CreateSupplierC
         RuleFor(p => p.CommissionRate)
             .NotEmpty().WithMessage("Commission Rate cannot be empty")
             .NotNull().WithMessage("Commission Rate cannot be null")
-            .GreaterThan(0).WithMessage("Commission Rate must be greater than 0");
+            .GreaterThan(0).WithMessage("Commission Rate must be greater than 0")
+            .LessThanOrEqualTo(100).WithMessage("Commission Rate cannot exceed 100");
     }
 }
