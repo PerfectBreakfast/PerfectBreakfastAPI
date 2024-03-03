@@ -3,6 +3,7 @@ using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Utils;
@@ -103,13 +104,35 @@ public class DeliveryService : IDeliveryService
         return result;
     }
 
-    public async Task<OperationResult<DeliveryResponseModel>> GetDeliveryId(Guid deliveryId)
+    public async Task<OperationResult<DeliveryDetailResponse>> GetDeliveryId(Guid deliveryId)
     {
-        var result = new OperationResult<DeliveryResponseModel>();
+        var result = new OperationResult<DeliveryDetailResponse>();
             try
             {
-                var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
-                result.Payload = _mapper.Map<DeliveryResponseModel>(deliveryUnit);
+                var delivery = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId,x =>x.Companies,x => x.Users);
+                var adminUserNames = new List<string>();
+
+                foreach (var user in delivery.Users)   // lấy ra danh sách user có role là Delivery Admin
+                {
+                    if (await CheckIfUserIsAdmin(user))
+                    {
+                        adminUserNames.Add(user.Name);
+                    }
+                }
+                
+                var deliveryDetailResponse = new DeliveryDetailResponse(
+                    delivery.Id,
+                    delivery.Name,
+                    delivery.Address,
+                    delivery.PhoneNumber,
+                    delivery.CommissionRate,
+                    delivery.Longitude,
+                    delivery.Latitude,
+                    adminUserNames, // Danh sách người dùng là admin
+                    delivery.Companies.Select(c => _mapper.Map<CompanyDto>(c)).ToList(),
+                    delivery.Users.Count);
+                
+                result.Payload = deliveryDetailResponse;
             }
             catch (NotFoundIdException e)
             {
@@ -146,7 +169,7 @@ public class DeliveryService : IDeliveryService
             {
                 var adminUserNames = new List<string>();
 
-                foreach (var user in du.Users)   // lấy ra danh sách user có role là Supplier Admin
+                foreach (var user in du.Users)   // lấy ra danh sách user có role là Delivery Admin
                 {
                     if (await CheckIfUserIsAdmin(user))
                     {
