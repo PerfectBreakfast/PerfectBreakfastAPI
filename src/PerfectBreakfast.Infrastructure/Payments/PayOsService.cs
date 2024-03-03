@@ -77,6 +77,26 @@ public class PayOsService : IPayOsService
             //WebhookData data =  await _payOs.verifyPaymentWebhookData(type);
             var data = type.data;
             Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
+            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
             if (data.code == "00")
             {
                 Console.WriteLine(data.desc);
