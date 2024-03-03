@@ -23,6 +23,8 @@ public class PaymentController : ControllerBase
     public async Task<IActionResult> payOSTransferHandler(WebhookType body)
     {
         _logger.LogInformation("Receive data from payOS");
+        _logger.LogInformation(body.code);
+        _logger.LogInformation(body.desc);
         _logger.LogInformation(body.ToString());
         var response = await _payOsService.HandleWebhook(body);
         return Ok(new {Success = response});
