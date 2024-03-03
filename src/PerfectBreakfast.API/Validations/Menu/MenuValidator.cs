@@ -7,7 +7,7 @@ namespace PerfectBreakfast.API.Validations.Menu
     {
         public MenuValidator()
         {
-            RuleFor(p => p.Name).NotNull().NotEmpty().WithMessage("Name cannot be empty")
+            RuleFor(p => p.Name).NotNull().NotEmpty().WithMessage("Name cannot be null or empty")
                 .MaximumLength(100);
         }
     }
