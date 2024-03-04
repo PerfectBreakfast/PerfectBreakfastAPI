@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Request;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Utils;
+using PerfectBreakfast.Application.Utils.Compare;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -153,8 +154,14 @@ public class DeliveryService : IDeliveryService
             // xác định các thuộc tính include và theninclude 
             var userInclude = new IncludeInfo<Delivery>
             {
-                NavigationProperty = c => c.Users
+                NavigationProperty = c => c.Users,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).UserRoles,
+                    sp => ((UserRole)sp).Role
+                }
             };
+            
             var companyInclude = new IncludeInfo<Delivery>
             {
                 NavigationProperty = c => c.Companies
@@ -167,15 +174,9 @@ public class DeliveryService : IDeliveryService
             var deliveryResponses = new List<DeliveryResponseModel>();
             foreach (var du in deliveryPages.Items)
             {
-                var adminUserNames = new List<string>();
-
-                foreach (var user in du.Users)   // lấy ra danh sách user có role là Delivery Admin
-                {
-                    if (await CheckIfUserIsAdmin(user))
-                    {
-                        adminUserNames.Add(user.Name);
-                    }
-                }
+                var users = du.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.DELIVERY_ADMIN))
+                    .Select(u => u.Name)
+                    .ToList();
 
                 var deliveryUnitResponse = new DeliveryResponseModel(
                     du.Id,
@@ -185,7 +186,7 @@ public class DeliveryService : IDeliveryService
                     du.CommissionRate,
                     du.Longitude,
                     du.Latitude,
-                    adminUserNames, // Danh sách người dùng là admin
+                    users, // Danh sách người dùng là admin
                     du.Companies.Select(c => c.Name).ToList(),
                     du.Users.Count);
 

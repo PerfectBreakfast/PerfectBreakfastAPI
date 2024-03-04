@@ -5,5 +5,5 @@ namespace PerfectBreakfast.Application.Repositories;
 
 public interface IDeliveryRepository : IGenericRepository<Delivery>
 {
-    Task<Delivery?> GetDeliveryById(Guid id,params Expression<Func<Delivery, object>>[] includeProperties);
+    Task<Delivery?> GetDeliveryById(Guid id, params Expression<Func<Delivery, object>>[] includeProperties);
 }

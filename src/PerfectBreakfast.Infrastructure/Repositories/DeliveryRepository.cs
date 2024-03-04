@@ -17,4 +17,5 @@ public class DeliveryRepository : GenericRepository<Delivery>,IDeliveryRepositor
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
+    
 }

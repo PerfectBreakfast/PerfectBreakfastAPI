@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using BenchmarkDotNet.Attributes;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -144,38 +145,26 @@ public class PartnerService : IPartnerService
             // xác định các thuộc tính include và theninclude 
             var userInclude = new IncludeInfo<Partner>
             {
-                NavigationProperty = c => c.Users
-            };
-            var supplierInclude = new IncludeInfo<Partner>
-            {
-                NavigationProperty = x => x.SupplyAssignments,
+                NavigationProperty = c => c.Users,
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
-                    sp => ((SupplyAssignment)sp).Supplier
+                    sp => ((User)sp).UserRoles,
+                    sp => ((UserRole)sp).Role
                 }
             };
-            var companyInclude = new IncludeInfo<Partner>
-            {
-                NavigationProperty = c => c.Companies
-            };
+            
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Partner, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? (x => !x.IsDeleted) 
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
             
-            var partnerPages = await _unitOfWork.PartnerRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,supplierInclude,companyInclude);
+            var partnerPages = await _unitOfWork.PartnerRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude);
             var managementUnitResponses = new List<PartnerResponseModel>();
             foreach (var mr in partnerPages.Items)
             {
-                var adminUserNames = new List<string>();
-
-                foreach (var user in mr.Users)   // lấy ra danh sách user có role là Supplier Admin
-                {
-                    if (await CheckIfUserIsAdmin(user))
-                    {
-                        adminUserNames.Add(user.Name);
-                    }
-                }
+                var users = mr.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.DELIVERY_ADMIN))
+                    .Select(u => u.Name)
+                    .ToList();
 
                 var managementUnitResponse = new PartnerResponseModel(
                     mr.Id,
@@ -185,9 +174,9 @@ public class PartnerService : IPartnerService
                     mr.CommissionRate,
                     mr.Longitude,
                     mr.Latitude,
-                    adminUserNames, // Danh sách người dùng là admin
-                    mr.Companies.Select(c => c.Name).ToList(),
-                    mr.SupplyAssignments.Select(sa => sa.Supplier.Name).ToList(),
+                    users, // Danh sách người dùng là admin
+                    null,
+                    null,
                     mr.Users.Count);
 
                 managementUnitResponses.Add(managementUnitResponse);
@@ -206,11 +195,5 @@ public class PartnerService : IPartnerService
             result.AddUnknownError(e.Message);
         }
         return result;
-    }
-    
-    private async Task<bool> CheckIfUserIsAdmin(User user)
-    {
-        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains(ConstantRole.PARTNER_ADMIN);
     }
 }

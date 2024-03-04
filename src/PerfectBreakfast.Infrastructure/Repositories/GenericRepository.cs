@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using BenchmarkDotNet.Attributes;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -73,6 +74,7 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             _dbSet.UpdateRange(entities);
         }
 
+        [Benchmark]
         public async Task<Pagination<TEntity>> ToPagination(int pageIndex = 0, int pageSize = 10, 
             Expression<Func<TEntity, bool>>? predicate = null,
             params IncludeInfo<TEntity>[] includeProperties)
