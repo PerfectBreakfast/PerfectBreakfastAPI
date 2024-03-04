@@ -161,7 +161,7 @@ public class UserService : IUserService
 
             var user = await _unitOfWork.UserRepository.FindSingleAsync(x => x.UserName == userName);
             if (user is null || user.RefreshToken != tokenModel.RefreshToken ||
-                user.RefreshTokenExpiryTime <= DateTime.Now)
+                user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 result.AddError(ErrorCode.BadRequest, "Invalid client request");
             }
