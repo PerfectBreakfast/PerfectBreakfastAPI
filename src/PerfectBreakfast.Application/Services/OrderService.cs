@@ -304,7 +304,7 @@ public class OrderService : IOrderService
             // kiểm tra xem thg quét có được giao cho cái dailyOrder 
             if (!(await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShipper(order.DailyOrder!.Id, userId))) 
             {
-                result.AddError(ErrorCode.BadRequest, "Bạn không được giao thể hoàn thành đơn này!");
+                result.AddError(ErrorCode.BadRequest, "Bạn không được giao đơn hàng này!");
                 return result;
             }
             

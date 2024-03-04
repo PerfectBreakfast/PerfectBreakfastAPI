@@ -132,6 +132,7 @@ public static class DependencyInjection
                 ValidateIssuerSigningKey = true,
                 ValidAudience = appConfiguration.JwtSettings.Audience,
                 ValidIssuer = appConfiguration.JwtSettings.Issuer,
+                ClockSkew = TimeSpan.Zero,
                 IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(appConfiguration.JwtSettings.SecretKey))
             };
             //options.Events = new JwtBearerEventsHandler();
