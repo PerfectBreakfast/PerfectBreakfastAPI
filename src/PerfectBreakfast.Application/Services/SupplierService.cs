@@ -126,7 +126,12 @@ public class SupplierService : ISupplierService
             // xác định các thuộc tính include và theninclude 
             var userInclude = new IncludeInfo<Supplier>
             {
-                NavigationProperty = c => c.Users
+                NavigationProperty = c => c.Users,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).UserRoles,
+                    sp => ((UserRole)sp).Role
+                }
             };
             var managementUnitInclude = new IncludeInfo<Supplier>
             {
@@ -136,6 +141,7 @@ public class SupplierService : ISupplierService
                     sp => ((SupplyAssignment)sp).Partner
                 }
             };
+            
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
                 ? (x => !x.IsDeleted) 
@@ -143,32 +149,13 @@ public class SupplierService : ISupplierService
             
             var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,managementUnitInclude);
             
-            /*var supplierResponses = supplierPages.Items.Select(sp => 
-                new SupplierResponse(
-                    sp.Id,
-                    sp.Name,
-                    sp.Address,
-                    sp.Longitude,
-                    sp.Latitude,
-                    sp.Users.Where(u => CheckIfUserIsAdmin(u))
-                        .Select(u => u.Name).ToList(),
-                    sp.SupplyAssignments.Select(sa => sa.ManagementUnit.Name).ToList(),
-                    sp.Users.Count)).
-                ToList();*/
-            
             var supplierResponses = new List<SupplierResponse>();
 
             foreach (var sp in supplierPages.Items)
             {
-                var adminUserNames = new List<string>();
-
-                foreach (var user in sp.Users)   // lấy ra danh sách user có role là Supplier Admin
-                {
-                    if (await CheckIfUserIsAdmin(user))
-                    {
-                        adminUserNames.Add(user.Name);
-                    }
-                }
+                var users = sp.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN))
+                    .Select(u => u.Name)
+                    .ToList();
 
                 var supplierResponse = new SupplierResponse(
                     sp.Id,
@@ -177,7 +164,7 @@ public class SupplierService : ISupplierService
                     sp.PhoneNumber,
                     sp.Longitude,
                     sp.Latitude,
-                    adminUserNames, // Danh sách người dùng là admin
+                    users, // Danh sách người dùng là admin
                     sp.SupplyAssignments.Select(sa => sa.Partner.Name).ToList(),
                     sp.Users.Count);
 
@@ -219,12 +206,7 @@ public class SupplierService : ISupplierService
         }
         return result;
     }
-
-    private async Task<bool> CheckIfUserIsAdmin(User user)
-    {
-        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains(ConstantRole.SUPPLIER_ADMIN);
-    }
+    
 
     public async Task<OperationResult<Pagination<SupplierDTO>>> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
