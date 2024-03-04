@@ -101,9 +101,13 @@ public class PayOsService : IPayOsService
             {
                 Console.WriteLine(data.desc);
                 var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId.Value);
                 if (data.amount == order.TotalPrice)
                 {
                     order.OrderStatus = OrderStatus.Paid;
+                    dailyOrder.TotalPrice += order.TotalPrice;
+                    dailyOrder.OrderQuantity++;
+                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                     await _unitOfWork.SaveChangeAsync();
                 }
                 return true;
