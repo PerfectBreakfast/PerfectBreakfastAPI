@@ -236,13 +236,14 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory(int pageNumber)
+    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory(int pageNumber = 1)
     {
+        pageNumber *= 5;  
         var result = new OperationResult<List<OrderHistoryResponse>>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            //var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
             var orderdetailInclude = new IncludeInfo<Order>
             {
                 NavigationProperty = x => x.OrderDetails,
@@ -259,7 +260,7 @@ public class OrderService : IOrderService
                     sp => ((User)sp).Company
                 }
             };
-            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId, orderdetailInclude, workerInclude);
+            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,pageNumber, orderdetailInclude, workerInclude);
             result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
         }
         catch (Exception e)

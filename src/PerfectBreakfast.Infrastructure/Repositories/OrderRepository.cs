@@ -23,10 +23,11 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Order>> GetOrderHistory(Guid userId, params IncludeInfo<Order>[] includeProperties)
+        public async Task<List<Order>> GetOrderHistory(Guid userId,int pageNumber = 1, params IncludeInfo<Order>[] includeProperties)
         {
             var itemsQuery = _dbSet.Where(x => x.WorkerId == userId);
             itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
+            itemsQuery = itemsQuery.Take(pageNumber);
             // Xử lý các thuộc tính include và thenInclude
             foreach (var includeProperty in includeProperties)
             {

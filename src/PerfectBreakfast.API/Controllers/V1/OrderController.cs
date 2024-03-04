@@ -49,11 +49,12 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
         
         /// <summary>
-        /// Api For Customer
+        /// Api for Customer
         /// </summary>
-        /// <returns></returns>s
+        /// <param name="pageNumber"></param>
+        /// <returns></returns>
         [HttpGet("history"), Authorize(policy:ConstantRole.RequireCustomerRole)]
-        public async Task<IActionResult> GetOrderHistoryByCustomer(int pageNumber)
+        public async Task<IActionResult> GetOrderHistoryByCustomer(int pageNumber = 1)
         {
             var response = await _orderService.GetOrderHistory(pageNumber);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
