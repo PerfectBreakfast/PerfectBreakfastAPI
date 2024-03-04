@@ -236,13 +236,13 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory()
+    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistory(int pageNumber)
     {
         var result = new OperationResult<List<OrderHistoryResponse>>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Company);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             var orderdetailInclude = new IncludeInfo<Order>
             {
                 NavigationProperty = x => x.OrderDetails,
