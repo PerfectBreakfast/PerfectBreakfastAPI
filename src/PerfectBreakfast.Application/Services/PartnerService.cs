@@ -162,7 +162,7 @@ public class PartnerService : IPartnerService
             var managementUnitResponses = new List<PartnerResponseModel>();
             foreach (var mr in partnerPages.Items)
             {
-                var users = mr.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.DELIVERY_ADMIN))
+                var users = mr.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN))
                     .Select(u => u.Name)
                     .ToList();
 
