@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Hangfire;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -133,6 +134,13 @@ public class OrderService : IOrderService
                 result.AddError(ErrorCode.ServerError, "Food or Combo is not exist");
                 return result;
             }
+            
+            
+            
+            // tạo job check sau 15p chưa thanh toán thì sẽ cancel order 
+            var timeToCancel = DateTime.UtcNow.AddMinutes(15);
+            string id = BackgroundJob.Schedule<IManagementService>(
+                x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
         catch (NotFoundIdException e)
         {
