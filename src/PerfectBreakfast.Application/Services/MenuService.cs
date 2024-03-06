@@ -140,7 +140,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddUnknownError("Id is not exist");
             }
             catch (Exception e)
             {

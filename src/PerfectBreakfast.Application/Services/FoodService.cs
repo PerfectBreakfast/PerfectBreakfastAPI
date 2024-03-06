@@ -107,10 +107,10 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<TotalFoodForPartnerResponse>>> GetFoodsForPartner(Guid dailyOrderId)
+        public async Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForPartner(Guid dailyOrderId)
         {
             var userId = _claimsService.GetCurrentUserId;
-            var result = new OperationResult<List<TotalFoodForPartnerResponse>>();
+            var result = new OperationResult<TotalFoodForPartnerResponse>();
             try
             {
                 var now = _currentTime.GetCurrentTime(); // Lấy thời gian hiện tại
@@ -132,8 +132,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.NotFound, "partner does not exist");
                     return result;
                 }
-
-                var totalFoodForPartners = new List<TotalFoodForPartnerResponse>();
+                
                 var foodCounts = new Dictionary<Food, int>();
                         
                 // Lấy daily order
@@ -211,14 +210,17 @@ namespace PerfectBreakfast.Application.Services
                 // Tạo danh sách totalFoodList từ foodCounts
                 var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse {Id = pair.Key.Id, Name = pair.Key.Name, Quantity = pair.Value }).ToList();
                 var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.MealId);
+                var com = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.CompanyId);
                 var totalFoodForPartner = new TotalFoodForPartnerResponse()
                 {
                     DailyOrderId = dailyOrder.Id,
                     Meal = meal.MealType,
+                    CompanyName = com.Name,
+                    Phone = com.PhoneNumber,
+                    Status = dailyOrder.Status.ToString(),
                     TotalFoodResponses = totalFoodList
                 };
-                totalFoodForPartners.Add(totalFoodForPartner);
-                result.Payload = totalFoodForPartners;
+                result.Payload = totalFoodForPartner;
             }
             catch (NotFoundIdException)
             {
