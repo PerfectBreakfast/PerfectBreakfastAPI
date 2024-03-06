@@ -144,22 +144,19 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Check xem số lượng nhập vào có đủ hay không
-                foreach (var totalFoodForPartner in totalFoodCounts)
+                Guid? dailyOrder = totalFoodCounts.DailyOrderId;
+                if (totalFoodCounts.TotalFoodResponses != null)
                 {
-                    Guid? dailyOrder = totalFoodForPartner.DailyOrderId;
-                    if (totalFoodForPartner.TotalFoodResponses != null)
+                    foreach (var foodResponse in totalFoodCounts.TotalFoodResponses)
                     {
-                        foreach (var foodResponse in totalFoodForPartner.TotalFoodResponses)
-                        {
-                            string foodName = foodResponse.Name;
-                            int requiredQuantity = foodResponse.Quantity;
+                        string foodName = foodResponse.Name;
+                        int requiredQuantity = foodResponse.Quantity;
 
-                            // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
-                            if (!totalFoodReceive.ContainsKey(dailyOrder) || !totalFoodReceive[dailyOrder].ContainsKey(foodName) || totalFoodReceive[dailyOrder][foodName] != requiredQuantity)
-                            {
-                                result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrder}.");
-                                return result; 
-                            }
+                        // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
+                        if (!totalFoodReceive.ContainsKey(dailyOrder) || !totalFoodReceive[dailyOrder].ContainsKey(foodName) || totalFoodReceive[dailyOrder][foodName] != requiredQuantity)
+                        {
+                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrder}.");
+                            return result; 
                         }
                     }
                 }
