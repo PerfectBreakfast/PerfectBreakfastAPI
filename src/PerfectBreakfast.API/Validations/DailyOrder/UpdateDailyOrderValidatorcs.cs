@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using PerfectBreakfast.Application.Models.DaliyOrder.Request;
+using PerfectBreakfast.Application.Models.DailyOrder.Request;
 
 namespace PerfectBreakfast.API.Validations.DailyOrder
 {
@@ -7,8 +7,6 @@ namespace PerfectBreakfast.API.Validations.DailyOrder
     {
         public UpdateDailyOrderValidatorcs()
         {
-            RuleFor(p => p.Id).NotEmpty().WithMessage("Id cannot be empty")
-                .NotNull().WithMessage("Id cannot be null");
             RuleFor(p => p.BookingDate).NotEmpty().WithMessage("Booking date cannot be empty")
                 .NotNull().WithMessage("Booking date cannot be null");
             RuleFor(p => p.CompanyId).NotEmpty().WithMessage("Company cannot be empty")

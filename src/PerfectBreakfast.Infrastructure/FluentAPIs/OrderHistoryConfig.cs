@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PerfectBreakfast.Domain.Entities;
 
-namespace PerfectBreakfast.Infrastructure.FluentAPIs;
+//namespace PerfectBreakfast.Infrastructure.FluentAPIs;
 
-public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
+/*public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
 {
     public void Configure(EntityTypeBuilder<OrderHistory> builder)
     {
@@ -20,4 +20,4 @@ public class OrderHistoryConfig : IEntityTypeConfiguration<OrderHistory>
             .WithMany(x => x.OrderHistories)
             .HasForeignKey(fk => fk.DailyOrderId);
     }
-}
+}*/

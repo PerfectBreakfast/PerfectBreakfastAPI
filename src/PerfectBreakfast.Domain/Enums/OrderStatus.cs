@@ -2,6 +2,8 @@ namespace PerfectBreakfast.Domain.Enums;
 
 public enum OrderStatus
 {
-    Complete,
-    Cancle
+    Complete,  
+    Pending,   // chờ thanh toán
+    Cancel,    // đã hủy 
+    Paid       // đã thanh toán
 }

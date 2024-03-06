@@ -10,13 +10,13 @@ public class PartnerPayment : BaseEntity
     
     public Guid? DailyOrderId { get; set; }
     public Guid? SupperAdminId { get; set; }
-    public Guid? DeliveryUnitId { get; set; }
-    public Guid? ManagementUnitId { get; set; }
+    public Guid? DeliveryId { get; set; }
+    public Guid? PartnerId { get; set; }
     public Guid? SupplierId { get; set; }
     
     public DailyOrder? DailyOrder { get; set; }
     public User? SupperAdmin { get; set; }
-    public DeliveryUnit? DeliveryUnit { get; set; }
-    public ManagementUnit? ManagementUnit { get; set; }
+    public Delivery? Delivery { get; set; }
+    public Partner? Partner { get; set; }
     public Supplier? Supplier { get; set; }
 }

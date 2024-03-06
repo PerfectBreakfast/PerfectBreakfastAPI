@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Infrastructure.FluentAPIs;
@@ -12,6 +13,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
+        builder.HasIndex(x => x.OrderCode).IsUnique();
         
         builder.HasOne(r => r.Worker)
             .WithMany(ur => ur.OrdersWorker)
@@ -21,13 +23,17 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
             .WithMany(ur => ur.Orders)
             .HasForeignKey(pk => pk.DailyOrderId);
         
-        builder.HasOne(r => r.ManagementUnit)
+        builder.HasOne(r => r.DeliveryStaff)
+            .WithMany(ur => ur.OrdersDeliveryStaff)
+            .HasForeignKey(pk => pk.DeliveryStaffId);
+        
+        builder.HasOne(r => r.PaymentMethod)
             .WithMany(ur => ur.Orders)
-            .HasForeignKey(pk => pk.ManagementUnitId);
-
-        builder.HasOne(x => x.PaymentMethod)
-            .WithOne(x => x.Order)
-            .HasForeignKey<PaymentMethod>(fk => fk.OrderId);
+            .HasForeignKey(pk => pk.PaymentMethodId);
+        
+        builder.HasOne(r => r.Meal)
+            .WithMany(ur => ur.Orders)
+            .HasForeignKey(pk => pk.MealId);
     }
 }
 

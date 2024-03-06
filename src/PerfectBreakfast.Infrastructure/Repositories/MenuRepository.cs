@@ -7,9 +7,11 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 {
     public class MenuRepository : GenericRepository<Menu>, IMenuRepository
     {
+        private readonly AppDbContext _context;
         public MenuRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService)
             : base(context, timeService, claimsService)
         {
+            _context = context;
         }
 
         //to do
@@ -25,5 +27,20 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return u;
         }
 
+        public async Task<Menu> GetMenuFoodByStatusAsync()
+        {
+            var u = await _dbSet.Where(c => c.IsSelected == true)
+                .Include(c => c.MenuFoods)
+                    .ThenInclude(mf => mf.Combo)
+                .Include(f => f.MenuFoods)
+                    .ThenInclude(mf => mf.Food)
+                .SingleOrDefaultAsync();
+            if (u == null)
+            {
+                u = null;
+            }
+            return u;
+        }
+        
     }
 }

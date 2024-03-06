@@ -1,8 +1,13 @@
+using System.Linq.Expressions;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
@@ -11,11 +16,13 @@ public class SupplierService : ISupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IClaimsService _claimsService;
 
-    public SupplierService(IUnitOfWork unitOfWork,IMapper mapper)
+    public SupplierService(IUnitOfWork unitOfWork,IMapper mapper, IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _claimsService = claimsService;
     }
     
     public async Task<OperationResult<List<SupplierResponse>>> GetSuppliers()
@@ -30,6 +37,38 @@ public class SupplierService : ISupplierService
         {
             result.AddUnknownError(e.Message);
         }
+        return result;
+    }
+
+    public async Task<OperationResult<SupplierDetailResponse>> GetSupplierId(Guid id)
+    {
+        var result = new OperationResult<SupplierDetailResponse>();
+        try
+        {
+            var supp = await _unitOfWork.SupplierRepository.GetSupplierDetail(id);
+            if (supp == null)
+            {
+                result.AddUnknownError("Id does not exist");
+                return result;
+            }
+
+            var managementUnit = supp.SupplyAssignments.Select(o => o.Partner).ToList();
+            
+            var supplier = _mapper.Map<SupplierDetailResponse>(supp);
+            
+            supplier.ManagementUnitDtos = _mapper.Map<List<PartnerDTO>>(managementUnit);
+
+            result.Payload = supplier;
+        }
+        catch (NotFoundIdException e)
+        {
+            result.AddError(ErrorCode.NotFound, e.Message);
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+
         return result;
     }
 
@@ -62,7 +101,10 @@ public class SupplierService : ISupplierService
             // find supplier by ID
             var supplier = await _unitOfWork.SupplierRepository.GetByIdAsync(supplierId);
             // map from requestModel => supplier
-            _mapper.Map(requestModel, supplier);
+            //_mapper.Map(requestModel, supplier);
+            supplier.Name = requestModel.Name ?? supplier.Name;
+            supplier.Address = requestModel.Address ?? supplier.Address;
+            supplier.PhoneNumber = requestModel.PhoneNumber ?? supplier.PhoneNumber;
             // update
             _unitOfWork.SupplierRepository.Update(supplier);
             // saveChange
@@ -76,13 +118,66 @@ public class SupplierService : ISupplierService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<SupplierResponse>>> GetPaginationAsync(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<SupplierResponse>>> GetPaginationAsync( string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<SupplierResponse>>();
         try
         {
-            var pagination = await _unitOfWork.SupplierRepository.ToPagination(pageIndex,pageSize);
-            result.Payload = _mapper.Map<Pagination<SupplierResponse>>(pagination);
+            // xác định các thuộc tính include và theninclude 
+            var userInclude = new IncludeInfo<Supplier>
+            {
+                NavigationProperty = c => c.Users,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).UserRoles,
+                    sp => ((UserRole)sp).Role
+                }
+            };
+            var managementUnitInclude = new IncludeInfo<Supplier>
+            {
+                NavigationProperty = x => x.SupplyAssignments,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((SupplyAssignment)sp).Partner
+                }
+            };
+            
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? (x => !x.IsDeleted) 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
+            
+            var supplierPages = await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude,managementUnitInclude);
+            
+            var supplierResponses = new List<SupplierResponse>();
+
+            foreach (var sp in supplierPages.Items)
+            {
+                var users = sp.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN))
+                    .Select(u => u.Name)
+                    .ToList();
+
+                var supplierResponse = new SupplierResponse(
+                    sp.Id,
+                    sp.Name,
+                    sp.Address,
+                    sp.PhoneNumber,
+                    sp.Longitude,
+                    sp.Latitude,
+                    users, // Danh sách người dùng là admin
+                    sp.SupplyAssignments.Select(sa => sa.Partner.Name).ToList(),
+                    sp.Users.Count);
+
+                supplierResponses.Add(supplierResponse);
+            }
+            
+            result.Payload = new Pagination<SupplierResponse>
+            {
+                PageIndex = supplierPages.PageIndex,
+                PageSize = supplierPages.PageSize,
+                TotalItemsCount = supplierPages.TotalItemsCount,
+                Items = supplierResponses
+            };
         }
         catch (Exception e)
         {
@@ -106,6 +201,53 @@ public class SupplierService : ISupplierService
             result.Payload = _mapper.Map<SupplierResponse>(entity);
         }
         catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+    
+
+    public async Task<OperationResult<Pagination<SupplierDTO>>> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<SupplierDTO>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var partnerInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Partner,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Partner)sp).SupplyAssignments
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+            var supplierIds = user.Partner.SupplyAssignments.Select(s => s.SupplierId).ToList();
+            Expression<Func<Supplier, bool>> predicate = s => supplierIds.Contains(s.Id);
+            
+            Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
+                ? null 
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
+
+            var supplierPages =
+                await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize, predicate);
+
+            var supplierResponses = _mapper.Map<List<SupplierDTO>>(supplierPages.Items);
+            
+            result.Payload = new Pagination<SupplierDTO>()
+            {
+                PageIndex = supplierPages.PageIndex,
+                PageSize = supplierPages.PageSize,
+                TotalItemsCount = supplierPages.TotalItemsCount,
+                Items = supplierResponses
+            };
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound, "User is not exist");
+        }
+        catch (Exception e) 
         {
             result.AddUnknownError(e.Message);
         }

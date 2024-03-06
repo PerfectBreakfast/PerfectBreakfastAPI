@@ -13,13 +13,13 @@ public class IdentityConfig : IEntityTypeConfiguration<User>
             .WithMany(u => u.Workers)
             .HasForeignKey(pk => pk.CompanyId);
         
-        builder.HasOne(c => c.DeliveryUnit)
+        builder.HasOne(c => c.Delivery)
             .WithMany(u => u.Users)
-            .HasForeignKey(pk => pk.DeliveryUnitId);
+            .HasForeignKey(pk => pk.DeliveryId);
         
-        builder.HasOne(c => c.ManagementUnit)
+        builder.HasOne(c => c.Partner)
             .WithMany(u => u.Users)
-            .HasForeignKey(pk => pk.ManagementUnitId);
+            .HasForeignKey(pk => pk.PartnerId);
         
         builder.HasOne(c => c.Supplier)
             .WithMany(u => u.Users)

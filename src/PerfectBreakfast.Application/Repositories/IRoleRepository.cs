@@ -1,13 +1,9 @@
 ﻿using PerfectBreakfast.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
-namespace PerfectBreakfast.Application.Repositories
+
+namespace PerfectBreakfast.Application.Repositories;
+public interface IRoleRepository : IBaseRepository<Role>
 {
-    public interface IRoleRepository//: IGenericRepository<Role>
-    {
-    }
+
 }

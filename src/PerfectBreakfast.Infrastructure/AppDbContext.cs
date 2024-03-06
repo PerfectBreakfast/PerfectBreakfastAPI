@@ -6,8 +6,8 @@ using System.Reflection;
 
 namespace PerfectBreakfast.Infrastructure;
 
-public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid,
-    IdentityUserClaim<Guid>, IdentityUserRole<Guid>,
+public class AppDbContext : IdentityDbContext<User, Role, Guid,
+    IdentityUserClaim<Guid>, UserRole,
     IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -22,13 +22,20 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid,
         {
             entity.ToTable(name: "User");
         });
-        modelBuilder.Entity<IdentityRole<Guid>>(entity =>
+        modelBuilder.Entity<Role>(entity =>
         {
             entity.ToTable(name: "Role");
         });
-        modelBuilder.Entity<IdentityUserRole<Guid>>(entity =>
+        modelBuilder.Entity<UserRole>(entity =>
         {
             entity.ToTable(name: "UserRoles");
+            entity.HasOne(ur => ur.User)
+                .WithMany(u => u.UserRoles)
+                .HasForeignKey(ur => ur.UserId);
+            
+            entity.HasOne(ur => ur.Role)
+                .WithMany(u => u.UserRoles)
+                .HasForeignKey(ur => ur.RoleId);
         });
         modelBuilder.Entity<IdentityUserClaim<Guid>>(entity =>
         {

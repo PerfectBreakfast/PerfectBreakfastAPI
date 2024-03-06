@@ -14,13 +14,14 @@ public class CompanyConfig : IEntityTypeConfiguration<Company>
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Email).HasMaxLength(50);
         builder.Property(x => x.Address).HasMaxLength(300);
+        builder.Property(x => x.PhoneNumber).HasMaxLength(10);
         
-        builder.HasOne(x => x.ManagementUnit)
+        builder.HasOne(x => x.Partner)
             .WithMany(x => x.Companies)
-            .HasForeignKey(fk => fk.ManagementUnitId);
+            .HasForeignKey(fk => fk.PartnerId);
         
-        builder.HasOne(x => x.DeliveryUnit)
+        builder.HasOne(x => x.Delivery)
             .WithMany(x => x.Companies)
-            .HasForeignKey(fk => fk.DeliveryUnitId);
+            .HasForeignKey(fk => fk.DeliveryId);
     }
 }

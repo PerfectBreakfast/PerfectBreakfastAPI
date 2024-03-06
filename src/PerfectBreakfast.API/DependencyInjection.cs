@@ -9,11 +9,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using PerfectBreakfast.API.Contracts.Commons;
 using PerfectBreakfast.API.Middlewares;
 using PerfectBreakfast.API.Services;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Infrastructure;
 
@@ -21,7 +23,7 @@ namespace PerfectBreakfast.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddWebAPIService(this IServiceCollection services,JwtSettings jwtSettings )
+    public static IServiceCollection AddWebAPIService(this IServiceCollection services,AppConfiguration appConfiguration)
     {
         // ************ Config fluent validation but need to update new ways to handle this **************
         //==================================================================================================================================
@@ -128,10 +130,12 @@ public static class DependencyInjection
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ValidateIssuerSigningKey = true,
-                ValidAudience = jwtSettings.Audience,
-                ValidIssuer = jwtSettings.Issuer,
-                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                ValidAudience = appConfiguration.JwtSettings.Audience,
+                ValidIssuer = appConfiguration.JwtSettings.Issuer,
+                ClockSkew = TimeSpan.Zero,
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(appConfiguration.JwtSettings.SecretKey))
             };
+            //options.Events = new JwtBearerEventsHandler();
         });
         //==================================================================================================================================
         /*services.AddIdentityApiEndpoints<User>()
@@ -149,9 +153,16 @@ public static class DependencyInjection
                 
                 // for email configuration
                 //options.SignIn.RequireConfirmedEmail = true;
+                options.User.RequireUniqueEmail = true;
+                
+                // Cấu hình về User.
+                options.User.AllowedUserNameCharacters = // các ký tự đặt tên user
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = true;  // Email là duy nhất
+
             })
-            .AddRoles<IdentityRole<Guid>>()   // be able to add role
-            .AddRoleManager<RoleManager<IdentityRole<Guid>>>()  // be able to make use of Role Manager
+            .AddRoles<Role>()   // be able to add role
+            .AddRoleManager<RoleManager<Role>>()  // be able to make use of Role Manager
             .AddEntityFrameworkStores<AppDbContext>()  // providing out context
             .AddSignInManager<SignInManager<User>>()  // make use of signin manager
             .AddUserManager<UserManager<User>>()  // make use of User Manager to create users
@@ -167,6 +178,19 @@ public static class DependencyInjection
             });
         });
         //==================================================================================================================================
+        PayOS payOS = new PayOS(appConfiguration.PayOSSettings.ClientId,appConfiguration.PayOSSettings.ApiKey,appConfiguration.PayOSSettings.CheckSumKey);
+        services.AddSingleton(payOS);
+        //==================================================================================================================================
+        services.AddAuthorization(opt =>
+        {
+            opt.AddPolicy(ConstantRole.RequireDeliveryAdminRole, policy => policy.RequireRole(ConstantRole.DELIVERY_ADMIN));
+            opt.AddPolicy(ConstantRole.RequirePartnerAdminRole, policy => policy.RequireRole(ConstantRole.PARTNER_ADMIN));
+            opt.AddPolicy(ConstantRole.RequireSuperAdminRole, policy => policy.RequireRole(ConstantRole.SUPER_ADMIN));
+            opt.AddPolicy(ConstantRole.RequireCustomerRole, policy => policy.RequireRole(ConstantRole.CUSTOMER));
+            opt.AddPolicy(ConstantRole.RequireDeliveryStaffRole, policy => policy.RequireRole(ConstantRole.DELIVERY_STAFF));
+            //opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
+        });
+        //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();
         services.AddSingleton<PerformanceMiddleware>();
@@ -176,6 +200,7 @@ public static class DependencyInjection
         services.AddFluentValidationAutoValidation();
         services.AddFluentValidationClientsideAdapters();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddMemoryCache();         // inject Memory Cache
         return services;
     }
 }

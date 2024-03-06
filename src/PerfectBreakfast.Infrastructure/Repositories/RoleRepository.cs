@@ -1,18 +1,17 @@
-﻿using PerfectBreakfast.Application.Interfaces;
+﻿using System.Linq.Expressions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PerfectBreakfast.Infrastructure.Repositories
+namespace PerfectBreakfast.Infrastructure.Repositories;
+
+public class RoleRepository : BaseRepository<Role>,IRoleRepository
 {
-    public class RoleRepository //: GenericRepository<Role>, IRoleRepository
+    
+    public RoleRepository(AppDbContext context) : base(context)
     {
-        /*public RoleRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) : base(context, timeService, claimsService)
-        {
-        }*/
     }
+    
 }

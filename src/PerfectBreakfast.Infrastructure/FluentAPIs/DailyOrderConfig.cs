@@ -13,12 +13,12 @@ public class DailyOrderConfig : IEntityTypeConfiguration<DailyOrder>
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
         
-        builder.HasOne(r => r.Admin)
-            .WithMany(ur => ur.DailyOrders)
-            .HasForeignKey(pk => pk.AdminId);
         
-        builder.HasOne(r => r.Company)
+        builder.HasOne(r => r.MealSubscription)
             .WithMany(ur => ur.DailyOrders)
-            .HasForeignKey(pk => pk.CompanyId);
+            .HasForeignKey(pk => pk.MealSubscriptionId);
+        
+        // Thêm ràng buộc duy nhất cho CompanyId và BookingDate
+        //builder.HasIndex(x => new { x.CompanyId, x.BookingDate }).IsUnique();
     }
 }

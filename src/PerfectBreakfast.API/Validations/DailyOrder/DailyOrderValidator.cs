@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using PerfectBreakfast.Application.Models.DaliyOrder.Request;
+using PerfectBreakfast.Application.Models.DailyOrder.Request;
 
 namespace PerfectBreakfast.API.Validations.DailyOrder
 {

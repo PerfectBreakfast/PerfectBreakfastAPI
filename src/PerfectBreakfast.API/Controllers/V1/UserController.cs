@@ -1,24 +1,33 @@
-using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
-using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.UserModels.Request;
-using PerfectBreakfast.Application.Models.UserModels.Response;
-using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Application.Utils;
+
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
+/// <summary>
+/// User Controller
+/// </summary>
 [Route("api/v{version:apiVersion}/users")]
 public class UserController : BaseController
 {
     private readonly IUserService _userService;
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="userService"></param>
     public UserController(IUserService userService)
     {
         _userService = userService;
     }
 
+    /// <summary>
+    /// Api for All, Get all Users in system
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -26,6 +35,11 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// Api for All , Get user by Id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpGet("{id}"),Authorize]
     public async Task<IActionResult> GetUser(Guid id)
     {
@@ -33,6 +47,12 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// Api for All 
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
     [HttpGet("pagination")]
     public async Task<IActionResult> GetUserPagination(int pageIndex = 0, int pageSize = 10)
     {
@@ -40,10 +60,65 @@ public class UserController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Super Admin, create user for deliveryUnit, managementUnit, supplier
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
     [HttpPost]
-    public async Task<IActionResult> CreateUser(CreateUserRequestModel requestModel)
+    public async Task<IActionResult> CreateUser([FromForm]CreateUserRequestModel requestModel)
     {
         var response = await _userService.CreateUser(requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    /// <summary>
+    /// Api for All
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(Guid id,[FromForm]UpdateUserRequestModel requestModel)
+    {
+        var response = await _userService.UpdateUser(id,requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Update image user
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="image"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/image")]
+    public async Task<IActionResult> UpdateImageUser(Guid id,IFormFile image)
+    {
+        var response = await _userService.UpdateImageUser(id,image);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api for Delivery Admin
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("deliverystaff/pagination")]
+    public async Task<IActionResult> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
+    {
+        var response = await _userService.GetDeliveryStaffByDeliveryAdmin(pageIndex,pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    ///  Api for Delivery Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("deliverystaff"),Authorize(policy: ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> GetDeliveryStaffByDeliveryAdminList()
+    {
+        var response = await _userService.GetDeliveryStaffByDeliveryAdminList();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

@@ -11,5 +11,8 @@ public class PaymentmethodConfig : IEntityTypeConfiguration<PaymentMethod>
         builder.ToTable("PaymentMethod");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
+        
+        // đánh index cho tên method 
+        builder.HasIndex(x => x.Name).IsUnique();
     }
 }

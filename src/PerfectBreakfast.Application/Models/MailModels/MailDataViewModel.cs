@@ -3,14 +3,19 @@ namespace PerfectBreakfast.Application.Models.MailModels;
 public class MailDataViewModel
 {
     // Receiver
-    public List<string> To { get; } 
+    public List<string> To { get; }
 
     // Content
     public string Subject { get; }
-
     public string? Body { get; }
 
-    public MailDataViewModel(List<string> to, string subject, string? body = null)
+    // Attachment
+    public byte[]? ExcelAttachmentStream { get; set; }
+    public string? ExcelAttachmentFileName { get; set; }
+
+    // Constructor with attachment
+    public MailDataViewModel(List<string> to, string subject, string? body = null,
+                             byte[]? excelAttachmentStream = null, string? excelAttachmentFileName = null)
     {
         // Receiver
         To = to;
@@ -18,5 +23,9 @@ public class MailDataViewModel
         // Content
         Subject = subject;
         Body = body;
+
+        // Attachment
+        ExcelAttachmentStream = excelAttachmentStream;
+        ExcelAttachmentFileName = excelAttachmentFileName;
     }
 }

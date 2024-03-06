@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerfectBreakfast.Application.Models.FoodModels.Response;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -21,6 +22,33 @@ namespace PerfectBreakfast.Application.Services
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        public async Task<OperationResult<List<CategoryDetailFood>>> GetCategoryId(Guid categoryId)
+        {
+            var result = new OperationResult<List<CategoryDetailFood>>();
+            try
+            {
+                var category = await _unitOfWork.CategoryRepository.FindSingleAsync(o => o.Id == categoryId, o => o.Foods);
+                if (category == null)
+                {
+                    result.AddUnknownError("Id does not exist");
+                    return result;
+                }
+
+                var foodDtos = _mapper.Map<List<FoodResponse>>(category.Foods); // Assuming FoodResponse is your DTO
+                var categoryDetails = _mapper.Map<CategoryDetailFood>(category);
+                categoryDetails.FoodResponse = foodDtos; // Assuming CategoryDetailFood has a Foods property
+                result.Payload = new List<CategoryDetailFood> { categoryDetails };
+
+            }
+            catch (Exception e)
+            {
+                // Consider logging the exception here
+                result.AddUnknownError(e.Message);
+            }
+
+            return result;
         }
 
         public async Task<OperationResult<CategoryResponse>> CreateCategory(CreateCategoryRequest requestModel)
@@ -51,21 +79,6 @@ namespace PerfectBreakfast.Application.Services
             {
                 var categories = await _unitOfWork.CategoryRepository.GetAllAsync();
                 result.Payload = _mapper.Map<List<CategoryResponse>>(categories);
-            }
-            catch (Exception e)
-            {
-                result.AddUnknownError(e.Message);
-            }
-            return result;
-        }
-
-        public async Task<OperationResult<CategoryResponse>> GetCategoryById(Guid categoryId)
-        {
-            var result = new OperationResult<CategoryResponse>();
-            try
-            {
-                var categories = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
-                result.Payload = _mapper.Map<CategoryResponse>(categories);
             }
             catch (Exception e)
             {

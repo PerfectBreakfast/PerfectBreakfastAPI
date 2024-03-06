@@ -32,12 +32,28 @@ public class AccountController : BaseController
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    [HttpGet("refresh-user-token")]
-    [Authorize]
-    public async Task<IActionResult> RefreshUserToken()
+    
+    [HttpPost("deliverystaff/login")]
+    [ApiVersionNeutral]
+    public async Task<IActionResult> SignInDeliveryStaff(SignInModel request)
     {
-        var response = await _userService.RefreshUserToken();
+        var response = await _userService.DeliveryStaffSignIn(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+
+    [HttpPost("refresh-user-token")]
+    public async Task<IActionResult> RefreshUserToken(TokenModel tokenModel)
+    {
+        var response = await _userService.RefreshUserToken(tokenModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    [HttpGet("current-user")]
+    [ApiVersionNeutral]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var response = await _userService.GetCurrentUser();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

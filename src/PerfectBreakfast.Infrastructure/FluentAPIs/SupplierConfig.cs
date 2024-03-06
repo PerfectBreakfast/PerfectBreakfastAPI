@@ -13,5 +13,6 @@ public class SupplierConfig: IEntityTypeConfiguration<Supplier>
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Address).IsRequired().HasMaxLength(200);
+        builder.Property(x => x.PhoneNumber).HasMaxLength(10);
     }
 }

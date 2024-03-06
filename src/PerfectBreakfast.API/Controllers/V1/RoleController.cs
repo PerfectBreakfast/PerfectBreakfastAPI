@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
-using PerfectBreakfast.Application.Models.SupplierModels.Request;
-using PerfectBreakfast.Application.Services;
 
 namespace PerfectBreakfast.API.Controllers.V1
 {
@@ -28,6 +27,13 @@ namespace PerfectBreakfast.API.Controllers.V1
         public async Task<IActionResult> GetRoleId(Guid id)
         {
             var response = await _roleService.GetRoleById(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
+
+        [HttpGet("unit/{unitId}")]
+        public async Task<IActionResult> GetRoleByUnitId(Guid unitId)
+        {
+            var response = await _roleService.GetRoleByUnitId(unitId);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
