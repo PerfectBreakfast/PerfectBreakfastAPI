@@ -1,0 +1,50 @@
+﻿version: '3.8'
+
+services:
+  backend-dotnet8:
+    image: backend-dotnet8
+    build:
+      context: .
+      dockerfile: src/PerfectBreakfast.API/Dockerfile
+    ports:
+      - "8878:8080"
+    #depends_on: 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production   # lấy các cấu hình từ môi trường Production , Development
+    networks: 
+      - perfect-breakfast-network
+  
+  mysql-db:
+    container_name: mysql-db
+    image: mysql:8.2.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Viethung3900@
+      MYSQL_DATABASE: pbDB
+      MYSQL_USER: user
+      MYSQL_PASSWORD: hehehe
+    ports:
+      - "3308:3306"
+    volumes:
+      - db-data:/var/lib/mysql # Lưu trữ dữ liệu MySQL ra ngoài container
+    networks:
+      - perfect-breakfast-network     # set network 
+        
+        
+volumes:
+  db-data:
+    
+networks:
+  perfect-breakfast-network:
+    name: perfect-breakfast-network
+    driver: bridge
+          
+
+
+# docker compose down 
+
+# docker compose -f ./docker-compose.yml rm -s -f mysql-db
+# docker compose -f ./docker-compose.yml up -d mysql-db     // chạy service mysql-db trong docker compose 
+
+# docker compose -f ./docker-compose.yml rm -s -f backend-dotnet8
+# docker compose -f ./docker-compose.yml up -d backend-dotnet8 --build     // chạy service backend-dotnet8 trong docker compose 
