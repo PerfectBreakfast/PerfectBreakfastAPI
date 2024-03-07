@@ -253,4 +253,31 @@ public class SupplierService : ISupplierService
         }
         return result;
     }
+
+    public async Task<OperationResult<List<SupplierDTO>>> GetAllSupplierByPartner()
+    {
+        var result = new OperationResult<List<SupplierDTO>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
+            if (suppliers == null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Supplier does not have partner");
+                return result;
+            }
+
+            var existSupplier = suppliers.Where(s => s.IsDeleted == false).ToList();
+
+            result.Payload = _mapper.Map<List<SupplierDTO>>(existSupplier);
+
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
 }

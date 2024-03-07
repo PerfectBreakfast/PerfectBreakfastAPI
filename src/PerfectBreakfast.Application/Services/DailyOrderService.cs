@@ -76,6 +76,7 @@ public class DailyOrderService : IDailyOrderService
 
             // get các bữa ăn của từng công ty
             var mealSubscriptionIds = user.Partner.Companies
+                .Where(c => !c.IsDeleted)
                 .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
 
             // Xây dựng predicate để lọc DailyOrder theo các MealSubscriptionId
@@ -150,6 +151,7 @@ public class DailyOrderService : IDailyOrderService
             // get các bữa ăn của từng công ty
             var mealSubscriptionIds =
                 user.Delivery.Companies
+                    .Where(c => !c.IsDeleted)
                     .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
 
             var dailyOrderPages =

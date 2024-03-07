@@ -71,7 +71,8 @@ public class ManagementService : IManagementService
             foreach (var co in companies)
             {
                 var company = await _unitOfWork.CompanyRepository.GetCompanyById(co.Id);
-                foreach (var meal in company.MealSubscriptions)
+                var mealSubscriptions = company.MealSubscriptions.Where(ms => !ms.IsDeleted).ToList();
+                foreach (var meal in mealSubscriptions)
                 {
                     var dailyOrder = new DailyOrder()
                     {

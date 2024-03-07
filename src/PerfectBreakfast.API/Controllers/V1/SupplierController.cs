@@ -85,6 +85,7 @@ public class SupplierController : BaseController
         var response = await _supplierService.GetSupplierId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API for Partner Admin
     /// </summary>
@@ -93,6 +94,17 @@ public class SupplierController : BaseController
     public async Task<IActionResult> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierService.GetSupplierByPartner(searchTerm, pageIndex, pageSize);
+        return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
+    }
+    
+    /// <summary>
+    /// API for Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("all/partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierByPartner()
+    {
+        var response = await _supplierService.GetAllSupplierByPartner();
         return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
     }
 }

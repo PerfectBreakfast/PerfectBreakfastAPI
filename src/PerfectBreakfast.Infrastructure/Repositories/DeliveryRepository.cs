@@ -17,5 +17,11 @@ public class DeliveryRepository : GenericRepository<Delivery>,IDeliveryRepositor
     {
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
-    
+
+    public async Task<List<Delivery>> GetDeliveriesByToday(DateTime dateTime)
+    {
+        var dateToCompare = dateTime.Date;
+        return await _dbSet.Include(mu => mu.Companies)
+            .ToListAsync();
+    }
 }

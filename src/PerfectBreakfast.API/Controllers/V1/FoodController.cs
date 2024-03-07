@@ -97,5 +97,17 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _foodService.GetFoodsForPartner(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+        
+        /// <summary>
+        /// API For Delivery Admin
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("{id}/dailyorderid/delivery"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+        public async Task<IActionResult> GetFoodForDelivery(Guid id)
+        {
+            var response = await _foodService.GetFoodsForDelivery(id);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }
