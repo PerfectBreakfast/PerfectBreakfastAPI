@@ -13,5 +13,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<FoodResponse>> RemoveFood(Guid foodId);
         public Task<OperationResult<Pagination<FoodResponse>>> GetFoodPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForPartner(Guid dailyOrderId);
+        public Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForDelivery(Guid dailyOrderId);
     }
 }
