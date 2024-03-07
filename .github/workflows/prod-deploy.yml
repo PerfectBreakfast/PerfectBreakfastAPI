@@ -1,0 +1,39 @@
+name: build and deploy to DockerHub viethungdev23 
+
+on:
+  push:
+    branches: 
+      - prod
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: self-hosted        # run bằng host tự tạo của toi
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.x' # Sửa đổi tương ứng với phiên bản .NET của bạn
+          include-prerelease: true
+          
+      - name: Build
+        run: dotnet build --configuration Release
+  
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    
+    steps:
+      - uses: actions/checkout@v3
+          
+      - name: Build and push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: viethungdev23/backend-dotnet8
+          tags: latest
+          registry: docker.io
+          dockerfile: Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}    
