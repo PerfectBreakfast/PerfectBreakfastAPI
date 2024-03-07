@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted # run bằng host tự tạo của toi
+    runs-on: hehe # run bằng host tự tạo của toi
     timeout-minutes: 5
     
     steps:
@@ -24,9 +24,8 @@ jobs:
         run: dotnet build --configuration Release
   
   deploy:
+    runs-on: hehe
     needs: build
-    runs-on: self-hosted
-    
     steps:
       - uses: actions/checkout@v3
           
