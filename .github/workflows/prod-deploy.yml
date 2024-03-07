@@ -8,7 +8,9 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest        # run bằng host tự tạo của toi
+    runs-on: self-hosted # run bằng host tự tạo của toi
+    timeout-minutes: 5
+    
     steps:
       - uses: actions/checkout@v4
         
@@ -23,7 +25,7 @@ jobs:
   
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - uses: actions/checkout@v3
