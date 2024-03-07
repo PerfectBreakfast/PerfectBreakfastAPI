@@ -35,6 +35,6 @@ jobs:
           image: viethungdev23/backend-dotnet8
           tags: latest
           registry: docker.io
-          dockerfile: Dockerfile
+          dockerfile: ./src/PerfectBreakfast.API/Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}    
