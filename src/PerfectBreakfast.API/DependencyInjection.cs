@@ -174,7 +174,8 @@ public static class DependencyInjection
             {
                 builder.AllowAnyOrigin()  // custom Origin here 
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
         //==================================================================================================================================
