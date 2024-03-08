@@ -89,6 +89,7 @@ public class DailyOrderService : IDailyOrderService
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .OrderByDescending(group => group.Key)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
                     dateGroup.Key,
                     dateGroup
@@ -159,6 +160,7 @@ public class DailyOrderService : IDailyOrderService
 
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .OrderByDescending(group => group.Key)
                 .Select(dateGroup => new DailyOrderForDeliveryResponse(
                     dateGroup.Key,
                     dateGroup

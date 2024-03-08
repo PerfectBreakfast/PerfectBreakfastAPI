@@ -45,6 +45,15 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 
+                //Lấy tất cả assignment food
+                var existAssignmentFood = await _unitOfWork.SupplierFoodAssignmentRepository.GetAllAsync();
+                var checkExist = existAssignmentFood.Any(s => s.DailyOrderId == request.DailyOrderId);
+                if (checkExist)
+                {
+                    result.AddError(ErrorCode.BadRequest, "The order has been divided");
+                    return result;
+                }
+                
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
                 var totalFoodCountOperationResult = await _foodService.GetFoodsForPartner((Guid)request.DailyOrderId);
                 var totalFoodCounts = totalFoodCountOperationResult.Payload;
