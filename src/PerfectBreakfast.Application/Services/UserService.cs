@@ -363,9 +363,9 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<UserResponse>>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<dynamic>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<UserResponse>>();
+        var result = new OperationResult<dynamic>();
         var deliveryAdminId = _claimsService.GetCurrentUserId;
         try
         {
@@ -380,7 +380,8 @@ public class UserService : IUserService
              
             var userPages = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize, perdicate);
 
-            result.Payload = _mapper.Map<Pagination<UserResponse>>(userPages);
+            var pagination = _mapper.Map<Pagination<UserResponse>>(userPages);
+            result.Payload = new { DeliveryId = deliveryAdmin.DeliveryId, pagination };
 
         }
         catch (Exception e)

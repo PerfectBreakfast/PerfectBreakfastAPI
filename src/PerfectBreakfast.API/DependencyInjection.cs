@@ -172,9 +172,11 @@ public static class DependencyInjection
         {
             options.AddDefaultPolicy(builder =>
             {
-                builder.AllowAnyOrigin()  // custom Origin here 
+                builder.WithOrigins("http://localhost:3000",
+                        "https://perfect-breakfast-web.vercel.app")  // custom Origin here 
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
         //==================================================================================================================================
