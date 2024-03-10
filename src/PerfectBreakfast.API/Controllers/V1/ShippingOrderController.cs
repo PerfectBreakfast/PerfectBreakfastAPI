@@ -23,7 +23,7 @@ public class ShippingOrderController : BaseController
     /// Api for Delivery Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> GetShippingOrder()
     {
         var response = await _shippingOrderService.GetAllShippingOrdersWithDetails();
