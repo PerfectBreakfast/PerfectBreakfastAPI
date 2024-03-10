@@ -67,17 +67,29 @@ public class SupplierFoodAssignmentController : BaseController
         var response = await _supplierFoodAssignmentService.CompleteFoodAssignment(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
+
     /// <summary>
     /// API For Supplier Admin
     /// </summary>
     /// <param name="id"></param>
+    /// <param name="status"> 0: Declined, 1: Confirmed</param>
     /// <returns></returns>
     [HttpPut("{id}/status-confirmation")]
     [Authorize(Roles = "SUPPLIER ADMIN")]
-    public async Task<IActionResult> ConfirmFoodAssignmentBySupplier(Guid id)
+    public async Task<IActionResult> ConfirmFoodAssignmentBySupplier(Guid id, int status)
     {
-        var response = await _supplierFoodAssignmentService.ConfirmFoodAssignment(id);
+        var response = await _supplierFoodAssignmentService.ChangeStatusFoodAssignment(id, status);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    } 
+    
+    /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpPut, Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> UpdateSupplierCommissionRate(UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
+    {
+        var response = await _supplierFoodAssignmentService.UpdateSupplierFoodAssignment(updateSupplierFoodAssignment);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     } 
 }

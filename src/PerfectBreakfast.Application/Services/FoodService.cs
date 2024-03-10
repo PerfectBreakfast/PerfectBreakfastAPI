@@ -122,7 +122,6 @@ namespace PerfectBreakfast.Application.Services
                 //     // Nếu thời gian hiện tại không sau 16:00
                 //     result.AddError(ErrorCode.BadRequest, "Chức năng chỉ có thể được thực hiện sau 4:00 PM");
                 // }
-
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 var partners = await _unitOfWork.PartnerRepository.GetPartnersByToday(now);
                 var partner = partners.SingleOrDefault(m => m.Id == user.PartnerId);

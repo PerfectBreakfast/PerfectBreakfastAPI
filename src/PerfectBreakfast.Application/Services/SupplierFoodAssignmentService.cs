@@ -142,9 +142,6 @@ namespace PerfectBreakfast.Application.Services
                             Status = item.Status.ToString()
                         };
                         foodAssignmentResponses.Add(foodAssignmentResponse);
-                        var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)request.DailyOrderId);
-                        dailyOrder.Status = DailyOrderStatus.Cooking;
-                        _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                     }
 
                     SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
@@ -407,7 +404,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<FoodAssignmentResponse>> ConfirmFoodAssignment(Guid id)
+        public async Task<OperationResult<FoodAssignmentResponse>> ChangeStatusFoodAssignment(Guid id, int status)
         {
             var result = new OperationResult<FoodAssignmentResponse>();
             try
@@ -418,8 +415,23 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "This order is already Confirm");
                     return result;
                 }
-                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Confirmed;
+                if (status != 1 && status != 0)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Status must be 1 or 0");
+                    return result;
+                }
+                supplierFoodAssignment.Status = status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository
+                        .GetByDaiyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
+                if (allConfirmed)
+                {
+                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
+                    dailyOrder.Status = DailyOrderStatus.Cooking;
+                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
                 result.Payload = foodAssignment;
@@ -448,8 +460,57 @@ namespace PerfectBreakfast.Application.Services
                 }
                 supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Completed;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository
+                        .GetByDaiyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
+                if (allConfirmed)
+                {
+                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
+                    dailyOrder.Status = DailyOrderStatus.Waiting;
+                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
+                result.Payload = foodAssignment;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Food assignment is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
+        {
+            var result = new OperationResult<SupplierFoodAssignmentResponse>();
+            try
+            {
+                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync((Guid)updateSupplierFoodAssignment.SupplierFoodAssignmentId);
+                if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
+                {
+                    result.AddError(ErrorCode.BadRequest, "This assignment must be Declined");
+                    return result;
+                }
+                //Đổi nhà cung cấp khác
+                var supplierCommissionRates =
+                    await _unitOfWork.SupplierCommissionRateRepository
+                        .GetBySupplierId((Guid)updateSupplierFoodAssignment.SupplierId);
+                var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
+                if (supplierCommissionRate == null)
+                {
+                    result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                    return result;
+                }
+                supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
+                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
+                _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                await _unitOfWork.SaveChangeAsync();
+                var foodAssignment = _mapper.Map<SupplierFoodAssignmentResponse>(supplierFoodAssignment);
                 result.Payload = foodAssignment;
             }
             catch (NotFoundIdException)
