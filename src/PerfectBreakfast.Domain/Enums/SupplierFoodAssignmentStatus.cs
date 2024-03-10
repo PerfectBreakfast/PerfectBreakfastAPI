@@ -2,7 +2,8 @@ namespace PerfectBreakfast.Domain.Enums;
 
 public enum SupplierFoodAssignmentStatus
 {
-    Pending ,
-    Confirmed ,
+    Pending,
+    Confirmed,
+    Declined,
     Completed
 }
