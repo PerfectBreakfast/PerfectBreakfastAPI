@@ -7,7 +7,7 @@ using PerfectBreakfast.Application.Models.AuthModels.Request;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
-[Route("account")]
+[Route("api/account")]
 public class AccountController : BaseController
 {
     private readonly IUserService _userService;
