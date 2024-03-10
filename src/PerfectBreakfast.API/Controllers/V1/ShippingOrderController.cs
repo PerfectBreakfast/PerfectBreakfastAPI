@@ -19,7 +19,10 @@ public class ShippingOrderController : BaseController
     {
         _shippingOrderService = shippingOrderService;
     }
-    
+    /// <summary>
+    /// Api for Delivery Admin
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetShippingOrder()
     {

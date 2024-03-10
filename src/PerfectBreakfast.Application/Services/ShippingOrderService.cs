@@ -25,7 +25,7 @@ public class ShippingOrderService : IShippingOrderService
         
     }
 
-
+    // get all shipper with dalilyOder Detail
     public async Task<OperationResult<List<ShippingOrderDTO>>> GetAllShippingOrdersWithDetails()
     {
         var result = new OperationResult<List<ShippingOrderDTO>>();
@@ -37,7 +37,7 @@ public class ShippingOrderService : IShippingOrderService
             var shippingOrderDTOs = shippingOrders.Select(so => new ShippingOrderDTO
             {
                 ShipperId = so.ShipperId,
-                DailyOrderDTO = _mapper.Map<DailyOrderResponse>(so.DailyOrder) // Direct mapping without Select
+                DailyOrder = _mapper.Map<DailyOrderResponse>(so.DailyOrder) // Direct mapping without Select
             }).ToList();
 
             result.Payload = shippingOrderDTOs;
