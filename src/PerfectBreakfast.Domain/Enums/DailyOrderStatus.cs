@@ -5,8 +5,9 @@ namespace PerfectBreakfast.Domain.Enums;
 public enum DailyOrderStatus
 {
     Initial,
-        
-    Processing ,
-        
+    Processing,
+    Cooking,
+    Waiting,
+    Delivering,    
     Complete 
 }

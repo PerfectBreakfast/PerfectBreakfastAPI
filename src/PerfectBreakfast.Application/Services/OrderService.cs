@@ -316,8 +316,8 @@ public class OrderService : IOrderService
                 return result;
             }
             
-            // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Proccesing 
-            if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Processing)
+            // check nếu order này chưa thanh toán hoặc cái dailyOrder của nó đang không ở trạng thái Delivering 
+            if (order.OrderStatus != OrderStatus.Paid || order.DailyOrder.Status != DailyOrderStatus.Delivering)
             {
                 result.AddError(ErrorCode.BadRequest, $"Thời gian giao hàng không phù hợp! {order.DailyOrder.Status}");
                 return result;

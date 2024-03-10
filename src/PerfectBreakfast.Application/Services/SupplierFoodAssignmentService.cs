@@ -142,6 +142,9 @@ namespace PerfectBreakfast.Application.Services
                             Status = item.Status.ToString()
                         };
                         foodAssignmentResponses.Add(foodAssignmentResponse);
+                        var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)request.DailyOrderId);
+                        dailyOrder.Status = DailyOrderStatus.Cooking;
+                        _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                     }
 
                     SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
@@ -153,7 +156,7 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Check xem số lượng nhập vào có đủ hay không
-                Guid? dailyOrder = totalFoodCounts.DailyOrderId;
+                Guid? dailyOrderId = totalFoodCounts.DailyOrderId;
                 if (totalFoodCounts.TotalFoodResponses != null)
                 {
                     foreach (var foodResponse in totalFoodCounts.TotalFoodResponses)
@@ -162,9 +165,9 @@ namespace PerfectBreakfast.Application.Services
                         int requiredQuantity = foodResponse.Quantity;
 
                         // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
-                        if (!totalFoodReceive.ContainsKey(dailyOrder) || !totalFoodReceive[dailyOrder].ContainsKey(foodName) || totalFoodReceive[dailyOrder][foodName] != requiredQuantity)
+                        if (!totalFoodReceive.ContainsKey(dailyOrderId) || !totalFoodReceive[dailyOrderId].ContainsKey(foodName) || totalFoodReceive[dailyOrderId][foodName] != requiredQuantity)
                         {
-                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrder}.");
+                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrderId}.");
                             return result; 
                         }
                     }
