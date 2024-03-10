@@ -19,7 +19,13 @@ public class ShippingOrderController : BaseController
     {
         _shippingOrderService = shippingOrderService;
     }
-
+    
+    [HttpGet]
+    public async Task<IActionResult> GetShippingOrder()
+    {
+        var response = await _shippingOrderService.GetAllShippingOrdersWithDetails();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     /// <summary>
     /// Api for Delivery Admin 
     /// </summary>

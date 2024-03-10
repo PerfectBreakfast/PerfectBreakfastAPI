@@ -1,6 +1,7 @@
 ﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
 using PerfectBreakfast.Application.Utils;
@@ -23,7 +24,32 @@ public class ShippingOrderService : IShippingOrderService
         _claimsService = claimsService;
         
     }
-    
+
+
+    public async Task<OperationResult<List<ShippingOrderDTO>>> GetAllShippingOrdersWithDetails()
+    {
+        var result = new OperationResult<List<ShippingOrderDTO>>();
+        try
+        {
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository
+                .GetAllWithDailyOrdersAsync(); // Assuming this correctly fetches ShippingOrder including DailyOrder
+
+            var shippingOrderDTOs = shippingOrders.Select(so => new ShippingOrderDTO
+            {
+                ShipperId = so.ShipperId,
+                DailyOrderDTO = _mapper.Map<DailyOrderResponse>(so.DailyOrder) // Direct mapping without Select
+            }).ToList();
+
+            result.Payload = shippingOrderDTOs;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<List<ShippingOrderResponse>>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
     {
         var result = new OperationResult<List<ShippingOrderResponse>>();
