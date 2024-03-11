@@ -77,7 +77,30 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
                 .Include(d => d.MealSubscription)
                 .ThenInclude(ms => ms.Company)
-                .OrderBy(d => d.BookingDate)
+                .OrderByDescending(d => d.BookingDate)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            
+            var result = new Pagination<DailyOrder>()
+            {
+                PageIndex = pageNumber,
+                PageSize = pageSize,
+                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                Items = items,
+            };
+            return result;
+        }
+
+        public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
+        {
+            var items = await _dbSet
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
+                .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
