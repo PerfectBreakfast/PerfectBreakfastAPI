@@ -11,4 +11,6 @@ public interface IShippingOrderService
     public Task<OperationResult<List<ShippingOrderDTO>>> GetAllShippingOrdersWithDetails();
     public Task<OperationResult<List<ShippingOrderResponse>>> CreateShippingOrder(CreateShippingOrderRequest requestModel);
     public Task<OperationResult<List<ShippingOrderHistoryForShipperResponse>>> GetShippingOrderByDeliveryStaff();
+    public Task<OperationResult<bool>> UpdateShippingOrderStatus(Guid shippingOrderId, UpdateStatusShippingOrderRequest request);
+
 }

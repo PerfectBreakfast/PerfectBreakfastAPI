@@ -51,4 +51,11 @@ public class ShippingOrderController : BaseController
         var response = await _shippingOrderService.GetShippingOrderByDeliveryStaff();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    [HttpPut("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> UpdateStatusShippingOrder(Guid shippingOrderId, UpdateStatusShippingOrderRequest updateStatusShippingOrderRequest)
+    {
+        var response = await _shippingOrderService.UpdateShippingOrderStatus(shippingOrderId, updateStatusShippingOrderRequest); // Pass both ID and DTO to the service
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
