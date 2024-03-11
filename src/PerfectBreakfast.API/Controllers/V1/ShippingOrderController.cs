@@ -52,6 +52,11 @@ public class ShippingOrderController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// Api for Delivery Admin 
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
     [HttpPut("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> UpdateStatusShippingOrder(Guid shippingOrderId, UpdateStatusShippingOrderRequest updateStatusShippingOrderRequest)
     {
