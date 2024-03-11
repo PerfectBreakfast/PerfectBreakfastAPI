@@ -33,7 +33,7 @@ app.UseMiddleware<PerformanceMiddleware>();
 // todo authentication
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors();
+app.UseCors("CorsPolicy");
 app.MapControllers();
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions

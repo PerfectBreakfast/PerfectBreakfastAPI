@@ -170,13 +170,11 @@ public static class DependencyInjection
         //==================================================================================================================================
         services.AddCors(options =>
         {
-            options.AddDefaultPolicy(builder =>
+            options.AddPolicy("CorsPolicy", builder =>
             {
-                builder.WithOrigins("http://localhost:3000",
-                        "https://perfect-breakfast-web.vercel.app")  // custom Origin here 
-                    .AllowAnyHeader()
+                builder.AllowAnyOrigin()
                     .AllowAnyMethod()
-                    .AllowCredentials();
+                    .AllowAnyHeader();
             });
         });
         //==================================================================================================================================
