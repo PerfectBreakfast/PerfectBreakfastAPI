@@ -81,7 +81,6 @@ public class DailyOrderService : IDailyOrderService
 
             var dailyOrderPages =
                 await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
-            dailyOrderPages.Items = dailyOrderPages.Items.Where(d => d.OrderQuantity > 0).ToList();
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
