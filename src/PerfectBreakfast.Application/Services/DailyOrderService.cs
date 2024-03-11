@@ -77,11 +77,7 @@ public class DailyOrderService : IDailyOrderService
             // get các bữa ăn của từng công ty
             var mealSubscriptionIds = user.Partner.Companies
                 .Where(c => !c.IsDeleted)
-                .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
-
-            // Xây dựng predicate để lọc DailyOrder theo các MealSubscriptionId
-            Expression<Func<DailyOrder, bool>> predicate = dOrder =>
-                mealSubscriptionIds.Contains(dOrder.MealSubscriptionId.Value);
+                .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
                 await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
@@ -153,7 +149,7 @@ public class DailyOrderService : IDailyOrderService
             var mealSubscriptionIds =
                 user.Delivery.Companies
                     .Where(c => !c.IsDeleted)
-                    .SelectMany(x => x.MealSubscriptions.Select(x => x.Id)).ToList();
+                    .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
                 await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
@@ -290,14 +286,48 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderResponse>>> GetDailyOrderPaginationAsync(
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(
         int pageIndex = 0, int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<DailyOrderResponse>>();
+        var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
         try
         {
-            var pagination = await _unitOfWork.DailyOrderRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<DailyOrderResponse>>(pagination);
+            //Get tất cả các bữa ăn của từng công ty
+            var mealSubscription =  _unitOfWork.MealSubscriptionRepository.FindAll(m => m.Company, m => m.Meal);
+            var mealSubscriptionIds = mealSubscription.Where(m => !m.IsDeleted).Select(m => m.Id).ToList();
+            var dailyOrderPages =
+                await _unitOfWork.DailyOrderRepository.ToPagination(mealSubscriptionIds,pageIndex, pageSize);
+
+            var dailyOrderResponses = dailyOrderPages.Items
+                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .OrderByDescending(group => group.Key)
+                .Select(dateGroup => new DailyOrderForDeliveryResponse(
+                    dateGroup.Key,
+                    dateGroup
+                        .Select(d => d.MealSubscription.Company)
+                        .Distinct()
+                        .Select(company => new CompanyForDailyOrderResponse(
+                            company.Id,
+                            company.Name,
+                            company.Address,
+                            dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
+                                .Select(d => new DailyOrderModelResponse(
+                                    d.Id,
+                                    d.MealSubscription.Meal.MealType,
+                                    d.TotalPrice,
+                                    d.OrderQuantity,
+                                    d.Status.ToString()
+                                )).ToList()
+                        )).ToList()
+                )).ToList();
+
+            result.Payload = new Pagination<DailyOrderForDeliveryResponse>
+            {
+                PageIndex = dailyOrderPages.PageIndex,
+                PageSize = dailyOrderPages.PageSize,
+                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                Items = dailyOrderResponses
+            };
         }
         catch (Exception e)
         {
