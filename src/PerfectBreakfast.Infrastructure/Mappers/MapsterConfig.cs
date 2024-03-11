@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
+using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -34,5 +35,8 @@ public class MapsterConfig : IRegister
         config.NewConfig<Category, CategoryResponse>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name);
+        config.NewConfig<Supplier, SupplierDetailResponse>()
+            .Map(dest => dest.ManagementUnitDtos, src => src.SupplyAssignments.Select(x => x.Partner))
+            .Map(dest => dest.CommissionRates, src => src.SupplierCommissionRates);
     }
 }

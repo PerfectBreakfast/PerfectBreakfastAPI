@@ -48,27 +48,18 @@ public class SupplierService : ISupplierService
             var supp = await _unitOfWork.SupplierRepository.GetSupplierDetail(id);
             if (supp == null)
             {
-                result.AddUnknownError("Id does not exist");
+                result.AddError(ErrorCode.NotFound,"Id does not exist");
                 return result;
             }
-
-            var managementUnit = supp.SupplyAssignments.Select(o => o.Partner).ToList();
             
             var supplier = _mapper.Map<SupplierDetailResponse>(supp);
-            
-            supplier.ManagementUnitDtos = _mapper.Map<List<PartnerDTO>>(managementUnit);
 
             result.Payload = supplier;
-        }
-        catch (NotFoundIdException e)
-        {
-            result.AddError(ErrorCode.NotFound, e.Message);
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
         }
-
         return result;
     }
 

@@ -1,4 +1,5 @@
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
+using PerfectBreakfast.Application.Models.SupplierCommissionRate.Respone;
 
 namespace PerfectBreakfast.Application.Models.SupplierModels.Response;
 
@@ -11,4 +12,5 @@ public record SupplierDetailResponse
     public double? Longitude { get; set; } 
     public double? Latitude { get; set; }
     public List<PartnerDTO?> ManagementUnitDtos { get; set; }
+    public List<CommissionRateResponse?> CommissionRates { get; set; }
 }

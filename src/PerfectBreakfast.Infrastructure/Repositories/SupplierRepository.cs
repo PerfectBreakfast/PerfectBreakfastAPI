@@ -17,7 +17,10 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     {
         var supplier = await _dbSet.Where(x => x.Id == id)
             .Include(x => x.SupplyAssignments)
-            .ThenInclude(x => x.Partner).SingleOrDefaultAsync();
+            .ThenInclude(x => x.Partner)
+            .Include(x => x.SupplierCommissionRates)
+            .ThenInclude(x => x.Food)
+            .SingleOrDefaultAsync();
         return supplier;
     }
 

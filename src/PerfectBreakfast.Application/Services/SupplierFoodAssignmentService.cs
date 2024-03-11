@@ -206,7 +206,7 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, supplierInclude);
                 var supplierCommissionRateIds = user.Supplier.SupplierCommissionRates.Select(s => s.Id).ToList();
-                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value);
+                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value) && s.Status != SupplierFoodAssignmentStatus.Declined;
                 
                 // Get Paging
                 var foodInclude = new IncludeInfo<SupplierFoodAssignment>
