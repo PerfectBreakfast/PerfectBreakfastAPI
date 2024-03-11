@@ -139,4 +139,49 @@ public class ShippingOrderService : IShippingOrderService
         }
         return result;
     }
+
+    public async Task<OperationResult<bool>> UpdateShippingOrderStatus(Guid shippingOrderId, UpdateStatusShippingOrderRequest request)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetByIdAsync(shippingOrderId);
+            if (shippingOrder == null)
+            {
+                result.AddError(ErrorCode.NotFound, "Shipping order not found.");
+                return result;
+            }
+
+            // Check if the status update is valid based on the current status
+            if (!IsValidStatusUpdate(shippingOrder.Status, request.Status))
+            {
+                result.AddError(ErrorCode.BadRequest, "Invalid status update.");
+                return result;
+            }
+
+            shippingOrder.Status = request.Status;
+            _unitOfWork.ShippingOrderRepository.Update(shippingOrder);
+            await _unitOfWork.SaveChangeAsync();
+
+            result.Payload = true;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+    
+    private bool IsValidStatusUpdate(ShippingStatus currentStatus, ShippingStatus newStatus)
+    {
+        // Define valid status transitions
+        switch (currentStatus)
+        {
+            case ShippingStatus.Pending when newStatus == ShippingStatus.Confirm:
+            case ShippingStatus.Confirm when newStatus == ShippingStatus.Complete:
+                return true;
+            default:
+                return false;
+        }
+    }
 }
