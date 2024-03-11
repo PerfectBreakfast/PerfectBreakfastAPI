@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Request;
-using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -36,14 +37,25 @@ public class SupplierCommissionRateController : BaseController
         return response.IsError ? BadRequest(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPost]
+    /// <summary>
+    /// Api for Super Admin
+    /// </summary>
+    /// <param name="supplierCommissionRateRequest"></param>
+    /// <returns></returns>
+    [HttpPost, Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreateSupplierCommissionRate(CreateSupplierCommissionRateRequest supplierCommissionRateRequest)
     {
         var response = await _supplierCommissionRate.CreateSupplierCommissionRate(supplierCommissionRateRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPut("{id}")]
+    /// <summary>
+    /// Api for Super Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="supplierCommissionRateRequest"></param>
+    /// <returns></returns>
+    [HttpPut("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> UpdateSupplierCommissionRate(Guid id, UpdateSupplierCommissionRateRequest supplierCommissionRateRequest)
     {
         var response = await _supplierCommissionRate.UpdateSupplierCommissionRate(id, supplierCommissionRateRequest);
@@ -58,8 +70,12 @@ public class SupplierCommissionRateController : BaseController
     }
 
     
-
-    [HttpDelete("{id}")]
+    /// <summary>
+    /// Api for Super Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpDelete("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _supplierCommissionRate.Delete(id);
