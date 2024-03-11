@@ -10,6 +10,11 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         public SupplierFoodAssignmentRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) : base(context, timeService, claimsService)
         {
         }
+
+        public async Task<List<SupplierFoodAssignment>> GetByDaiyOrder(Guid dailyOrderId)
+        {
+            return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId).ToListAsync();
+        }
     }
 
 }
