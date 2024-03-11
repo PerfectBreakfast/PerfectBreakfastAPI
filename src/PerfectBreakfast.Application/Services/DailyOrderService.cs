@@ -81,7 +81,8 @@ public class DailyOrderService : IDailyOrderService
 
             var dailyOrderPages =
                 await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
-
+            dailyOrderPages.Items = dailyOrderPages.Items.Where(d => d.OrderQuantity > 0).ToList();
+            
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
@@ -145,7 +146,7 @@ public class DailyOrderService : IDailyOrderService
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
 
-            // get các bữa ăn của từng công ty
+            // Get các bữa ăn của từng công ty
             var mealSubscriptionIds =
                 user.Delivery.Companies
                     .Where(c => !c.IsDeleted)
@@ -153,7 +154,8 @@ public class DailyOrderService : IDailyOrderService
 
             var dailyOrderPages =
                 await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
-
+            dailyOrderPages.Items = dailyOrderPages.Items.Where(d => d.OrderQuantity > 0).ToList();
+            
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
                 .OrderByDescending(group => group.Key)
