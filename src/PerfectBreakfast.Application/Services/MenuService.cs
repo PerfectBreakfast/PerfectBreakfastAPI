@@ -140,7 +140,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddUnknownError("Id is not exist");
             }
             catch (Exception e)
             {
@@ -255,10 +255,12 @@ namespace PerfectBreakfast.Application.Services
                         comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
                         comboResponses.Add(comboResponse);
                     }
-
+                    
+                    var currentTime = _currentTime.GetCurrentTime();
+                    var menuDate = currentTime.AddDays(currentTime.Hour < 16 ? 1 : 2);
                     // Ánh xạ Menu chi tiết sang DTO
                     menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
-                    menuResponse = menuResponse with { MenuDate = _currentTime.GetCurrentTime().AddDays(1) };
+                    menuResponse = menuResponse with { MenuDate = menuDate };
                     menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
                     menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
                     result.Payload = menuResponse;

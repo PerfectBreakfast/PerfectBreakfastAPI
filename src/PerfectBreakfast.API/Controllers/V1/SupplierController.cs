@@ -21,7 +21,7 @@ public class SupplierController : BaseController
     /// API For Super Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet, Authorize]
     public async Task<IActionResult> GetSuppliers()
     {
         var response = await _supplierService.GetSuppliers();
@@ -35,7 +35,7 @@ public class SupplierController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("pagination")]
+    [HttpGet("pagination"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetPagination( string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierService.GetPaginationAsync(searchTerm,pageIndex,pageSize);
@@ -47,7 +47,7 @@ public class SupplierController : BaseController
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpPost]
+    [HttpPost,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreateSupplier(CreateSupplierRequestModel requestModel)
     {
         var response = await _supplierService.CreateSupplier(requestModel);
@@ -60,7 +60,7 @@ public class SupplierController : BaseController
     /// <param name="id"></param>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpPut("{id}")]
+    [HttpPut("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> UpdateSupplier(Guid id, UpdateSupplierRequestModel requestModel)
     {
         var response = await _supplierService.UpdateSupplier(id,requestModel);
@@ -72,19 +72,26 @@ public class SupplierController : BaseController
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> RemoveSupplier(Guid id)
     {
         var response = await _supplierService.RemoveSupplier(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
-    [HttpGet("{id}")]
+
+    /// <summary>
+    /// Api for Supplier Admin
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+
     public async Task<IActionResult> GetSupplierId(Guid id)
     {
         var response = await _supplierService.GetSupplierId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API for Partner Admin
     /// </summary>
@@ -93,6 +100,17 @@ public class SupplierController : BaseController
     public async Task<IActionResult> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierService.GetSupplierByPartner(searchTerm, pageIndex, pageSize);
+        return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
+    }
+    
+    /// <summary>
+    /// API for Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("all/partner"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierByPartner()
+    {
+        var response = await _supplierService.GetAllSupplierByPartner();
         return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
     }
 }

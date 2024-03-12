@@ -7,5 +7,5 @@ namespace PerfectBreakfast.Application.Models.ShippingOrder.Request;
 public record class CreateShippingOrderRequest
 {
     public Guid? DailyOrderId { get; set; }
-    public Guid? ShipperId { get; set; }
+    public List<Guid?> ShipperIds { get; set; }
 }

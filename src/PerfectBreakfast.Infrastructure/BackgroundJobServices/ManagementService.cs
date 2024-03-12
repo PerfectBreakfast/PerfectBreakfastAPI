@@ -24,13 +24,7 @@ public class ManagementService : IManagementService
         {
             //Update daily order each day after 4PM
             var now = _currentTime.GetCurrentTime();
-
-            //Kiểm tra xem hiện tại đã qua 16h (4 PM) chưa
-            // if (now.Hour < 16)
-            // {
-            //     Console.WriteLine("Job just run after 4PM");
-            //     return;
-            // }
+            
             var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByBookingDate(now);
             if (dailyOrders.Count > 0)
             {
@@ -45,7 +39,6 @@ public class ManagementService : IManagementService
                     dailyOrderEntity.Status = DailyOrderStatus.Processing;
                     _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                 }
-
                 await _unitOfWork.SaveChangeAsync();
             }
             else
@@ -71,7 +64,8 @@ public class ManagementService : IManagementService
             foreach (var co in companies)
             {
                 var company = await _unitOfWork.CompanyRepository.GetCompanyById(co.Id);
-                foreach (var meal in company.MealSubscriptions)
+                var mealSubscriptions = company.MealSubscriptions.Where(ms => !ms.IsDeleted).ToList();
+                foreach (var meal in mealSubscriptions)
                 {
                     var dailyOrder = new DailyOrder()
                     {

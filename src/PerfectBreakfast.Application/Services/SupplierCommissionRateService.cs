@@ -6,7 +6,6 @@ using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Request;
 using PerfectBreakfast.Application.Models.SupplierCommissionRate.Respone;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
-using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
 
 
@@ -16,13 +15,11 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    //private readonly ISupplierCommissionRateRepository _supplierCommissionRateRepository;
 
     public SupplierCommissionRateService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        //_supplierCommissionRateRepository = supplierCommissionRateRepository;
     }
 
     
@@ -128,7 +125,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         try
         {
             var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-            _unitOfWork.SupplierCommissionRateRepository.SoftRemove(supplierCommissionRate);
+            _unitOfWork.SupplierCommissionRateRepository.Remove(supplierCommissionRate);
             await _unitOfWork.SaveChangeAsync();
         }
         catch (NotFoundIdException)
@@ -148,13 +145,16 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         try
         {
             var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-            _mapper.Map(supplierCommissionRateRequest, supplierCommissionRate);
+            if (supplierCommissionRateRequest.CommissionRate is not null)
+            {
+                supplierCommissionRate.CommissionRate = supplierCommissionRateRequest.CommissionRate.Value;
+            }
             _unitOfWork.SupplierCommissionRateRepository.Update(supplierCommissionRate);
             await _unitOfWork.SaveChangeAsync();
         }
         catch (NotFoundIdException)
         {
-            result.AddUnknownError("Id is not exsit");
+            result.AddUnknownError("Id is not exist");
         }
         catch (Exception e)
         {
@@ -171,7 +171,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         try
         {
             var com = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-            _unitOfWork.SupplierCommissionRateRepository.SoftRemove(com);
+            _unitOfWork.SupplierCommissionRateRepository.Remove(com);
             await _unitOfWork.SaveChangeAsync();
         }
         catch (NotFoundIdException)

@@ -170,11 +170,11 @@ public static class DependencyInjection
         //==================================================================================================================================
         services.AddCors(options =>
         {
-            options.AddDefaultPolicy(builder =>
+            options.AddPolicy("CorsPolicy", builder =>
             {
-                builder.AllowAnyOrigin()  // custom Origin here 
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             });
         });
         //==================================================================================================================================

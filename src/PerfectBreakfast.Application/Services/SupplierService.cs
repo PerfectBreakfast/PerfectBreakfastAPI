@@ -48,27 +48,18 @@ public class SupplierService : ISupplierService
             var supp = await _unitOfWork.SupplierRepository.GetSupplierDetail(id);
             if (supp == null)
             {
-                result.AddUnknownError("Id does not exist");
+                result.AddError(ErrorCode.NotFound,"Id does not exist");
                 return result;
             }
-
-            var managementUnit = supp.SupplyAssignments.Select(o => o.Partner).ToList();
             
             var supplier = _mapper.Map<SupplierDetailResponse>(supp);
-            
-            supplier.ManagementUnitDtos = _mapper.Map<List<PartnerDTO>>(managementUnit);
 
             result.Payload = supplier;
-        }
-        catch (NotFoundIdException e)
-        {
-            result.AddError(ErrorCode.NotFound, e.Message);
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
         }
-
         return result;
     }
 
@@ -251,6 +242,33 @@ public class SupplierService : ISupplierService
         {
             result.AddUnknownError(e.Message);
         }
+        return result;
+    }
+
+    public async Task<OperationResult<List<SupplierDTO>>> GetAllSupplierByPartner()
+    {
+        var result = new OperationResult<List<SupplierDTO>>();
+        try
+        {
+            var userId = _claimsService.GetCurrentUserId;
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
+            if (suppliers == null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Supplier does not have partner");
+                return result;
+            }
+
+            var existSupplier = suppliers.Where(s => s.IsDeleted == false).ToList();
+
+            result.Payload = _mapper.Map<List<SupplierDTO>>(existSupplier);
+
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
         return result;
     }
 }

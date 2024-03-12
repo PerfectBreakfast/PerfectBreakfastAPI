@@ -1,11 +1,12 @@
 ﻿using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -23,10 +24,36 @@ public class ShippingOrderService : IShippingOrderService
         _claimsService = claimsService;
         
     }
-    
-    public async Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
+
+    // get all shipper with dalilyOder Detail
+    public async Task<OperationResult<List<ShippingOrderDTO>>> GetAllShippingOrdersWithDetails()
     {
-        var result = new OperationResult<bool>();
+        var result = new OperationResult<List<ShippingOrderDTO>>();
+        try
+        {
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository
+                .GetAllWithDailyOrdersAsync(); // Assuming this correctly fetches ShippingOrder including DailyOrder
+
+            var shippingOrderDTOs = shippingOrders.Select(so => new ShippingOrderDTO
+            {
+                ShipperId = so.ShipperId,
+                DailyOrder = _mapper.Map<DailyOrderResponse>(so.DailyOrder) // Direct mapping without Select
+            }).ToList();
+
+            result.Payload = shippingOrderDTOs;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<List<ShippingOrderResponse>>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
+    {
+        var result = new OperationResult<List<ShippingOrderResponse>>();
+        var responses = new List<ShippingOrderResponse>();
         try
         {
             if (requestModel.DailyOrderId.HasValue)
@@ -38,40 +65,56 @@ public class ShippingOrderService : IShippingOrderService
                     return result;
                 }
             }
-            if (requestModel.ShipperId.HasValue)
+            
+            // Validate ShipperIds
+            foreach (var shipperId in requestModel.ShipperIds)
             {
-                var shipper = await _unitOfWork.UserManager.FindByIdAsync(requestModel.ShipperId.Value.ToString());
+                var shipper = await _unitOfWork.UserManager.FindByIdAsync(shipperId.ToString());
                 if (shipper == null)
                 {
-                    result.AddError(ErrorCode.NotFound, "The user with the provided ID was not found.");
-                    return result;
+                    result.AddError(ErrorCode.NotFound, $"The user with the provided ID {shipperId} was not found.");
+                    continue; // Consider strategy for partial failure
                 }
                 if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_STAFF)))
                 {
-                    result.AddError(ErrorCode.BadRequest, "The user is not a Delivery Staff.");
-                    return result;
+                    result.AddError(ErrorCode.BadRequest, $"The user {shipperId} is not a DELIVERY STAFF.");
+                    continue; // Consider strategy for partial failure
                 }
-            }
-            if (requestModel.DailyOrderId.HasValue && requestModel.ShipperId.HasValue)
-            {
-                bool exists = await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShipper(
-                    requestModel.DailyOrderId.Value, requestModel.ShipperId.Value);
-
-                if (exists)
+                
+                // Check for duplicate shipping order
+                if (requestModel.DailyOrderId.HasValue && requestModel.ShipperIds.Any())
                 {
-                    result.AddError(ErrorCode.BadRequest, "A shipping order with the same DailyOrderId and ShipperId already exists.");
-                    return result;
+                    bool exists = await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShippers(
+                        requestModel.DailyOrderId.Value, requestModel.ShipperIds);
+
+                    if (exists)
+                    {
+                        result.AddError(ErrorCode.BadRequest, "A shipping order with the same DailyOrderId and one of the ShipperIds already exists.");
+                        return result;
+                    }
                 }
+
+                var shippingOrder = new ShippingOrder
+                {
+                    ShipperId = shipperId,
+                    DailyOrderId = requestModel.DailyOrderId,
+                    Status = ShippingStatus.Pending
+                };
+                
+                //list.Add(shippingOrder);
+                // Add to DB
+                await _unitOfWork.ShippingOrderRepository.AddAsync(shippingOrder);
+                // map model to response
+                
+                var responseList = _mapper.Map<ShippingOrderResponse>(shippingOrder);
+                
+                responses.Add(responseList);
+               
+
             }
-            // map model to Entity
-            var shippingOrder = _mapper.Map<ShippingOrder>(requestModel);
-            shippingOrder.Status = Domain.Enums.ShippingStatus.Pending;
-            // Add to DB
-            var entity = await _unitOfWork.ShippingOrderRepository.AddAsync(shippingOrder);
-            // save change 
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            // map model to response
-            result.Payload = isSuccess;
+            await _unitOfWork.SaveChangeAsync();
+            result.Payload = responses;
+            return result;
         }
         catch (Exception e)
         {
@@ -95,5 +138,50 @@ public class ShippingOrderService : IShippingOrderService
             result.AddUnknownError(e.Message);
         }
         return result;
+    }
+
+    public async Task<OperationResult<bool>> UpdateShippingOrderStatus(Guid shippingOrderId, UpdateStatusShippingOrderRequest request)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetByIdAsync(shippingOrderId);
+            if (shippingOrder == null)
+            {
+                result.AddError(ErrorCode.NotFound, "Shipping order not found.");
+                return result;
+            }
+
+            // Check if the status update is valid based on the current status
+            if (!IsValidStatusUpdate(shippingOrder.Status, request.Status))
+            {
+                result.AddError(ErrorCode.BadRequest, "Invalid status update.");
+                return result;
+            }
+
+            shippingOrder.Status = request.Status;
+            _unitOfWork.ShippingOrderRepository.Update(shippingOrder);
+            await _unitOfWork.SaveChangeAsync();
+
+            result.Payload = true;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+    
+    private bool IsValidStatusUpdate(ShippingStatus currentStatus, ShippingStatus newStatus)
+    {
+        // Define valid status transitions
+        switch (currentStatus)
+        {
+            case ShippingStatus.Pending when newStatus == ShippingStatus.Confirm:
+            case ShippingStatus.Confirm when newStatus == ShippingStatus.Complete:
+                return true;
+            default:
+                return false;
+        }
     }
 }

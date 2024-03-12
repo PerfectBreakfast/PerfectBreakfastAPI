@@ -19,7 +19,16 @@ public class ShippingOrderController : BaseController
     {
         _shippingOrderService = shippingOrderService;
     }
-
+    /// <summary>
+    /// Api for Delivery Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> GetShippingOrder()
+    {
+        var response = await _shippingOrderService.GetAllShippingOrdersWithDetails();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     /// <summary>
     /// Api for Delivery Admin 
     /// </summary>
@@ -40,6 +49,18 @@ public class ShippingOrderController : BaseController
     public async Task<IActionResult> GetDailyOrderByDeliveryStaff()
     {
         var response = await _shippingOrderService.GetShippingOrderByDeliveryStaff();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api for Delivery Admin 
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
+    [HttpPut("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> UpdateStatusShippingOrder(Guid shippingOrderId, UpdateStatusShippingOrderRequest updateStatusShippingOrderRequest)
+    {
+        var response = await _shippingOrderService.UpdateShippingOrderStatus(shippingOrderId, updateStatusShippingOrderRequest); // Pass both ID and DTO to the service
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

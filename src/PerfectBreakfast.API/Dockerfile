@@ -17,3 +17,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "PerfectBreakfast.API.dll"]
+
+
+# docker build -t yourusername/yourappname:tagversion .
+# docker build -t viethungdev23/backend-dotnet8 -f .\src\PerfectBreakfast.API\Dockerfile .

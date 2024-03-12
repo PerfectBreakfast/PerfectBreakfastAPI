@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
+using System.Net;
 using MapsterMapper;
 using Microsoft.AspNetCore.Components.Web;
+using OfficeOpenXml;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -42,6 +44,15 @@ namespace PerfectBreakfast.Application.Services
                 if (suppliers == null)
                 {
                     result.AddError(ErrorCode.BadRequest, "Partner doesn't have supplier");
+                    return result;
+                }
+                
+                //Lấy tất cả assignment food
+                var existAssignmentFood = await _unitOfWork.SupplierFoodAssignmentRepository.GetAllAsync();
+                var checkExist = existAssignmentFood.Any(s => s.DailyOrderId == request.DailyOrderId);
+                if (checkExist)
+                {
+                    result.AddError(ErrorCode.BadRequest, "The order has been divided");
                     return result;
                 }
                 
@@ -144,22 +155,19 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Check xem số lượng nhập vào có đủ hay không
-                foreach (var totalFoodForPartner in totalFoodCounts)
+                Guid? dailyOrderId = totalFoodCounts.DailyOrderId;
+                if (totalFoodCounts.TotalFoodResponses != null)
                 {
-                    Guid? dailyOrder = totalFoodForPartner.DailyOrderId;
-                    if (totalFoodForPartner.TotalFoodResponses != null)
+                    foreach (var foodResponse in totalFoodCounts.TotalFoodResponses)
                     {
-                        foreach (var foodResponse in totalFoodForPartner.TotalFoodResponses)
-                        {
-                            string foodName = foodResponse.Name;
-                            int requiredQuantity = foodResponse.Quantity;
+                        string foodName = foodResponse.Name;
+                        int requiredQuantity = foodResponse.Quantity;
 
-                            // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
-                            if (!totalFoodReceive.ContainsKey(dailyOrder) || !totalFoodReceive[dailyOrder].ContainsKey(foodName) || totalFoodReceive[dailyOrder][foodName] != requiredQuantity)
-                            {
-                                result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrder}.");
-                                return result; 
-                            }
+                        // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
+                        if (!totalFoodReceive.ContainsKey(dailyOrderId) || !totalFoodReceive[dailyOrderId].ContainsKey(foodName) || totalFoodReceive[dailyOrderId][foodName] != requiredQuantity)
+                        {
+                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrderId}.");
+                            return result; 
                         }
                     }
                 }
@@ -200,7 +208,7 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, supplierInclude);
                 var supplierCommissionRateIds = user.Supplier.SupplierCommissionRates.Select(s => s.Id).ToList();
-                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value);
+                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value) && s.Status != SupplierFoodAssignmentStatus.Declined;
                 
                 // Get Paging
                 var foodInclude = new IncludeInfo<SupplierFoodAssignment>
@@ -398,7 +406,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<FoodAssignmentResponse>> ConfirmFoodAssignment(Guid id)
+        public async Task<OperationResult<FoodAssignmentResponse>> ChangeStatusFoodAssignment(Guid id, int status)
         {
             var result = new OperationResult<FoodAssignmentResponse>();
             try
@@ -409,8 +417,23 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "This order is already Confirm");
                     return result;
                 }
-                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Confirmed;
+                if (status != 1 && status != 0)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Status must be 1 or 0");
+                    return result;
+                }
+                supplierFoodAssignment.Status = status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository
+                        .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
+                if (allConfirmed)
+                {
+                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
+                    dailyOrder.Status = DailyOrderStatus.Cooking;
+                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
                 result.Payload = foodAssignment;
@@ -439,6 +462,16 @@ namespace PerfectBreakfast.Application.Services
                 }
                 supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Completed;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository
+                        .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
+                if (allConfirmed)
+                {
+                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
+                    dailyOrder.Status = DailyOrderStatus.Waiting;
+                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
                 result.Payload = foodAssignment;
@@ -450,6 +483,170 @@ namespace PerfectBreakfast.Application.Services
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
+        {
+            var result = new OperationResult<SupplierFoodAssignmentResponse>();
+            try
+            {
+                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync((Guid)updateSupplierFoodAssignment.SupplierFoodAssignmentId);
+                if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
+                {
+                    result.AddError(ErrorCode.BadRequest, "This assignment must be Declined");
+                    return result;
+                }
+                //Đổi nhà cung cấp khác
+                var supplierCommissionRates =
+                    await _unitOfWork.SupplierCommissionRateRepository
+                        .GetBySupplierId((Guid)updateSupplierFoodAssignment.SupplierId);
+                var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
+                if (supplierCommissionRate == null)
+                {
+                    result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                    return result;
+                }
+                supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
+                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
+                _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
+                await _unitOfWork.SaveChangeAsync();
+                var foodAssignment = _mapper.Map<SupplierFoodAssignmentResponse>(supplierFoodAssignment);
+                result.Payload = foodAssignment;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Food assignment is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+        
+        public byte[] DownloadSupplierFoodAssignmentExcel(SupplierFoodAssignmentForSupplier supplierFood)
+        {
+            try
+            {
+                // Tạo gói Excel
+                using (var excelPackage = new ExcelPackage())
+                {
+                    // Thêm một bảng tính
+                    var worksheet = excelPackage.Workbook.Worksheets.Add("SupplierFoodAssignments");
+
+                    // Thêm tiêu đề
+                    worksheet.Cells[1, 1].Value = "Ngày Đặt";
+                    worksheet.Cells[1, 2].Value = "Tên Đối Tác";
+                    worksheet.Cells[1, 3].Value = "Thời Gian Giao Hàng";
+                    worksheet.Cells[1, 4].Value = "Tên Món Ăn";
+                    worksheet.Cells[1, 5].Value = "Số Lượng Nấu";
+                    worksheet.Cells[1, 6].Value = "Số Lượng Nhận";
+                    worksheet.Cells[1, 7].Value = "Trạng Thái";
+
+                    int row = 2;
+
+                    // Ghi giá trị Date
+                    worksheet.Cells[row, 1].Value = supplierFood.Date;
+
+                    foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
+                    {
+                        // Ghi giá trị PartnerName
+                        worksheet.Cells[row, 2].Value = foodAssignmentGroup.PartnerName;
+
+                        foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
+                        {
+                            // Ghi giá trị DeliveryTime
+                            worksheet.Cells[row, 3].Value = deliveryTimeResponse.DeliveryTime;
+
+                            foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
+                            {
+                                // Ghi các giá trị còn lại vào các cột tương ứng
+                                worksheet.Cells[row, 4].Value = foodAssignmentResponse.FoodName;
+                                worksheet.Cells[row, 5].Value = foodAssignmentResponse.AmountCooked;
+                                worksheet.Cells[row, 6].Value = foodAssignmentResponse.ReceivedAmount;
+                                worksheet.Cells[row, 7].Value = foodAssignmentResponse.Status;
+                                row++;
+                            }
+                        }
+                    }
+                    return excelPackage.GetAsByteArray();
+                }
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public async Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate)
+        {
+            var result = new OperationResult<List<SupplierFoodAssignmentForSupplier>>();
+            var userId =  _claimsService.GetCurrentUserId;
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository.GetByBookingDate();
+
+                supplierFoodAssignments = supplierFoodAssignments.Where(s => s.DailyOrder.BookingDate == bookingDate && s.SupplierCommissionRate.SupplierId == user.SupplierId).ToList();
+                if (supplierFoodAssignments.Count == 0)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Ngày này không có món được phân chia");
+                }
+                var supplierFoodAssignmentByBookingDate = supplierFoodAssignments.GroupBy(x => x.DailyOrder.BookingDate)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                
+                // custom output
+                var supplierFoodAssignmentResponse = supplierFoodAssignmentByBookingDate.Select(x =>
+                {
+                    var bookingDate = x.Key; // BookingDate từ Dictionary
+                    
+                    var foodAssignmentsGroupByPartner = x.Value.GroupBy(y => y.Partner.Name)
+                        .ToDictionary(y => y.Key, g => g.ToList());
+                    
+                    var foodAssignmentGroupByPartnerResponse = foodAssignmentsGroupByPartner.Select(x =>
+                    {
+                        var partnerName = x.Key;
+                        
+                        var foodAssignmentGroupByPartner = x.Value.GroupBy(y => y.DailyOrder.MealSubscription.StartTime)
+                            .ToDictionary(y => y.Key, g => g.ToList());
+
+                        var deliveryTimeResponse = foodAssignmentGroupByPartner.Select(x =>
+                        {
+                            var deliveryTime = x.Key.Value.AddHours(-1);
+                            // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                            var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                            {
+                            
+                                // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                                return new FoodAssignmentResponse
+                                {
+                                    Id = supplierFoodAssignment.Id,
+                                    FoodName = supplierFoodAssignment.Food?.Name,
+                                    AmountCooked = supplierFoodAssignment.AmountCooked,
+                                    ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                                    Status = supplierFoodAssignment.Status.ToString()
+                                };
+                            }).ToList();
+                            return new SupplierDeliveryTime(deliveryTime, foodAssignmentResponses);
+                        }).ToList();
+                        
+                        return new FoodAssignmentGroupByPartner(partnerName, deliveryTimeResponse);
+                        
+                    }).ToList();
+                    
+                    // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
+                    return new SupplierFoodAssignmentForSupplier(bookingDate, foodAssignmentGroupByPartnerResponse);
+                }).ToList();
+                
+                
+                result.Payload = supplierFoodAssignmentResponse;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
             return result;
         }

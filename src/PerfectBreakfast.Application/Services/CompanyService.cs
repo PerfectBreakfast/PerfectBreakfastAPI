@@ -255,7 +255,9 @@ public class CompanyService : ICompanyService
             var company = _mapper.Map<CompanyResponse>(companyEntity);
             company.Delivery = delivery;
             company.Partner = partner;
-            company.Meals = mealsSubscription.Select(mealsSubscription =>
+            company.Meals = mealsSubscription
+                .Where(mealSubscription => !mealSubscription.IsDeleted)
+                .Select(mealsSubscription =>
                 new MealResponse(
                     Id: mealsSubscription.Meal.Id, 
                     MealType: mealsSubscription.Meal.MealType, 
@@ -354,15 +356,24 @@ public class CompanyService : ICompanyService
             var existingMealSubscriptions = company.MealSubscriptions;
             var newMealModels = companyRequest.Meals;
 
+            foreach (var mealSubscription in company.MealSubscriptions)
+            {
+                var existMealSubscription = newMealModels.FirstOrDefault(ms => ms.MealId == mealSubscription.MealId);
+                if (existMealSubscription == null)
+                {
+                    mealSubscription.IsDeleted = true;
+                }
+            }
+            
             foreach (var mealModel in newMealModels)
             {
                 var existingMealSubscription = existingMealSubscriptions.FirstOrDefault(ms => ms.MealId == mealModel.MealId);
-    
                 if (existingMealSubscription != null)
                 {
                     // Nếu MealId tồn tại, cập nhật thông tin
                     existingMealSubscription.StartTime = mealModel.StartTime;
                     existingMealSubscription.EndTime = mealModel.EndTime;
+                    existingMealSubscription.IsDeleted = false;
                 }
                 else
                 {
@@ -386,7 +397,7 @@ public class CompanyService : ICompanyService
         }
         catch (NotFoundIdException)
         {
-            result.AddUnknownError("Id is not exsit");
+            result.AddError(ErrorCode.NotFound, "Id is not exsit");
         }
         catch (Exception e)
         {
