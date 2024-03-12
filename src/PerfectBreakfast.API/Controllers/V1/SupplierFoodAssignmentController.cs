@@ -91,5 +91,32 @@ public class SupplierFoodAssignmentController : BaseController
     {
         var response = await _supplierFoodAssignmentService.UpdateSupplierFoodAssignment(updateSupplierFoodAssignment);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    } 
+    }
+    
+    /// <summary>
+    /// API For Supplier Admin
+    /// </summary>
+    /// <param name="bookingDate"></param>
+    /// <returns></returns>
+    [HttpGet("download-excel")]
+    //[Authorize(Roles = "SUPPLIER ADMIN")]
+    public async Task<IActionResult> DownloadSupplierFoodAssignment(DateOnly bookingDate)
+    {
+        
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForDownload(bookingDate);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        var content = _supplierFoodAssignmentService.DownloadSupplierFoodAssignmentExcel(response.Payload[0]);
+        if (content == null)
+        {
+            return NotFound("Some thing wrong");
+        }
+        else
+        {
+            var fileName = $"Món ăn phân chia.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+    }
 }

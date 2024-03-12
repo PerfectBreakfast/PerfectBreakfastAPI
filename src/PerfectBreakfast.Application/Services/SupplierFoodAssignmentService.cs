@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
+using System.Net;
 using MapsterMapper;
 using Microsoft.AspNetCore.Components.Web;
+using OfficeOpenXml;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -424,7 +426,7 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 var supplierFoodAssignments =
                     await _unitOfWork.SupplierFoodAssignmentRepository
-                        .GetByDaiyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                        .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
                 bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
                 if (allConfirmed)
                 {
@@ -462,7 +464,7 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 var supplierFoodAssignments =
                     await _unitOfWork.SupplierFoodAssignmentRepository
-                        .GetByDaiyOrder((Guid)supplierFoodAssignment.DailyOrderId);
+                        .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
                 bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
                 if (allConfirmed)
                 {
@@ -520,6 +522,131 @@ namespace PerfectBreakfast.Application.Services
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+        
+        public byte[] DownloadSupplierFoodAssignmentExcel(SupplierFoodAssignmentForSupplier supplierFood)
+        {
+            try
+            {
+                // Tạo gói Excel
+                using (var excelPackage = new ExcelPackage())
+                {
+                    // Thêm một bảng tính
+                    var worksheet = excelPackage.Workbook.Worksheets.Add("SupplierFoodAssignments");
+
+                    // Thêm tiêu đề
+                    worksheet.Cells[1, 1].Value = "Ngày Đặt";
+                    worksheet.Cells[1, 2].Value = "Tên Đối Tác";
+                    worksheet.Cells[1, 3].Value = "Thời Gian Giao Hàng";
+                    worksheet.Cells[1, 4].Value = "Tên Món Ăn";
+                    worksheet.Cells[1, 5].Value = "Số Lượng Nấu";
+                    worksheet.Cells[1, 6].Value = "Số Lượng Nhận";
+                    worksheet.Cells[1, 7].Value = "Trạng Thái";
+
+                    int row = 2;
+
+                    // Ghi giá trị Date
+                    worksheet.Cells[row, 1].Value = supplierFood.Date;
+
+                    foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
+                    {
+                        // Ghi giá trị PartnerName
+                        worksheet.Cells[row, 2].Value = foodAssignmentGroup.PartnerName;
+
+                        foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
+                        {
+                            // Ghi giá trị DeliveryTime
+                            worksheet.Cells[row, 3].Value = deliveryTimeResponse.DeliveryTime;
+
+                            foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
+                            {
+                                // Ghi các giá trị còn lại vào các cột tương ứng
+                                worksheet.Cells[row, 4].Value = foodAssignmentResponse.FoodName;
+                                worksheet.Cells[row, 5].Value = foodAssignmentResponse.AmountCooked;
+                                worksheet.Cells[row, 6].Value = foodAssignmentResponse.ReceivedAmount;
+                                worksheet.Cells[row, 7].Value = foodAssignmentResponse.Status;
+                                row++;
+                            }
+                        }
+                    }
+                    return excelPackage.GetAsByteArray();
+                }
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public async Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate)
+        {
+            var result = new OperationResult<List<SupplierFoodAssignmentForSupplier>>();
+            var userId =  _claimsService.GetCurrentUserId;
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+                var supplierFoodAssignments =
+                    await _unitOfWork.SupplierFoodAssignmentRepository.GetByBookingDate();
+
+                supplierFoodAssignments = supplierFoodAssignments.Where(s => s.DailyOrder.BookingDate == bookingDate && s.SupplierCommissionRate.SupplierId == user.SupplierId).ToList();
+                if (supplierFoodAssignments.Count == 0)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Ngày này không có món được phân chia");
+                }
+                var supplierFoodAssignmentByBookingDate = supplierFoodAssignments.GroupBy(x => x.DailyOrder.BookingDate)
+                    .ToDictionary(x => x.Key, g => g.ToList());
+                
+                // custom output
+                var supplierFoodAssignmentResponse = supplierFoodAssignmentByBookingDate.Select(x =>
+                {
+                    var bookingDate = x.Key; // BookingDate từ Dictionary
+                    
+                    var foodAssignmentsGroupByPartner = x.Value.GroupBy(y => y.Partner.Name)
+                        .ToDictionary(y => y.Key, g => g.ToList());
+                    
+                    var foodAssignmentGroupByPartnerResponse = foodAssignmentsGroupByPartner.Select(x =>
+                    {
+                        var partnerName = x.Key;
+                        
+                        var foodAssignmentGroupByPartner = x.Value.GroupBy(y => y.DailyOrder.MealSubscription.StartTime)
+                            .ToDictionary(y => y.Key, g => g.ToList());
+
+                        var deliveryTimeResponse = foodAssignmentGroupByPartner.Select(x =>
+                        {
+                            var deliveryTime = x.Key.Value.AddHours(-1);
+                            // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                            var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                            {
+                            
+                                // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                                return new FoodAssignmentResponse
+                                {
+                                    Id = supplierFoodAssignment.Id,
+                                    FoodName = supplierFoodAssignment.Food?.Name,
+                                    AmountCooked = supplierFoodAssignment.AmountCooked,
+                                    ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                                    Status = supplierFoodAssignment.Status.ToString()
+                                };
+                            }).ToList();
+                            return new SupplierDeliveryTime(deliveryTime, foodAssignmentResponses);
+                        }).ToList();
+                        
+                        return new FoodAssignmentGroupByPartner(partnerName, deliveryTimeResponse);
+                        
+                    }).ToList();
+                    
+                    // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
+                    return new SupplierFoodAssignmentForSupplier(bookingDate, foodAssignmentGroupByPartnerResponse);
+                }).ToList();
+                
+                
+                result.Payload = supplierFoodAssignmentResponse;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
             return result;
         }
