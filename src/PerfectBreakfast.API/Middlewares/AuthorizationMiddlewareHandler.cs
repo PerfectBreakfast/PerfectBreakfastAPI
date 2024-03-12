@@ -39,6 +39,7 @@ public class AuthorizationMiddlewareHandler : IAuthorizationMiddlewareResultHand
         if (authorizeResult.Forbidden)
         {
             context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            context.Response.Headers["Access-Control-Allow-Origin"] = "*";
             //response body
             await context.Response.WriteAsJsonAsync(new ErrorResponse(
                 403, "Forbidden", "Permission: You do not have permission to access this resource", DateTime.UtcNow.AddHours(7)

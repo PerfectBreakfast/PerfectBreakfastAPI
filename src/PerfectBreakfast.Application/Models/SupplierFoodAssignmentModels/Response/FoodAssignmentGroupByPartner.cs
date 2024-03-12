@@ -2,6 +2,6 @@
 
 public record FoodAssignmentGroupByPartner
 (
-    string partnerName,
-    List<SupplierDeliveryTime> SupplierDeliveryTimes)
-    ;
+    string PartnerName,
+    List<SupplierDeliveryTime> SupplierDeliveryTimes
+    );

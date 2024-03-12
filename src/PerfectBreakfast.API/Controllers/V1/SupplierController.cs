@@ -21,7 +21,7 @@ public class SupplierController : BaseController
     /// API For Super Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet, Authorize]
     public async Task<IActionResult> GetSuppliers()
     {
         var response = await _supplierService.GetSuppliers();
@@ -78,12 +78,14 @@ public class SupplierController : BaseController
         var response = await _supplierService.RemoveSupplier(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
     /// <summary>
     /// Api for Supplier Admin
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+
     public async Task<IActionResult> GetSupplierId(Guid id)
     {
         var response = await _supplierService.GetSupplierId(id);
