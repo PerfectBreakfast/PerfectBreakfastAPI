@@ -78,13 +78,14 @@ public class SupplierController : BaseController
         var response = await _supplierService.RemoveSupplier(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
+
     /// <summary>
-    /// Api for gif khong biet (đer tạm là login thoi)
+    /// Api for Supplier Admin
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id}"),Authorize]
+    [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+
     public async Task<IActionResult> GetSupplierId(Guid id)
     {
         var response = await _supplierService.GetSupplierId(id);
