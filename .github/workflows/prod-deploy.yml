@@ -46,7 +46,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./src/PerfectBreakfast.API/
+          file: ./src/PerfectBreakfast.API/Dockerfile
           push: true
           tags: viethungdev23/backend-dotnet8:latest
 
