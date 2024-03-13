@@ -1,10 +1,10 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 EXPOSE 8080
-COPY ["./src/PerfectBreakfast.API/PerfectBreakfast.API.csproj", "src/PerfectBreakfast.API/"]
-COPY ["./src/PerfectBreakfast.Application/PerfectBreakfast.Application.csproj", "src/PerfectBreakfast.Application/"]
-COPY ["./src/PerfectBreakfast.Domain/PerfectBreakfast.Domain.csproj", "src/PerfectBreakfast.Domain/"]
-COPY ["./src/PerfectBreakfast.Infrastructure/PerfectBreakfast.Infrastructure.csproj", "src/PerfectBreakfast.Infrastructure/"]
+COPY ["src/PerfectBreakfast.API/PerfectBreakfast.API.csproj", "src/PerfectBreakfast.API/"]
+COPY ["src/PerfectBreakfast.Application/PerfectBreakfast.Application.csproj", "src/PerfectBreakfast.Application/"]
+COPY ["src/PerfectBreakfast.Domain/PerfectBreakfast.Domain.csproj", "src/PerfectBreakfast.Domain/"]
+COPY ["src/PerfectBreakfast.Infrastructure/PerfectBreakfast.Infrastructure.csproj", "src/PerfectBreakfast.Infrastructure/"]
 RUN dotnet restore "src/PerfectBreakfast.API/PerfectBreakfast.API.csproj"
 COPY . .
 WORKDIR "/src/src/PerfectBreakfast.API"
