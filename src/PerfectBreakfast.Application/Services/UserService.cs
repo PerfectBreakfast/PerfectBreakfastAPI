@@ -281,7 +281,7 @@ public class UserService : IUserService
                 var mailData = new MailDataViewModel(
                     to: new List<string> { email },
                     subject: "Reset Password",
-                    body: $"Please use this token to reset your password: {token}"
+                    body: $"Please click: link để reset password {token}"
                 );
                 CancellationToken ct = new CancellationToken();
                 
