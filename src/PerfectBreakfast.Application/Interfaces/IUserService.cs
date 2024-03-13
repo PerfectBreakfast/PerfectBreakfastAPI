@@ -14,7 +14,8 @@ public interface IUserService
     public Task<OperationResult<bool>> SignUp(SignUpModel request);
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken(TokenModel tokenModel);
     public Task<OperationResult<UserDetailResponse>> GetCurrentUser();
-    
+    public Task<OperationResult<UserLoginResponse>> ResetPassword(ResetPasswordRequest request);
+    public Task<OperationResult<string>> GeneratePasswordResetToken(string email);
     
     // action normal
     public Task<OperationResult<List<UserResponse>>> GetUsers();
@@ -25,4 +26,5 @@ public interface IUserService
     public Task<OperationResult<bool>> UpdateImageUser(Guid id,IFormFile image);
     public Task<OperationResult<dynamic>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDeliveryAdminList();
+    public Task<OperationResult<bool>> ChangePassword(string currentPassword, string newPassword);
 }

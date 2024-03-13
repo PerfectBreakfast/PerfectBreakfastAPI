@@ -8,7 +8,11 @@ using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using System.Net;
+using System.Net.Mail;
+using System.Web;
 using Microsoft.EntityFrameworkCore;
+using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.Application.Services;
@@ -21,13 +25,15 @@ public class UserService : IUserService
     private readonly JWTService _jwtService;
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
+    private readonly IMailService _mailService;
 
     public UserService(IUnitOfWork unitOfWork
         ,IMapper mapper
         ,IClaimsService claimsService
         ,JWTService jwtService
         ,ICurrentTime currentTime
-        ,IImgurService imgurService)
+        ,IImgurService imgurService
+        , IMailService mailService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -35,6 +41,7 @@ public class UserService : IUserService
         _jwtService = jwtService;
         _currentTime = currentTime;
         _imgurService = imgurService;
+        _mailService = mailService;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
@@ -223,6 +230,111 @@ public class UserService : IUserService
         {
             result.AddUnknownError(e.Message);
         }
+        return result;
+    }
+
+    public async Task<OperationResult<UserLoginResponse>> ResetPassword(ResetPasswordRequest request)
+    {
+        var result = new OperationResult<UserLoginResponse>();
+        try
+        {
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(request.Email);
+            
+            if (user != null)
+            {
+                var reset = await _unitOfWork.UserManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+                if (reset.Succeeded)
+                {
+                    result.Payload = _mapper.Map<UserLoginResponse>(user);
+                }
+                else
+                {
+                    result.AddError(ErrorCode.BadRequest, "Reset fail");
+                }
+            }
+            else
+            {
+                result.AddError(ErrorCode.BadRequest, "Email không tồn tại");
+            }
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<string>> GeneratePasswordResetToken(string email)
+    {
+        var result = new OperationResult<string>();
+        try
+        {
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(email);
+
+            if (user is not null)
+            {
+                var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
+                var encodedToken = HttpUtility.UrlEncode(token);
+                
+                // Tạo dữ liệu email, sử dụng token trong nội dung email
+                var mailData = new MailDataViewModel(
+                    to: new List<string> { email },
+                    subject: "Reset Password",
+                    body: $"Please click: link để reset password {token}"
+                );
+                CancellationToken ct = new CancellationToken();
+                
+                // Gửi email và xử lý kết quả
+                bool sendResult = await _mailService.SendAsync(mailData, ct);
+                if (sendResult)
+                {
+                    result.Payload = token;
+                }
+                else
+                {
+                    // Ghi nhận lỗi khi gửi email không thành công
+                    result.AddError(ErrorCode.BadRequest, "Failed to send email.");
+                }
+            }
+            else
+            {
+                result.AddError(ErrorCode.BadRequest, "Email không tồn tại");
+            }
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError($"Lỗi gửi mail: {e.Message}");
+            Console.WriteLine(e.StackTrace);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> ChangePassword(string currentPassword, string newPassword)
+    {
+        var result = new OperationResult<bool>();
+        var userId =  _claimsService.GetCurrentUserId;
+        try
+        {
+            // Kiểm tra xem mật khẩu cũ và mới có giống nhau không
+            if (currentPassword == newPassword)
+            {
+                result.AddError(ErrorCode.BadRequest, "Mật khẩu mới không được trùng với mật khẩu cũ.");
+            }
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var identityResult = await _unitOfWork.UserManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            result.Payload = identityResult.Succeeded;
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound,"User is not exist");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
         return result;
     }
 
