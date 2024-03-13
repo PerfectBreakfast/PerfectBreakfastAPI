@@ -99,7 +99,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="bookingDate"></param>
     /// <returns></returns>
     [HttpGet("download-excel")]
-    //[Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = "SUPPLIER ADMIN")]
     public async Task<IActionResult> DownloadSupplierFoodAssignment(DateOnly bookingDate)
     {
         
