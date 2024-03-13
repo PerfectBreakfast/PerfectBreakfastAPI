@@ -126,8 +126,9 @@ public class CompanyService : ICompanyService
 
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
             var companyIds = user.Partner.Companies.Select(s => s.Id).ToList();
-            Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id) && !s.IsDeleted;
-
+            Expression<Func<Company, bool>> predicate = string.IsNullOrEmpty(searchTerm)
+                ? (s => companyIds.Contains(s.Id) && !s.IsDeleted) 
+                : (s=> companyIds.Contains(s.Id) && s.Name.ToLower().Contains(searchTerm.ToLower()) && !s.IsDeleted);
             var companyPages =
                 await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
 
@@ -172,7 +173,10 @@ public class CompanyService : ICompanyService
 
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
             var companyIds = user.Delivery.Companies.Select(s => s.Id).ToList();
-            Expression<Func<Company, bool>> predicate = s => companyIds.Contains(s.Id) && !s.IsDeleted;
+            Expression<Func<Company, bool>> predicate = string.IsNullOrEmpty(searchTerm)
+                ? (s => companyIds.Contains(s.Id) && !s.IsDeleted) 
+                : (s=> companyIds.Contains(s.Id) && s.Name.ToLower().Contains(searchTerm.ToLower()) && !s.IsDeleted);
+                                                             
 
             var companyPages =
                 await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, predicate);
