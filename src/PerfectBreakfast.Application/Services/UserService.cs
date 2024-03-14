@@ -265,7 +265,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<string>> GeneratePasswordResetToken(string email)
+    public async Task<OperationResult<string>> GeneratePasswordResetToken(string header, string email)
     {
         var result = new OperationResult<string>();
         try
@@ -281,7 +281,7 @@ public class UserService : IUserService
                 var mailData = new MailDataViewModel(
                     to: new List<string> { email },
                     subject: "Reset Password",
-                    body: $"Please click: link để reset password {token}"
+                    body: $"Bấm để đổi mật khẩu: link để reset password {token}"
                 );
                 CancellationToken ct = new CancellationToken();
                 
