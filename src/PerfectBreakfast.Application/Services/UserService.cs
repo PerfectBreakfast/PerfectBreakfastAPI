@@ -265,7 +265,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<string>> GeneratePasswordResetToken(string header, string email)
+    public async Task<OperationResult<string>> GeneratePasswordResetToken(string email)
     {
         var result = new OperationResult<string>();
         try

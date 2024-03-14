@@ -65,9 +65,9 @@ public class AccountController : BaseController
     /// <param name="email"></param>
     /// <returns></returns>
     [HttpGet("password-token")]
-    public async Task<IActionResult> GeneratePasswordResetToken(string header, string email)
+    public async Task<IActionResult> GeneratePasswordResetToken(string email)
     {
-        var response = await _userService.GeneratePasswordResetToken(header, email);
+        var response = await _userService.GeneratePasswordResetToken(email);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

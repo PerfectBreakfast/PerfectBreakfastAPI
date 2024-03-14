@@ -15,7 +15,7 @@ public interface IUserService
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken(TokenModel tokenModel);
     public Task<OperationResult<UserDetailResponse>> GetCurrentUser();
     public Task<OperationResult<UserLoginResponse>> ResetPassword(ResetPasswordRequest request);
-    public Task<OperationResult<string>> GeneratePasswordResetToken(string header, string email);
+    public Task<OperationResult<string>> GeneratePasswordResetToken(string email);
     
     // action normal
     public Task<OperationResult<List<UserResponse>>> GetUsers();
