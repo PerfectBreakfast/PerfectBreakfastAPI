@@ -66,7 +66,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         /// <returns></returns>
         [Authorize]
         [HttpGet("partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
-        public async Task<IActionResult> GetDailyOrderByPartnerId(int pageIndex = 0, int pageSize = 10)
+        public async Task<IActionResult> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
         {
             var response = await _dailyOrderService.GetDailyOrderByPartner(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -84,19 +84,30 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _dailyOrderService.GetDailyOrderByDelivery(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
-
+        
         /// <summary>
-        /// API For Partner Admin, Delivery Admin
+        /// API For Partner Admin
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("{id}/company")]
-        [Authorize(Roles = "PARTNER ADMIN, DELIVERY ADMIN")]
-        public async Task<IActionResult> GetDailyOrderByPartnerId(Guid id, DateOnly bookingDate)
+        [HttpGet("partner/initialization-completion"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+        public async Task<IActionResult> GetDailyOrderInitAndCompleteByPartner(int pageIndex = 0, int pageSize = 10)
         {
-            var response = await _dailyOrderService.GetDailyOrderDetail(id, bookingDate);
+            var response = await _dailyOrderService.GetDailyOrderInitAndCompleteByPartner(pageIndex, pageSize);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
-
+        
+        /// <summary>
+        /// API For Delivery Admin
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        [HttpGet("delivery/initialization-completion"),Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+        public async Task<IActionResult> GetDailyOrderInitAndCompleteByDelivery(int pageIndex = 0, int pageSize = 10)
+        {
+            var response = await _dailyOrderService.GetDailyOrderInitAndCompleteByDelivery(pageIndex, pageSize);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }

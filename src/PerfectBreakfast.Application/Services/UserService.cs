@@ -26,7 +26,7 @@ public class UserService : IUserService
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
     private readonly IMailService _mailService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly AppConfiguration _appConfiguration;
 
     public UserService(IUnitOfWork unitOfWork
         ,IMapper mapper
@@ -35,7 +35,7 @@ public class UserService : IUserService
         ,ICurrentTime currentTime
         ,IImgurService imgurService
         ,IMailService mailService
-        ,IHttpContextAccessor httpContextAccessor)
+        ,AppConfiguration appConfiguration)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -44,7 +44,7 @@ public class UserService : IUserService
         _currentTime = currentTime;
         _imgurService = imgurService;
         _mailService = mailService;
-        _httpContextAccessor = httpContextAccessor;
+        _appConfiguration = appConfiguration;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
@@ -277,8 +277,7 @@ public class UserService : IUserService
 
             if (user is not null)
             {
-                var requestContext = _httpContextAccessor?.HttpContext?.Request;
-                var clientHost = requestContext?.Headers["X-Client-Host"].ToString();
+                var clientHost = _appConfiguration.Host;
                 
                 var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
                 
@@ -286,7 +285,7 @@ public class UserService : IUserService
                 var mailData = new MailDataViewModel(
                     to: [email],
                     subject: "Reset Password",
-                    body: $"Bấm để đổi mật khẩu: {clientHost}/resetpassword?token={token}&email?={email}"
+                    body: $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email?={email}"
                 );
                 var ct = new CancellationToken();
                 
@@ -294,7 +293,7 @@ public class UserService : IUserService
                 var sendResult = await _mailService.SendAsync(mailData, ct);
                 if (sendResult)
                 {
-                    result.Payload = token;
+                    result.Payload = $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email?={email}";
                 }
                 else
                 {
