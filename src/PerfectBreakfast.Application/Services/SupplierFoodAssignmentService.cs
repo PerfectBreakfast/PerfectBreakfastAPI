@@ -1,7 +1,5 @@
 ﻿using System.Linq.Expressions;
-using System.Net;
 using MapsterMapper;
-using Microsoft.AspNetCore.Components.Web;
 using OfficeOpenXml;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -105,7 +103,7 @@ namespace PerfectBreakfast.Application.Services
                         supplierFoodAssignment.DailyOrderId = request.DailyOrderId;
                         var check = supplierFoodAssignment;
                         // Add food vao totalFoodReceive de so sanh
-                        string foodName = food.Name;
+                        var foodName = food.Name;
                         
                         // Thêm thức ăn vào totalFoodReceive
                         if (!totalFoodReceive.ContainsKey(supplierFoodAssignment.DailyOrderId))
@@ -134,7 +132,7 @@ namespace PerfectBreakfast.Application.Services
                     foreach (var item in foodAssignmentsResult)
                     {
                         var fo = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
-                        FoodAssignmentResponse foodAssignmentResponse = new FoodAssignmentResponse()
+                        var foodAssignmentResponse = new FoodAssignmentResponse()
                         {
                             PartnerName = partner.Name,
                             DailyOrderId = item.DailyOrderId,
@@ -146,7 +144,7 @@ namespace PerfectBreakfast.Application.Services
                         foodAssignmentResponses.Add(foodAssignmentResponse);
                     }
 
-                    SupplierFoodAssignmentResponse supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
+                    var supplierFoodAssignmentResponse = new SupplierFoodAssignmentResponse()
                     {
                         SupplierName = supplier.Name,
                         FoodAssignmentResponses = foodAssignmentResponses
@@ -155,13 +153,13 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Check xem số lượng nhập vào có đủ hay không
-                Guid? dailyOrderId = totalFoodCounts.DailyOrderId;
+                var dailyOrderId = totalFoodCounts.DailyOrderId;
                 if (totalFoodCounts.TotalFoodResponses != null)
                 {
                     foreach (var foodResponse in totalFoodCounts.TotalFoodResponses)
                     {
-                        string foodName = foodResponse.Name;
-                        int requiredQuantity = foodResponse.Quantity;
+                        var foodName = foodResponse.Name;
+                        var requiredQuantity = foodResponse.Quantity;
 
                         // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
                         if (!totalFoodReceive.ContainsKey(dailyOrderId) || !totalFoodReceive[dailyOrderId].ContainsKey(foodName) || totalFoodReceive[dailyOrderId][foodName] != requiredQuantity)
