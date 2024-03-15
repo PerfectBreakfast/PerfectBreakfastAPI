@@ -135,7 +135,11 @@ public static class DependencyInjection
                 ClockSkew = TimeSpan.Zero,
                 IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(appConfiguration.JwtSettings.SecretKey))
             };
-            //options.Events = new JwtBearerEventsHandler();
+        }).AddGoogle(option =>
+        {
+            // config Google 
+            option.ClientId = appConfiguration.Google.ClientId;
+            option.ClientSecret = appConfiguration.Google.ClientSecret;
         });
         //==================================================================================================================================
         /*services.AddIdentityApiEndpoints<User>()

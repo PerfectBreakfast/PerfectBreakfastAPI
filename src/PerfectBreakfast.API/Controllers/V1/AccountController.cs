@@ -33,6 +33,14 @@ public class AccountController : BaseController
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpPost("externalLogin")]
+    [ApiVersionNeutral]
+    public async Task<IActionResult> ExternalLogin(ExternalAuthModel request)
+    {
+        var response = await _userService.ExternalLogin(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     
     [HttpPost("deliverystaff/login")]
     [ApiVersionNeutral]

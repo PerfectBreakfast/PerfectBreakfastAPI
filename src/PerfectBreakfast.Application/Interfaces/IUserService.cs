@@ -10,6 +10,7 @@ public interface IUserService
 {
     // action auth
     public Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request);
+    public Task<OperationResult<UserLoginResponse>> ExternalLogin(ExternalAuthModel request);
     public Task<OperationResult<UserLoginResponse>> DeliveryStaffSignIn(SignInModel request);
     public Task<OperationResult<bool>> SignUp(SignUpModel request);
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken(TokenModel tokenModel);
