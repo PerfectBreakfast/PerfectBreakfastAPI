@@ -26,6 +26,7 @@ public class UserService : IUserService
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
     private readonly IMailService _mailService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public UserService(IUnitOfWork unitOfWork
         ,IMapper mapper
@@ -33,7 +34,8 @@ public class UserService : IUserService
         ,JWTService jwtService
         ,ICurrentTime currentTime
         ,IImgurService imgurService
-        , IMailService mailService)
+        ,IMailService mailService
+        ,IHttpContextAccessor httpContextAccessor)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -42,6 +44,7 @@ public class UserService : IUserService
         _currentTime = currentTime;
         _imgurService = imgurService;
         _mailService = mailService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request)
@@ -249,7 +252,7 @@ public class UserService : IUserService
                 }
                 else
                 {
-                    result.AddError(ErrorCode.BadRequest, "Reset fail");
+                    result.AddError(ErrorCode.BadRequest, "Đổi mật khẩu thất bại");
                 }
             }
             else
@@ -274,19 +277,21 @@ public class UserService : IUserService
 
             if (user is not null)
             {
+                var requestContext = _httpContextAccessor?.HttpContext?.Request;
+                var clientHost = requestContext?.Headers["X-Client-Host"].ToString();
+                
                 var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
-                var encodedToken = HttpUtility.UrlEncode(token);
                 
                 // Tạo dữ liệu email, sử dụng token trong nội dung email
                 var mailData = new MailDataViewModel(
-                    to: new List<string> { email },
+                    to: [email],
                     subject: "Reset Password",
-                    body: $"Bấm để đổi mật khẩu: link để reset password {token}"
+                    body: $"Bấm để đổi mật khẩu: {clientHost}/resetpassword?token={token}&email?={email}"
                 );
-                CancellationToken ct = new CancellationToken();
+                var ct = new CancellationToken();
                 
                 // Gửi email và xử lý kết quả
-                bool sendResult = await _mailService.SendAsync(mailData, ct);
+                var sendResult = await _mailService.SendAsync(mailData, ct);
                 if (sendResult)
                 {
                     result.Payload = token;
