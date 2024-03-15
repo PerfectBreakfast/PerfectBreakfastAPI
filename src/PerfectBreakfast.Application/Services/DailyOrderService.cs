@@ -77,10 +77,84 @@ public class DailyOrderService : IDailyOrderService
             // get các bữa ăn của từng công ty
             var mealSubscriptionIds = user.Partner.Companies
                 .Where(c => !c.IsDeleted)
-                .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
+                .SelectMany(x => x.MealSubscriptions
+                    .Where(c => !c.IsDeleted)
+                    .Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForPartnerAndDelivery(mealSubscriptionIds,pageIndex, pageSize);
+            
+            // Group DailyOrders by BookingDate and Company
+            var dailyOrderResponses = dailyOrderPages.Items
+                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .OrderByDescending(group => group.Key)
+                .Select(dateGroup => new DailyOrderForPartnerResponse(
+                    dateGroup.Key,
+                    dateGroup
+                        .Select(d => d.MealSubscription.Company)
+                        .Distinct()
+                        .Select(company => new CompanyForDailyOrderResponse(
+                            company.Id,
+                            company.Name,
+                            company.Address,
+                            dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
+                                .Select(d => new DailyOrderModelResponse(
+                                    d.Id,
+                                    d.MealSubscription.Meal.MealType,
+                                    d.TotalPrice,
+                                    d.OrderQuantity,
+                                    d.Status.ToString()
+                                )).ToList()
+                        )).ToList()
+                )).ToList();
+
+            result.Payload = new Pagination<DailyOrderForPartnerResponse>
+            {
+                PageIndex = dailyOrderPages.PageIndex,
+                PageSize = dailyOrderPages.PageSize,
+                TotalItemsCount = dailyOrderResponses.Count,
+                Items = dailyOrderResponses
+            };
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddUnknownError("Id is not exist");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderInitAndCompleteByPartner(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<DailyOrderForPartnerResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var partnerInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Partner,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Partner)sp).Companies,
+                    sp => ((Company)sp).MealSubscriptions,
+                    sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+
+            // get các bữa ăn của từng công ty
+            var mealSubscriptionIds = user.Partner.Companies
+                .Where(c => !c.IsDeleted)
+                .SelectMany(x => x.MealSubscriptions
+                    .Where(c => !c.IsDeleted)
+                    .Select(x => x.Id)).ToList();
+
+            var dailyOrderPages =
+                await _unitOfWork.DailyOrderRepository.ToPaginationForInitAndComplete(mealSubscriptionIds,pageIndex, pageSize);
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
@@ -152,7 +226,76 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForPartnerAndDelivery(mealSubscriptionIds,pageIndex, pageSize);
+            
+            var dailyOrderResponses = dailyOrderPages.Items
+                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
+                .OrderByDescending(group => group.Key)
+                .Select(dateGroup => new DailyOrderForDeliveryResponse(
+                    dateGroup.Key,
+                    dateGroup
+                        .Select(d => d.MealSubscription.Company)
+                        .Distinct()
+                        .Select(company => new CompanyForDailyOrderResponse(
+                            company.Id,
+                            company.Name,
+                            company.Address,
+                            dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
+                                .Select(d => new DailyOrderModelResponse(
+                                    d.Id,
+                                    d.MealSubscription.Meal.MealType,
+                                    d.TotalPrice,
+                                    d.OrderQuantity,
+                                    d.Status.ToString()
+                                )).ToList()
+                        )).ToList()
+                )).ToList();
+
+            result.Payload = new Pagination<DailyOrderForDeliveryResponse>
+            {
+                PageIndex = dailyOrderPages.PageIndex,
+                PageSize = dailyOrderPages.PageSize,
+                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                Items = dailyOrderResponses
+            };
+        }
+        catch (ArgumentNullException e)
+        {
+            result.AddError(ErrorCode.BadRequest,"User not found or user does not own delivery company");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderInitAndCompleteByDelivery(int pageIndex = 0, int pageSize = 10)
+    {
+        var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var deliveryInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Delivery,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Delivery)sp).Companies,
+                    sp => ((Company)sp).MealSubscriptions,
+                    sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
+
+            // Get các bữa ăn của từng công ty
+            var mealSubscriptionIds =
+                user.Delivery.Companies
+                    .Where(c => !c.IsDeleted)
+                    .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
+
+            var dailyOrderPages =
+                await _unitOfWork.DailyOrderRepository.ToPaginationForInitAndComplete(mealSubscriptionIds,pageIndex, pageSize);
             
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
