@@ -340,16 +340,14 @@ public class UserService : IUserService
 
             if (user is not null)
             {
-                var requestContext = _httpContextAccessor?.HttpContext?.Request;
-                var clientHost = requestContext?.Headers["X-Client-Host"].ToString();
-
+                var clientHost = _appConfiguration.Host;
                 var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
 
                 // Tạo dữ liệu email, sử dụng token trong nội dung email
                 var mailData = new MailDataViewModel(
                     to: [email],
                     subject: "Reset Password",
-                    body: $"Bấm để đổi mật khẩu: {clientHost}/resetpassword?token={token}&email?={email}"
+                    body: $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email?={email}"
                 );
                 var ct = new CancellationToken();
 
@@ -357,7 +355,7 @@ public class UserService : IUserService
                 var sendResult = await _mailService.SendAsync(mailData, ct);
                 if (sendResult)
                 {
-                    result.Payload = token;
+                    result.Payload = $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email?={email}";
                 }
                 else
                 {
