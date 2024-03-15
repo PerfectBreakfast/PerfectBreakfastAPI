@@ -61,7 +61,6 @@ public class AccountController : BaseController
     /// <summary>
     /// API for all
     /// </summary>
-    /// <param name="header"></param>
     /// <param name="email"></param>
     /// <returns></returns>
     [HttpGet("password-token")]
