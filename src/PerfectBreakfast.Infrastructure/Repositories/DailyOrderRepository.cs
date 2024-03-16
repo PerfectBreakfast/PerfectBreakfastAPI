@@ -75,7 +75,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             var items = await _dbSet
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0 && d.Status != DailyOrderStatus.Initial && d.Status != DailyOrderStatus.Complete)
+                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Processing)
                 .Include(d => d.MealSubscription)
                 .ThenInclude(ms => ms.Company)
                 .OrderByDescending(d => d.BookingDate)
@@ -93,11 +93,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return result;
         }
 
-        public async Task<Pagination<DailyOrder>> ToPaginationForInitAndComplete(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
+        public async Task<Pagination<DailyOrder>> ToPaginationForAllStatus(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
             var items = await _dbSet
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.Status == DailyOrderStatus.Initial || d.Status == DailyOrderStatus.Complete)
                 .Include(d => d.MealSubscription)
                 .ThenInclude(ms => ms.Company)
                 .OrderByDescending(d => d.BookingDate)

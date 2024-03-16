@@ -55,7 +55,7 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderByPartner(
+    public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderProcessingByPartner(
         int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForPartnerResponse>>();
@@ -128,7 +128,7 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderInitAndCompleteByPartner(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForPartnerResponse>>();
         var userId = _claimsService.GetCurrentUserId;
@@ -154,7 +154,7 @@ public class DailyOrderService : IDailyOrderService
                     .Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForInitAndComplete(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForAllStatus(mealSubscriptionIds,pageIndex, pageSize);
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
@@ -200,7 +200,7 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderByDelivery(
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderProcessingByDelivery(
         int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
@@ -270,7 +270,7 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderInitAndCompleteByDelivery(int pageIndex = 0, int pageSize = 10)
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
         var userId = _claimsService.GetCurrentUserId;
@@ -295,7 +295,7 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForInitAndComplete(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForAllStatus(mealSubscriptionIds,pageIndex, pageSize);
             
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))

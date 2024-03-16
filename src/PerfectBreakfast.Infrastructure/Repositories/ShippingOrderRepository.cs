@@ -18,6 +18,7 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .Include(x => x.DailyOrder)
                 .ThenInclude(x => x.MealSubscription)
                     .ThenInclude(x => x.Company)
+            .AsNoTracking()
             .ToListAsync();
         return shippingOrders;
     }
