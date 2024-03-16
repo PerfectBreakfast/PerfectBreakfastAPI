@@ -38,6 +38,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     public virtual void Update(TEntity entity)
     {
         _dbSet.Update(entity);
+        //_dbSet.Attach(entity).State = EntityState.Modified;
     }
 
     public virtual async Task AddRangeAsync(List<TEntity> entities)

@@ -16,6 +16,11 @@ public class SettingController : BaseController
         _hangfireSettingService = hangfireSettingService;
     }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
     [ApiVersionNeutral]
     public async Task<IActionResult> SetupTimeAutoCreateAndUpdateDailyOrder(TimeSettingRequest request)
@@ -24,6 +29,10 @@ public class SettingController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GAGA()
     {

@@ -19,6 +19,11 @@ public class PaymentController : ControllerBase
         _payOsService = payOsService;
     }
     
+    /// <summary>
+    /// Api cho hệ thống payOs call tới
+    /// </summary>
+    /// <param name="body"></param>
+    /// <returns></returns>
     [HttpPost("payos_transfer_handler")]
     public async Task<IActionResult> payOSTransferHandler(WebhookType body)
     {

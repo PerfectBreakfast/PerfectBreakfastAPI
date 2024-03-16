@@ -19,6 +19,11 @@ public class SupplierCommissionRateController : BaseController
     
   
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSupplierCommissionRate(Guid id)
     {
@@ -62,6 +67,11 @@ public class SupplierCommissionRateController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     [HttpPut("{id}/suppliercomissionrate-status")]
     public async Task<IActionResult> DeleteSupplierCommissionRate(Guid id)
     {

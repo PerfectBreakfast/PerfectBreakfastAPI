@@ -53,7 +53,7 @@ public class ShippingOrderController : BaseController
     }
     
     /// <summary>
-    /// Api for Delivery Staff-API xác nhận món ----Đang lỗi XXXXXXXX
+    /// Api for Delivery Staff- (API xác nhận món lấy hàng đi giao)
     /// </summary>
     /// <param name="dailyOrderId"></param>
     /// <returns></returns>
