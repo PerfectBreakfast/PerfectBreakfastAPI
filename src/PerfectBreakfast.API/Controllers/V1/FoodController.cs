@@ -87,7 +87,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// API For Partner Admin
+        /// API For Partner Admin-API lấy danh sách món theo daily order
         /// </summary>
         /// <returns></returns>
         [Authorize]
@@ -99,7 +99,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
         
         /// <summary>
-        /// API For Delivery Admin
+        /// API For Delivery Admin-API lấy danh sách món theo daily order
         /// </summary>
         /// <returns></returns>
         [Authorize]
