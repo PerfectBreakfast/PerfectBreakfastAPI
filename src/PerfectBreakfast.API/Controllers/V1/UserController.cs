@@ -121,4 +121,17 @@ public class UserController : BaseController
         var response = await _userService.GetDeliveryStaffByDeliveryAdminList();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <param name="currentPassword"></param>
+    /// <param name="newPassword"></param>
+    /// <returns></returns>
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
+    {
+        var response = await _userService.ChangePassword(currentPassword, newPassword);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

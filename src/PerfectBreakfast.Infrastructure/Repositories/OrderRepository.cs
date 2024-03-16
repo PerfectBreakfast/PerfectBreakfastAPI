@@ -41,6 +41,17 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return await itemsQuery.AsNoTracking().ToListAsync();
         }
 
+        public async Task<List<Order>> GetOrderByDate(DateOnly fromDate, DateOnly toDate)
+        {
+           
+            var orders = await _dbSet
+                .Where(order =>  DateOnly.FromDateTime(order.CreationDate) >= fromDate 
+                                 &&  DateOnly.FromDateTime(order.CreationDate) <= toDate)
+                .Include(o => o.OrderDetails)
+                .AsNoTracking()
+                .ToListAsync();
+            return orders;
+        }
 
         public Task<Order> GetOrderByOrderCode(long orderCode)
         {

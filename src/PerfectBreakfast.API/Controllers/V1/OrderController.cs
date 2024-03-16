@@ -112,5 +112,18 @@ namespace PerfectBreakfast.API.Controllers.V1
             var response = await _orderService.CompleteOrder(id);
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
+        
+        /// <summary>
+        /// API for Super Admin
+        /// </summary>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <returns></returns>
+        [HttpGet("statistic"), Authorize(policy:ConstantRole.RequireSuperAdminRole)]
+        public async Task<IActionResult> GetOrderPagination(DateOnly fromDate, DateOnly toDate)
+        {
+            var response = await _orderService.OrderStatistic(fromDate, toDate);
+            return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+        }
     }
 }

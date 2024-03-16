@@ -215,12 +215,10 @@ public class SupplierService : ISupplierService
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
             var supplierIds = user.Partner.SupplyAssignments.Select(s => s.SupplierId).ToList();
-            Expression<Func<Supplier, bool>> predicate = s => supplierIds.Contains(s.Id);
+            Expression<Func<Supplier, bool>> predicate = string.IsNullOrEmpty(searchTerm) 
+                ? (s=> supplierIds.Contains(s.Id) && !s.IsDeleted)
+                : (s=> supplierIds.Contains(s.Id) && !s.IsDeleted && s.Name.ToLower().Contains(searchTerm.ToLower()));
             
-            Expression<Func<Supplier, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm) 
-                ? null 
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Address.ToLower().Contains(searchTerm.ToLower()));
-
             var supplierPages =
                 await _unitOfWork.SupplierRepository.ToPagination(pageIndex, pageSize, predicate);
 

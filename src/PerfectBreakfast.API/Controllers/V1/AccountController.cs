@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.AuthModels.Request;
+using PerfectBreakfast.Application.Models.UserModels.Request;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -32,6 +33,14 @@ public class AccountController : BaseController
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    [HttpPost("externalLogin")]
+    [ApiVersionNeutral]
+    public async Task<IActionResult> ExternalLogin(ExternalAuthModel request)
+    {
+        var response = await _userService.ExternalLogin(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
     
     [HttpPost("deliverystaff/login")]
     [ApiVersionNeutral]
@@ -54,6 +63,30 @@ public class AccountController : BaseController
     public async Task<IActionResult> GetCurrentUser()
     {
         var response = await _userService.GetCurrentUser();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    [HttpGet("password-token")]
+    public async Task<IActionResult> GeneratePasswordResetToken(string email)
+    {
+        var response = await _userService.GeneratePasswordResetToken(email);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPut("password-resetion")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        var response = await _userService.ResetPassword(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

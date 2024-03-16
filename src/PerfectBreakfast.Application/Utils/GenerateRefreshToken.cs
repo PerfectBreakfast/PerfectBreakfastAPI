@@ -5,7 +5,7 @@ namespace PerfectBreakfast.Application.Utils;
 
 public static class GenerateRefreshToken
 {
-    public static string? RandomRefreshToken(this User user)
+    public static string RandomRefreshToken()
     {
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
