@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PerfectBreakfast.Application.Commons;
+﻿using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
 
@@ -15,7 +14,7 @@ public interface IUserRepository : IBaseRepository<User>
     public Task<int> CalculateSupplierCode(Guid supplierId);
     Task<List<User>?> GetUserByPartnerId(Guid partnerId);
     Task<User> GetUserByIdAsync(Guid id,params IncludeInfo<User>[]? includeProperties);
-    Task<User> GetUserById(Guid id);
+    Task<User?> GetInfoCurrentUserById(Guid id);
     Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId);//get ds nhân viên của đơn vị đó
     //Task<User> CheckDeliveryStaff(Guid shipperId);
 }

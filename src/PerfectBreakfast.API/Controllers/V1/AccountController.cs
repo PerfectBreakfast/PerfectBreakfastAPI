@@ -34,11 +34,11 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
-    [HttpPost("externalLogin")]
+    [HttpPost("google")]
     [ApiVersionNeutral]
-    public async Task<IActionResult> ExternalLogin(ExternalAuthModel request)
+    public async Task<IActionResult> GoogleLogin(string code)
     {
-        var response = await _userService.ExternalLogin(request);
+        var response = await _userService.ExternalLogin(code);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
