@@ -334,7 +334,7 @@ public class UserService : IUserService
                 var mailData = new MailDataViewModel(
                     to: [email],
                     subject: "Reset Password",
-                    body: $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email?={email}"
+                    body: $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email={email}"
                 );
                 var ct = new CancellationToken();
 
