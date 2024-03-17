@@ -147,9 +147,9 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<TotalFoodForCompanyResponse>>> GetDailyOrderByShipper()
+    public async Task<OperationResult<List<TotalComboForStaff>>> GetDailyOrderByShipper()
     {
-        var result = new OperationResult<List<TotalFoodForCompanyResponse>>();
+        var result = new OperationResult<List<TotalComboForStaff>>();
         var totalFoods = new List<TotalFoodForCompanyResponse>();
         var userId = _claimsService.GetCurrentUserId;
         try
@@ -176,7 +176,6 @@ public class ShippingOrderService : IShippingOrderService
                 foreach (var orderDetail in orderDetails)
                 {
                     // Nếu là combo thì lấy chi tiết các food trong combo
-                    var combo = await _unitOfWork.ComboRepository.GetByIdAsync(orderDetail.Combo.Id);
                     var comboName = orderDetail.Combo.Name;
 
                     if (comboCounts.ContainsKey(comboName))
@@ -210,8 +209,13 @@ public class ShippingOrderService : IShippingOrderService
                 };
                 totalFoods.Add(totalFood);
             }
-
-            result.Payload = totalFoods;
+            var groupedByDate = totalFoods.GroupBy(f => f.BookingDate)
+                .Select(g => new TotalComboForStaff(
+                    BookingDate: g.Key,
+                    TotalFoodForCompanyResponses: g.ToList()))
+                .ToList();
+            
+            result.Payload = groupedByDate;
         }
         catch (Exception e)
         {
