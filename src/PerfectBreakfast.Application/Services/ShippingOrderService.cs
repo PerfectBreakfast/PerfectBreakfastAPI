@@ -78,11 +78,13 @@ public class ShippingOrderService : IShippingOrderService
                     continue; // Consider strategy for partial failure
                 }
 
-                if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_STAFF)))
+                if (!(await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_STAFF) ||
+                      await _unitOfWork.UserManager.IsInRoleAsync(shipper, ConstantRole.DELIVERY_ADMIN)))
                 {
-                    result.AddError(ErrorCode.BadRequest, $"The user {shipperId} is not a DELIVERY STAFF.");
+                    result.AddError(ErrorCode.BadRequest, $"The user {shipperId} is not a DELIVERY STAFF or DELIVERY ADMIN.");
                     continue; // Consider strategy for partial failure
                 }
+
 
                 // Check for duplicate shipping order
                 if (requestModel.DailyOrderId.HasValue && requestModel.ShipperIds.Any())
