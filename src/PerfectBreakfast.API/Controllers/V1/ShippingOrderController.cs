@@ -59,7 +59,7 @@ public class ShippingOrderController : BaseController
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpPut("/confirmation/{id:guid}")]
+    [HttpPut("confirmation/{id:guid}")]
     [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
     public async Task<IActionResult> ConfirmStatusShippingOrder(Guid id)
     {
