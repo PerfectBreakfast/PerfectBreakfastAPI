@@ -100,11 +100,12 @@ public class FoodController : BaseController
     }
 
     /// <summary>
-    /// API For Delivery Admin-API lấy danh sách món theo daily order
+    /// API For Delivery Admin, Delivery Staff-API lấy danh sách món theo daily order
     /// </summary>
     /// <returns></returns>
     [Authorize]
-    [HttpGet("{id}/dailyorderid/delivery"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    [HttpGet("{id}/dailyorderid/delivery")]
+    [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
     public async Task<IActionResult> GetFoodForDelivery(Guid id)
     {
         var response = await _foodService.GetFoodsForDelivery(id);
