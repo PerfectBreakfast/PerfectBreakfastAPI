@@ -19,6 +19,7 @@ public class ShippingOrderController : BaseController
     {
         _shippingOrderService = shippingOrderService;
     }
+    
     /// <summary>
     /// Api for Delivery Admin
     /// </summary>
@@ -29,6 +30,7 @@ public class ShippingOrderController : BaseController
         var response = await _shippingOrderService.GetAllShippingOrdersWithDetails();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// Api for Delivery Admin 
     /// </summary>
@@ -55,12 +57,12 @@ public class ShippingOrderController : BaseController
     /// <summary>
     /// Api for Delivery Staff- (API xác nhận món lấy hàng đi giao)
     /// </summary>
-    /// <param name="dailyOrderId"></param>
+    /// <param name="id"></param>
     /// <returns></returns>
-    [HttpPut("confirmation"), Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> ConfirmStatusShippingOrder(Guid dailyOrderId)
+    [HttpPut("/confirmation/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
+    public async Task<IActionResult> ConfirmStatusShippingOrder(Guid id)
     {
-        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
+        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(id); // Pass both ID and DTO to the service
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -68,7 +70,7 @@ public class ShippingOrderController : BaseController
     /// Api for Delivery Staff-API lấy daily order cần giao 
     /// </summary>
     /// <returns></returns>
-    [HttpGet("delivery-staff/daily-order"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
+    [HttpGet("daily-order/pending-status"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
     public async Task<IActionResult> GetDailyOrderPendingByDeliveryStaff()
     {
         var response = await _shippingOrderService.GetDailyOrderByShipper();
@@ -83,6 +85,17 @@ public class ShippingOrderController : BaseController
     public async Task<IActionResult> GetAllDailyOrderByDeliveryStaff()
     {
         var response = await _shippingOrderService.GetHistoryDailyOrderByShipper();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api for Delivery Admin-API để lấy staff theo daily order
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("/delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid id)
+    {
+        var response = await _shippingOrderService.GetSDeliveryStaffByDailyOrder(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
