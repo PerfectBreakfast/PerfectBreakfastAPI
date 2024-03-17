@@ -4,8 +4,10 @@ using OfficeOpenXml;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -18,14 +20,16 @@ namespace PerfectBreakfast.Application.Services
         private readonly ICurrentTime _currentTime;
         private readonly IFoodService _foodService;
         private readonly IClaimsService _claimsService;
+        private readonly IMailService _mailService;
 
-        public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IFoodService foodService, IClaimsService claimsService)
+        public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IFoodService foodService, IClaimsService claimsService, IMailService mailService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentTime = currentTime;
             _foodService = foodService;
             _claimsService = claimsService;
+            _mailService = mailService;
         }
         
         public async Task<OperationResult<List<SupplierFoodAssignmentResponse>>> CreateSupplierFoodAssignment(SupplierFoodAssignmentsRequest request)
@@ -176,6 +180,35 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.ServerError, "Food or Supplier are not exist");
                     return result;
                 }
+                
+                //Gửi mail thông báo đến các nhà cung cấp
+                var users = filteredSuppliers.SelectMany(p => p.Users).ToList();
+                var filteredUsers  = new List<User>();
+                foreach (var u in users)
+                {
+                    if(await _unitOfWork.UserManager.IsInRoleAsync(u, ConstantRole.SUPPLIER_ADMIN))
+                    {
+                        filteredUsers.Add(u);
+                    }
+                }
+                var emailList = filteredUsers.Select(user => user.Email).ToList();
+            
+                // Tạo dữ liệu email, sử dụng token trong nội dung email
+                var mailData = new MailDataViewModel(
+                    to: emailList,
+                    subject: "Thông báo",
+                    body: $"Đơn hàng hôm nay đã được phân chia. Các nhà cung cấp có thể xác nhận món"
+                );
+                var ct = new CancellationToken();
+
+                // Gửi email và xử lý kết quả
+                var sendResult = await _mailService.SendAsync(mailData, ct);
+                if (sendResult == false)
+                {
+                    Console.WriteLine("Gửi mail thất bại");
+                }
+                
+                //Trả kết quả về API
                 result.Payload = supplierFoodAssignmentsResult;
 
             }
@@ -575,6 +608,40 @@ namespace PerfectBreakfast.Application.Services
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 await _unitOfWork.SaveChangeAsync();
                 var foodAssignment = _mapper.Map<SupplierFoodAssignmentResponse>(supplierFoodAssignment);
+                
+                //Gửi mail thông báo đến các nhà cung cấp
+                var supplier =
+                    await _unitOfWork.SupplierRepository.GetSupplierById((Guid)updateSupplierFoodAssignment.SupplierId, s=> s.Users);
+                if (supplier == null)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Nhà cung cấp không có admin");
+                    return result;
+                }
+                var filteredUsers  = new List<User>();
+                foreach (var user in supplier.Users)
+                {
+                    if(await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.SUPPLIER_ADMIN))
+                    {
+                        filteredUsers.Add(user);
+                    }
+                }
+                var emailList = filteredUsers.Select(user => user.Email).ToList();
+
+                // Tạo dữ liệu email, sử dụng token trong nội dung email
+                var mailData = new MailDataViewModel(
+                    to: emailList,
+                    subject: "Thông báo",
+                    body: $"Đơn hàng hôm nay đã được phân chia. Các nhà cung cấp có thể xác nhận món"
+                );
+                var ct = new CancellationToken();
+
+                // Gửi email và xử lý kết quả
+                var sendResult = await _mailService.SendAsync(mailData, ct);
+                if (sendResult == false)
+                {
+                    Console.WriteLine("Gửi mail thất bại");
+                }
+                
                 result.Payload = foodAssignment;
             }
             catch (NotFoundIdException)
