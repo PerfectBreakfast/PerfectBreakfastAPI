@@ -34,6 +34,12 @@ public static class DenpendencyInjection
                 mySqlOptions => mySqlOptions
                     .EnableRetryOnFailure());
         });
+        
+        // đăng kí redis 
+        services.AddStackExchangeRedisCache(opt =>
+        {
+            opt.Configuration = redisConnection;
+        });
 
         // register hangfire 
         services.AddHangfire(hangfire =>

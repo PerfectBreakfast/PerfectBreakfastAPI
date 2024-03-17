@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.Extensions.Caching.Distributed;
 using Net.payOS.Types;
 using Net.payOS;
 using PerfectBreakfast.Application.Interfaces;
@@ -16,18 +17,22 @@ public class PayOsService : IPayOsService
     private readonly AppConfiguration _appConfiguration;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
-    public PayOsService(PayOS payOs, AppConfiguration appConfiguration,IUnitOfWork unitOfWork,ICurrentTime currentTime)
+    private readonly IDistributedCache _cache;
+    public PayOsService(PayOS payOs, AppConfiguration appConfiguration,
+        IUnitOfWork unitOfWork,ICurrentTime currentTime,
+        IDistributedCache cache)
     {
         _payOs = payOs;
         _appConfiguration = appConfiguration;
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
+        _cache = cache;
     }
 
     public async Task<PaymentResponse> CreatePaymentLink(Order order)
     {
         List<ItemData> items = new ();
-        int expiredAt = (int)(DateTime.UtcNow.AddMinutes(2).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;  // set thời gian expiredAt là 20p 
+        int expiredAt = (int)(DateTime.UtcNow.AddMinutes(15).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;  // set thời gian expiredAt là 20p 
         PaymentData paymentData = new PaymentData(order.OrderCode, 
             (int)order.TotalPrice, 
             $"{_currentTime.GetCurrentTime().ToString("dd-MM-yyyy")} Thanh toan", 
@@ -85,18 +90,6 @@ public class PayOsService : IPayOsService
             Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
             Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
             Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
             if (data.code == "00")
             {
                 Console.WriteLine(data.desc);
@@ -109,6 +102,9 @@ public class PayOsService : IPayOsService
                     dailyOrder.OrderQuantity++;
                     _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                     await _unitOfWork.SaveChangeAsync();
+                    
+                    // thực hiện xóa cache payment link đi 
+                    await _cache.RemoveAsync($"order-{order.Id}");
                 }
                 return true;
             }
