@@ -40,6 +40,18 @@ public class OrderController : BaseController
         var response = await _orderService.GetLinkContinuePayment(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api for Customer (Hủy thanh toán đơn hàng)
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/cancel"),Authorize(Policy = ConstantRole.RequireCustomerRole)]
+    public async Task<IActionResult> CancelOrder(Guid id)
+    {
+        var response = await _orderService.CancelOrder(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetOrders()

@@ -185,6 +185,35 @@ public class OrderService : IOrderService
         return result;
     }
 
+    public async Task<OperationResult<PaymentResponse>> CancelOrder(Guid id)
+    {
+        var result = new OperationResult<PaymentResponse>();
+        try
+        {
+            var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+            if (order.OrderStatus != OrderStatus.Pending)
+            {
+                result.AddError(ErrorCode.BadRequest,"Không thể hủy vì đã thanh toán hoặc hoàn thành");
+                return result;
+            }
+            order.OrderStatus = OrderStatus.Cancel;
+            _unitOfWork.OrderRepository.Update(order);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError,"Lưu xuống db có vấn đề");
+                return result;
+            }
+            // xóa cache 
+            await _cache.RemoveAsync($"order-{id}");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
     public async Task<OperationResult<OrderResponse>> DeleteOrder(Guid id)
     {
         var result = new OperationResult<OrderResponse>();
