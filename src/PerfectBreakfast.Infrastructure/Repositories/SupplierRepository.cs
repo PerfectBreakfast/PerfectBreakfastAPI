@@ -28,6 +28,7 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     {
         var suppliers = await _dbSet
             .Where(supplier => supplier.SupplyAssignments.Any(sa => sa.PartnerId == id))
+            .Include(s => s.Users)
             .ToListAsync();
         return suppliers;
     }

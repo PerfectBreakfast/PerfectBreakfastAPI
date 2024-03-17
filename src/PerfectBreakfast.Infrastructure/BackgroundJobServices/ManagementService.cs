@@ -1,4 +1,6 @@
 ﻿using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.MailModels;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -9,12 +11,13 @@ public class ManagementService : IManagementService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
+    private readonly IMailService _mailService;
 
-
-    public ManagementService(IUnitOfWork unitOfWork, ICurrentTime currentTime)
+    public ManagementService(IUnitOfWork unitOfWork, ICurrentTime currentTime, IMailService mailService)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
+        _mailService = mailService;
     }
 
     // Có nghĩa là cứ khi nào hàm này được gọi nó sẽ chuyển status và create DailyOrder mới
@@ -45,7 +48,39 @@ public class ManagementService : IManagementService
             {
                 Console.WriteLine("Không có dailyOrders được tạo hôm nay.");
             }
+            
+            //Send email to all partner
+            var users = _unitOfWork.PartnerRepository
+                .FindAll(p => p.Users)
+                .ToList()
+                .SelectMany(p => p.Users)
+                .ToList();
+            var filteredUsers  = new List<User>();
+            foreach (var user in users)
+            {
+                if(await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.PARTNER_ADMIN))
+                {
+                    filteredUsers.Add(user);
+                }
+            }
+            var emailList = filteredUsers.Select(user => user.Email).ToList();
+            
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: emailList,
+                subject: "Thông báo",
+                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác có thể thực hiện phân chia cho nhà cung cấp"
+            );
+            var ct = new CancellationToken();
 
+            // Gửi email và xử lý kết quả
+            var sendResult = await _mailService.SendAsync(mailData, ct);
+
+            if (sendResult == false)
+            {
+                Console.WriteLine("Gửi mail thất bại");
+            }
+            
             //Create daily order after update
             var companies = await _unitOfWork.CompanyRepository.GetAllAsync();
             var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
