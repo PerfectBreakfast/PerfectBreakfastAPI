@@ -93,7 +93,7 @@ public class ShippingOrderController : BaseController
     /// Api for Delivery Admin-API để lấy staff theo daily order
     /// </summary>
     /// <returns></returns>
-    [HttpGet("/delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    [HttpGet("delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid id)
     {
         var response = await _shippingOrderService.GetSDeliveryStaffByDailyOrder(id);
