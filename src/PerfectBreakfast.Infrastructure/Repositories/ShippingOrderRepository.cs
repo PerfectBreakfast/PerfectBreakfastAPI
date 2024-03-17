@@ -48,4 +48,11 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
 
         return shippingOrders;
     }
+
+    public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId)
+    {
+        return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId)
+            .Include(s => s.Shipper)
+            .ToListAsync();
+    }
 }

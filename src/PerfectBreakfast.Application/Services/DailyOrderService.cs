@@ -295,7 +295,7 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForAllStatus(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForComplete(mealSubscriptionIds,pageIndex, pageSize);
             
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))

@@ -5,6 +5,7 @@ using PerfectBreakfast.Application.Models.DailyOrder.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
+using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
@@ -354,6 +355,46 @@ public class ShippingOrderService : IShippingOrderService
             }
 
             result.Payload = totalFoods;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+    
+    public async Task<OperationResult<List<UserResponse>>> GetSDeliveryStaffByDailyOrder(Guid dailyOrderId)
+    {
+        var result = new OperationResult<List<UserResponse>>();
+        try
+        {
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByDailyOrder(dailyOrderId);
+            if (shippingOrders != null)
+            {
+                var users = shippingOrders
+                    .Select(user =>
+                    {
+                        if (user.Shipper != null)
+                            return new UserResponse
+                            {
+                                Id = user.Shipper.Id,
+                                Email = user.Shipper.Email,
+                                Name = user.Shipper.Name,
+                                Image = user.Shipper.Image,
+                                Code = user.Shipper.Code.ToString(),
+                                PhoneNumber = user.Shipper.PhoneNumber,
+                                EmailConfirmed = user.Shipper.EmailConfirmed,
+                                LockoutEnabled = user.Shipper.LockoutEnabled
+                            };
+                        return null;
+                    }).ToList();
+                result.Payload = users;
+            }
+            else
+            {
+                result.AddError(ErrorCode.BadRequest, "Đơn hàng chưa được phân công");
+            }
         }
         catch (Exception e)
         {

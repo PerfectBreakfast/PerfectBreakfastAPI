@@ -9,5 +9,5 @@ public interface IShippingOrderRepository : IGenericRepository<ShippingOrder>
     public Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId);
     public Task<bool> ExistsWithDailyOrderAndShippers(Guid dailyOrderId, List<Guid?> shipperId);
     public Task<List<ShippingOrder>> GetAllWithDailyOrdersAsync();
-
+    public Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId);
 }
