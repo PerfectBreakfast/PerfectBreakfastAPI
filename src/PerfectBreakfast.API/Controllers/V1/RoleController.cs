@@ -16,6 +16,10 @@ namespace PerfectBreakfast.API.Controllers.V1
             this._roleService = roleService;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetAllRole()
         {
@@ -23,6 +27,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleId(Guid id)
         {
@@ -30,6 +39,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unitId"></param>
+        /// <returns></returns>
         [HttpGet("unit/{unitId}")]
         public async Task<IActionResult> GetRoleByUnitId(Guid unitId)
         {
@@ -37,6 +51,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> CreateRole(CreatRoleRequest requestModel)
         {
@@ -44,6 +63,12 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(Guid id, UpdateRolerequest requestModel)
         {
@@ -51,6 +76,11 @@ namespace PerfectBreakfast.API.Controllers.V1
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveRole(Guid id)
         {

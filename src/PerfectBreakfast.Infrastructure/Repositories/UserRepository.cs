@@ -130,14 +130,18 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return await query.SingleAsync();
     }
 
-    public async Task<User> GetUserById(Guid id)
+    public async Task<User?> GetInfoCurrentUserById(Guid id)
     {
-        var user = await _dbSet
-            .Where(x => x.Id == id)
+        return await _dbSet.Where(x => x.Id == id)
+            .Include(x => x.Company)
+            .Include(x => x.Delivery)
             .Include(x => x.Partner)
+            .Include(x => x.Supplier)
+            .Include(x => x.UserRoles)
+                .ThenInclude(x => x.Role)
             .SingleOrDefaultAsync();
-        return user ;
     }
+
 
     public async Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId)
     {

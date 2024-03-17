@@ -8,12 +8,10 @@ using PerfectBreakfast.Application.Models.UserModels.Request;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
-using System.Net;
-using System.Net.Mail;
-using System.Web;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using PerfectBreakfast.Application.Models.AuthModels.googleModels;
 using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Utils;
 
@@ -28,7 +26,6 @@ public class UserService : IUserService
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
     private readonly IMailService _mailService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly AppConfiguration _appConfiguration;
 
     public UserService(IUnitOfWork unitOfWork
@@ -38,7 +35,6 @@ public class UserService : IUserService
         , ICurrentTime currentTime
         , IImgurService imgurService
         , IMailService mailService
-        , IHttpContextAccessor httpContextAccessor
         , AppConfiguration appConfiguration)
     {
         _unitOfWork = unitOfWork;
@@ -48,7 +44,6 @@ public class UserService : IUserService
         _currentTime = currentTime;
         _imgurService = imgurService;
         _mailService = mailService;
-        _httpContextAccessor = httpContextAccessor;
         _appConfiguration = appConfiguration;
     }
 
@@ -91,39 +86,58 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserLoginResponse>> ExternalLogin(ExternalAuthModel request)
+    public async Task<OperationResult<UserLoginResponse>> ExternalLogin(string code)
     {
         var result = new OperationResult<UserLoginResponse>();
         try
         {
-            var payload = await VerifyGoogleToken(request);
-            var info = new UserLoginInfo(request.Provider, payload.Subject, request.Provider);
-            
-            var user = await _unitOfWork.UserManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if (user == null)
+            var tokenResponse  = await ExchangeCodeForTokensAsync(code);
+            if (!tokenResponse.IsSuccessStatusCode)
             {
-                user = await _unitOfWork.UserManager.FindByEmailAsync(payload.Email);
-                if (user == null)
-                {
-                    user = new User
-                    {
-                        Email = payload.Email, 
-                        UserName = payload.Email ,
-                        CreationDate = _currentTime.GetCurrentTime(),
-                        RefreshToken = GenerateRefreshToken.RandomRefreshToken(), // tao RefreshToken mới
-                        RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2), // tạo ngày hết hạn mới là sau 2 tháng 
-                        // xử lý thêm ở đây vẫn còn thiếu
-                    };
-                    await _unitOfWork.UserManager.CreateAsync(user);
-                    //prepare and send an email for the email confirmation
-                    await _unitOfWork.UserManager.AddToRoleAsync(user, ConstantRole.CUSTOMER);
-                    await _unitOfWork.UserManager.AddLoginAsync(user, info);
-                }
-                else
-                {
-                    await _unitOfWork.UserManager.AddLoginAsync(user, info);
-                }
+                result.AddError(ErrorCode.BadRequest,tokenResponse.Content.ReadAsStringAsync().Result);
+                return result;
             }
+            var tokenContent = await tokenResponse.Content.ReadAsStringAsync();
+            var tokens = JsonConvert.DeserializeObject<GoogleTokenResponse>(tokenContent);
+            var userInfoResponse = await GetUserInfoGoogle(tokens.AccessToken);
+            if (!userInfoResponse.IsSuccessStatusCode)
+            {
+                result.AddError(ErrorCode.BadRequest,userInfoResponse.Content.ReadAsStringAsync().Result);
+                return result;
+            }
+
+            var userInfo = await userInfoResponse.Content.ReadAsStringAsync();
+            var googleUserInfo = JsonConvert.DeserializeObject<GoogleUserInfo>(userInfo);
+
+             var info = new UserLoginInfo("GOOGLE", googleUserInfo.Id, "GOOGLE");
+            
+             var user = await _unitOfWork.UserManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+             if (user == null)
+             {
+                 user = await _unitOfWork.UserManager.FindByEmailAsync(googleUserInfo.Email);
+                 if (user == null)
+                 {
+                     user = new User
+                     {
+                         Email = googleUserInfo.Email, 
+                         UserName = googleUserInfo.Email ,
+                         Name = googleUserInfo.Name,
+                         EmailConfirmed = true,
+                         CreationDate = _currentTime.GetCurrentTime(),
+                         RefreshToken = GenerateRefreshToken.RandomRefreshToken(), // tao RefreshToken mới
+                         RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2), // tạo ngày hết hạn mới là sau 2 tháng 
+                         // xử lý thêm ở đây vẫn còn thiếu
+                     };
+                     await _unitOfWork.UserManager.CreateAsync(user);
+                     //prepare and send an email for the email confirmation
+                     await _unitOfWork.UserManager.AddToRoleAsync(user, ConstantRole.CUSTOMER);
+                     await _unitOfWork.UserManager.AddLoginAsync(user, info);
+                 }
+                 else
+                 {
+                     await _unitOfWork.UserManager.AddLoginAsync(user, info);
+                 }
+             }
             result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
         }
         catch (Exception e)
@@ -254,48 +268,21 @@ public class UserService : IUserService
         try
         {
             var userId = _claimsService.GetCurrentUserId;
-            // xác định các thuộc tính include và theninclude 
-            var companyInclude = new IncludeInfo<User>
-            {
-                NavigationProperty = c => c.Company
-            };
-            // xác định các thuộc tính include và theninclude 
-            var supplierInclude = new IncludeInfo<User>
-            {
-                NavigationProperty = c => c.Supplier
-            };
-            // xác định các thuộc tính include và theninclude 
-            var deliveryUnitInclude = new IncludeInfo<User>
-            {
-                NavigationProperty = c => c.Delivery
-            };
-            // xác định các thuộc tính include và theninclude 
-            var managementUnitInclude = new IncludeInfo<User>
-            {
-                NavigationProperty = c => c.Partner
-            };
-            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, companyInclude, supplierInclude,
-                deliveryUnitInclude, managementUnitInclude);
-            string unitName = user.Company?.Name
+            var user = await _unitOfWork.UserRepository.GetInfoCurrentUserById(userId);
+            var userDetailResponse = _mapper.Map<UserDetailResponse>(user);
+            var unitName = user.Company?.Name
                               ?? user.Delivery?.Name
                               ?? user.Partner?.Name
                               ?? user.Supplier?.Name
-                              ?? "Perfect Breakfast";
-            var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-            var userDetailResponse = _mapper.Map<UserDetailResponse>(user);
-            userDetailResponse = userDetailResponse with { CompanyName = unitName };
-            userDetailResponse = userDetailResponse with { Roles = roles };
+                              ?? "Chưa xác định";
+            var phoneNumber = user.PhoneNumber ?? "Chưa xác định";
+            userDetailResponse = userDetailResponse with { CompanyName = unitName, PhoneNumber = phoneNumber, Roles = user.UserRoles.Select(x => x.Role.Name).ToList()};
             result.Payload = userDetailResponse;
-        }
-        catch (NotFoundIdException e)
-        {
-            result.AddError(ErrorCode.NotFound, "Not Found by Id");
         }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
@@ -609,14 +596,32 @@ public class UserService : IUserService
         return result;
     }
 
-    // Verify Google token 
-    private async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(ExternalAuthModel externalAuth)
+    // đổi code lấy token 
+    private async Task<HttpResponseMessage> ExchangeCodeForTokensAsync(string code)
     {
-        var settings = new GoogleJsonWebSignature.ValidationSettings()
+        // Chuẩn bị data để gửi trong POST request
+        var postData = new Dictionary<string, string>
         {
-            Audience = new List<string>() { _appConfiguration.Google.ClientId }
+            { "code", code },
+            { "client_id", _appConfiguration.Google.ClientId },
+            { "client_secret", _appConfiguration.Google.ClientSecret },
+            { "redirect_uri", _appConfiguration.Host },
+            { "grant_type", "authorization_code" }
         };
-        var payload = await GoogleJsonWebSignature.ValidateAsync(externalAuth.IdToken, settings);
-        return payload;
+
+        var requestContent = new FormUrlEncodedContent(postData);
+        using var httpClient = new HttpClient();
+        // Gửi request đến Google's token endpoint để trao đổi code lấy tokens
+        var response = await httpClient.PostAsync("https://oauth2.googleapis.com/token", requestContent);
+
+        return response;
+    }
+    
+    // lấy thông tin User từ Google
+    private async Task<HttpResponseMessage> GetUserInfoGoogle(string accessToken)
+    {
+        using var httpClient = new HttpClient();
+        var userInfoResponse = await httpClient.GetAsync($"https://www.googleapis.com/oauth2/v2/userinfo?access_token={accessToken}");
+        return userInfoResponse;
     }
 }

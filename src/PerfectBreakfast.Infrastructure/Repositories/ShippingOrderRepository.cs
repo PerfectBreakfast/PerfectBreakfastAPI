@@ -18,8 +18,14 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .Include(x => x.DailyOrder)
                 .ThenInclude(x => x.MealSubscription)
                     .ThenInclude(x => x.Company)
+            .AsNoTracking()
             .ToListAsync();
         return shippingOrders;
+    }
+
+    public async Task<ShippingOrder?> GetShippingOrderByShipperIdAndDailyOrderId(Guid shipperId, Guid dailyOrderId)
+    {
+        return await _dbSet.AsNoTracking().SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
     }
 
     public async Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId)
@@ -41,5 +47,12 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .ToListAsync();
 
         return shippingOrders;
+    }
+
+    public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId)
+    {
+        return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId)
+            .Include(s => s.Shipper)
+            .ToListAsync();
     }
 }

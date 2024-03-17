@@ -50,6 +50,7 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
         {
             entity.ModificationDate = _timeService.GetCurrentTime();
             entity.ModificationBy = _claimsService.GetCurrentUserId;
+            //_dbSet.Attach(entity).State = EntityState.Modified;
             _dbSet.Update(entity);
         }
 
