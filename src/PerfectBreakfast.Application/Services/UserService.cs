@@ -605,7 +605,7 @@ public class UserService : IUserService
             { "code", code },
             { "client_id", _appConfiguration.Google.ClientId },
             { "client_secret", _appConfiguration.Google.ClientSecret },
-            { "redirect_uri", "http://localhost:3000" },
+            { "redirect_uri", _appConfiguration.Host },
             { "grant_type", "authorization_code" }
         };
 
