@@ -45,7 +45,7 @@ namespace PerfectBreakfast.Application.Services
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
                 if (suppliers == null)
                 {
-                    result.AddError(ErrorCode.BadRequest, "Partner doesn't have supplier");
+                    result.AddError(ErrorCode.BadRequest, "Đối tác chưa có nhà cung cấp");
                     return result;
                 }
                 
@@ -97,7 +97,7 @@ namespace PerfectBreakfast.Application.Services
                         var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)supplierFoodAssignment.FoodId);
                         if (supplierCommissionRate == null)
                         {
-                            result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                            result.AddError(ErrorCode.BadRequest, "Nhà cung cấp chưa đăng kí món");
                             return result;
                         }
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
@@ -168,7 +168,7 @@ namespace PerfectBreakfast.Application.Services
                         // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
                         if (!totalFoodReceive.ContainsKey(dailyOrderId) || !totalFoodReceive[dailyOrderId].ContainsKey(foodName) || totalFoodReceive[dailyOrderId][foodName] != requiredQuantity)
                         {
-                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrderId}.");
+                            result.AddError(ErrorCode.BadRequest, $"Không đủ {foodName} cho {dailyOrderId}.");
                             return result; 
                         }
                     }
@@ -590,7 +590,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync((Guid)updateSupplierFoodAssignment.SupplierFoodAssignmentId);
                 if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
                 {
-                    result.AddError(ErrorCode.BadRequest, "This assignment must be Declined");
+                    result.AddError(ErrorCode.BadRequest, "Đơn hàng này phải bị từ chối");
                     return result;
                 }
                 //Đổi nhà cung cấp khác
@@ -600,7 +600,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
                 if (supplierCommissionRate == null)
                 {
-                    result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                    result.AddError(ErrorCode.BadRequest, "Nhà cung cấp này chưa đăng kí món");
                     return result;
                 }
                 supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;

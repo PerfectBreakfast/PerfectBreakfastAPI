@@ -203,6 +203,26 @@ public class CompanyService : ICompanyService
         return result;
     }
 
+    public async Task<OperationResult<List<CompanyResponse>>> SearchCompany(string searchTerm)
+    {
+        var result = new OperationResult<List<CompanyResponse>>();
+        try
+        {
+            var companies = await _unitOfWork.CompanyRepository.SearchCompany(searchTerm);
+            if (companies == null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Không có công ty hợp lệ");
+            }
+            result.Payload = _mapper.Map<List<CompanyResponse>>(companies);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id)
     {
         var result = new OperationResult<CompanyResponse>();
