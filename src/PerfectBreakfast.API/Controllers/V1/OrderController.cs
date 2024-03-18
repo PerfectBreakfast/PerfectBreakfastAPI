@@ -44,12 +44,12 @@ public class OrderController : BaseController
     /// <summary>
     /// Api for Customer (Hủy thanh toán đơn hàng)
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="orderCode"></param>
     /// <returns></returns>
-    [HttpPut("{id}/cancel"),Authorize(Policy = ConstantRole.RequireCustomerRole)]
-    public async Task<IActionResult> CancelOrder(Guid id)
+    [HttpPut("{orderCode}/cancel"),Authorize(Policy = ConstantRole.RequireCustomerRole)]
+    public async Task<IActionResult> CancelOrder(long orderCode)
     {
-        var response = await _orderService.CancelOrder(id);
+        var response = await _orderService.CancelOrder(orderCode);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 

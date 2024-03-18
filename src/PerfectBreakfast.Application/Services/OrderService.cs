@@ -185,12 +185,12 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<PaymentResponse>> CancelOrder(Guid id)
+    public async Task<OperationResult<PaymentResponse>> CancelOrder(long orderCode)
     {
         var result = new OperationResult<PaymentResponse>();
         try
         {
-            var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+            var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(orderCode);
             if (order.OrderStatus != OrderStatus.Pending)
             {
                 result.AddError(ErrorCode.BadRequest,"Không thể hủy vì đã thanh toán hoặc hoàn thành");
@@ -205,7 +205,7 @@ public class OrderService : IOrderService
                 return result;
             }
             // xóa cache 
-            await _cache.RemoveAsync($"order-{id}");
+            await _cache.RemoveAsync($"order-{order.Id}");
         }
         catch (Exception e)
         {
