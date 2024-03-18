@@ -8,6 +8,8 @@ namespace PerfectBreakfast.Application.Interfaces
     public interface IOrderService
     {
         Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest);
+        Task<OperationResult<PaymentResponse>> GetLinkContinuePayment(Guid id);
+        Task<OperationResult<PaymentResponse>> CancelOrder(Guid id);
         Task<OperationResult<List<OrderResponse>>> GetOrders();
         Task<OperationResult<OrderResponse>> GetOrder(Guid id);
         Task<OperationResult<OrderResponse>> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest);

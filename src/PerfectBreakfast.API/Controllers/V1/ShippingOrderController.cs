@@ -59,7 +59,7 @@ public class ShippingOrderController : BaseController
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpPut("/confirmation/{id:guid}")]
+    [HttpPut("confirmation/{id:guid}")]
     [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
     public async Task<IActionResult> ConfirmStatusShippingOrder(Guid id)
     {
@@ -93,7 +93,7 @@ public class ShippingOrderController : BaseController
     /// Api for Delivery Admin-API để lấy staff theo daily order
     /// </summary>
     /// <returns></returns>
-    [HttpGet("/delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    [HttpGet("delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid id)
     {
         var response = await _shippingOrderService.GetSDeliveryStaffByDailyOrder(id);

@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
+using System.Text.Json;
 using Hangfire;
 using MapsterMapper;
+using Microsoft.Extensions.Caching.Distributed;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -21,19 +23,22 @@ public class OrderService : IOrderService
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
     private readonly IPayOsService _payOsService;
+    private readonly IDistributedCache _cache;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
-        IPayOsService payOsService)
+        IPayOsService payOsService,IDistributedCache cache)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
         _payOsService = payOsService;
+        _cache = cache;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
     {
         var userId = _claimsService.GetCurrentUserId;
+        var paymentResponse = new PaymentResponse();
         var result = new OperationResult<PaymentResponse>();
         try
         {
@@ -102,7 +107,7 @@ public class OrderService : IOrderService
             {
                 case ConstantPaymentMethod.BANKING: 
                     // Gọi phương thức tạo paymentLink Ngân hàng 
-                    var paymentResponse = await _payOsService.CreatePaymentLink(entity);
+                    paymentResponse = await _payOsService.CreatePaymentLink(entity);
                     if (paymentResponse.IsSuccess)
                     {
                         result.Payload = paymentResponse;
@@ -134,8 +139,13 @@ public class OrderService : IOrderService
                 result.AddError(ErrorCode.ServerError, "Food or Combo is not exist");
                 return result;
             }
-            
-            
+
+            // chỗ này lưu đối tượng thanh toán (paymentLink, deepLink....)
+            await _cache.SetAsync($"order-{entity.Id}", JsonSerializer.SerializeToUtf8Bytes(paymentResponse), 
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),  // set Thời gian cache tồn tại
+                });
             
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order 
             var timeToCancel = DateTime.UtcNow.AddMinutes(15);
@@ -151,6 +161,56 @@ public class OrderService : IOrderService
             result.AddUnknownError(e.Message);
         }
 
+        return result;
+    }
+
+    public async Task<OperationResult<PaymentResponse>> GetLinkContinuePayment(Guid id)
+    {
+        var result = new OperationResult<PaymentResponse>();
+        try
+        {
+            var paymentResponse = await _cache.GetAsync($"order-{id}");
+            if (paymentResponse is null)
+            {
+                result.AddError(ErrorCode.NotFound, "Không tồn tại phương phức thanh toán");
+                return result;
+            }
+            result.Payload = JsonSerializer.Deserialize<PaymentResponse>(paymentResponse);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<PaymentResponse>> CancelOrder(Guid id)
+    {
+        var result = new OperationResult<PaymentResponse>();
+        try
+        {
+            var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+            if (order.OrderStatus != OrderStatus.Pending)
+            {
+                result.AddError(ErrorCode.BadRequest,"Không thể hủy vì đã thanh toán hoặc hoàn thành");
+                return result;
+            }
+            order.OrderStatus = OrderStatus.Cancel;
+            _unitOfWork.OrderRepository.Update(order);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError,"Lưu xuống db có vấn đề");
+                return result;
+            }
+            // xóa cache 
+            await _cache.RemoveAsync($"order-{id}");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
         return result;
     }
 
