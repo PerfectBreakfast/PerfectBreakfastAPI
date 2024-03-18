@@ -28,7 +28,7 @@ public class AccountController : BaseController
     
     [HttpPost("signin")]
     [ApiVersionNeutral]
-    public async Task<IActionResult> SignIn(SignInModel request)
+    public async Task<IActionResult> SignInForCustomer(SignInModel request)
     {
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -42,11 +42,16 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    [HttpPost("deliverystaff/login")]
+    /// <summary>
+    /// (Api login cho tất cả role quản lý)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("management/login")]
     [ApiVersionNeutral]
-    public async Task<IActionResult> SignInDeliveryStaff(SignInModel request)
+    public async Task<IActionResult> ManagementLogin(ManagementLoginModel request)
     {
-        var response = await _userService.DeliveryStaffSignIn(request);
+        var response = await _userService.ManagementLogin(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 

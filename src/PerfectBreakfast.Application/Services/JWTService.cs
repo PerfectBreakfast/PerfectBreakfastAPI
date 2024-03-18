@@ -14,12 +14,10 @@ namespace PerfectBreakfast.Application.Services;
 public class JWTService
 {
     private readonly AppConfiguration _appConfiguration;
-    private readonly UserManager<User> _userManager;
 
-    public JWTService(AppConfiguration appConfiguration,UserManager<User> userManager)
+    public JWTService(AppConfiguration appConfiguration)
     {
         _appConfiguration = appConfiguration;
-        _userManager = userManager;
     }
 
     public async Task<UserLoginResponse> CreateJWT(User user, string refreshToken)
@@ -34,7 +32,7 @@ public class JWTService
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
         };
-        var roles = await _userManager.GetRolesAsync(user);
+        var roles = user.UserRoles!.Select(x => x.Role.Name).ToList();
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role,role)));
         var token = new JwtSecurityToken(
             claims: claims,
@@ -44,7 +42,7 @@ public class JWTService
             //expires: DateTime.UtcNow.AddSeconds(30),
             signingCredentials: credentials);
 
-        return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles.ToList(), new JwtSecurityTokenHandler().WriteToken(token),refreshToken);
+        return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles, new JwtSecurityTokenHandler().WriteToken(token),refreshToken);
     }
     
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
