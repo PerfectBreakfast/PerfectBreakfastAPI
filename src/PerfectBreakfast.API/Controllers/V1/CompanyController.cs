@@ -126,4 +126,16 @@ public class CompanyController : BaseController
         var response = await _companyService.GetCompanyByDelivery(searchTerm, pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API for all-Tìm kiếm công ty trả về ít nhất 2 kết quả
+    /// </summary>
+    /// /// <param name="searchTerm"></param>
+    /// <returns></returns>
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchCompanies(string searchTerm)
+    {
+        var response = await _companyService.SearchCompany(searchTerm);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

@@ -28,4 +28,10 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
                 .ThenInclude(ms => ms.Meal)
             .FirstOrDefaultAsync(c => c.Id == companyId);
     }
+
+    public async Task<List<Company>> SearchCompany(string searchTerm)
+    {
+        var lowerCaseSearchTerm = searchTerm.ToLower();
+        return await _dbSet.Where(c => c.Name.ToLower().Contains(lowerCaseSearchTerm)).Take(2).ToListAsync();
+    }
 }
