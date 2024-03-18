@@ -17,13 +17,13 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// 
+        /// Api get tất cả các role quản lý và nhân viên
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAllRole()
+        [HttpGet("management-role")]
+        public async Task<IActionResult> GetManagementRole()
         {
-            var response = await _roleService.GetAllRoles();
+            var response = await _roleService.GetManagementRole();
             return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
         }
 
@@ -40,7 +40,7 @@ namespace PerfectBreakfast.API.Controllers.V1
         }
 
         /// <summary>
-        /// 
+        /// Api for all (Get tất cả các role của 1 đơn vị)
         /// </summary>
         /// <param name="unitId"></param>
         /// <returns></returns>

@@ -5,7 +5,7 @@ namespace PerfectBreakfast.Application.Interfaces;
 
 public interface IRoleService
 {
-    public Task<OperationResult<List<RoleResponse>>> GetAllRoles();
+    public Task<OperationResult<List<RoleResponse>>> GetManagementRole();
     public Task<OperationResult<RoleResponse>> GetRoleById(Guid id);
     public Task<OperationResult<List<RoleResponse>>> GetRoleByUnitId(Guid unitId);
     public Task<OperationResult<bool>> CreateRole(CreatRoleRequest requestModel);
