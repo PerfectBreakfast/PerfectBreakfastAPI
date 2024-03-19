@@ -72,7 +72,7 @@ public class FoodController : BaseController
     /// <param name="requestModel"></param>
     /// <returns></returns>
     [HttpPut("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> UpdateFood(Guid id, UpdateFoodRequestModels requestModel)
+    public async Task<IActionResult> UpdateFood(Guid id, [FromForm] UpdateFoodRequestModels requestModel)
     {
         var response = await _foodService.UpdateFood(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
