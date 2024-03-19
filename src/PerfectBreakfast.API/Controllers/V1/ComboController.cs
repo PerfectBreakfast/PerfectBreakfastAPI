@@ -37,7 +37,7 @@ public class ComboController : BaseController
     }
 
     /// <summary>
-    /// AdPI for Super Admin
+    /// API for Super Admin
     /// </summary>
     /// <param name="createComboRequest"></param>
     /// <returns></returns>

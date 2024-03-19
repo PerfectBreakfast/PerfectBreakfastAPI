@@ -1,6 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.Drawing;
+using System.Linq.Expressions;
 using MapsterMapper;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -126,8 +128,7 @@ namespace PerfectBreakfast.Application.Services
                             // Nếu Meal chưa tồn tại, thêm mới với AmountCooked
                             totalFoodReceive[supplierFoodAssignment.DailyOrderId].Add(foodName, supplierFoodAssignment.AmountCooked);
                         }
-
-
+                        
                         await _unitOfWork.SupplierFoodAssignmentRepository.AddAsync(supplierFoodAssignment);
                         foodAssignmentsResult.Add(supplierFoodAssignment);
                     }
@@ -655,60 +656,6 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
         
-        public byte[] DownloadSupplierFoodAssignmentExcel(SupplierFoodAssignmentForSupplier supplierFood)
-        {
-            try
-            {
-                // Tạo gói Excel
-                using (var excelPackage = new ExcelPackage())
-                {
-                    // Thêm một bảng tính
-                    var worksheet = excelPackage.Workbook.Worksheets.Add("SupplierFoodAssignments");
-
-                    // Thêm tiêu đề
-                    worksheet.Cells[1, 1].Value = "Ngày Đặt";
-                    worksheet.Cells[1, 2].Value = "Tên Đối Tác";
-                    worksheet.Cells[1, 3].Value = "Thời Gian Giao Hàng";
-                    worksheet.Cells[1, 4].Value = "Tên Món Ăn";
-                    worksheet.Cells[1, 5].Value = "Số Lượng Nấu";
-                    worksheet.Cells[1, 6].Value = "Số Lượng Nhận";
-                    worksheet.Cells[1, 7].Value = "Trạng Thái";
-
-                    int row = 2;
-
-                    // Ghi giá trị Date
-                    worksheet.Cells[row, 1].Value = supplierFood.Date;
-
-                    foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
-                    {
-                        // Ghi giá trị PartnerName
-                        worksheet.Cells[row, 2].Value = foodAssignmentGroup.PartnerName;
-
-                        foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
-                        {
-                            // Ghi giá trị DeliveryTime
-                            worksheet.Cells[row, 3].Value = deliveryTimeResponse.DeliveryTime;
-
-                            foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
-                            {
-                                // Ghi các giá trị còn lại vào các cột tương ứng
-                                worksheet.Cells[row, 4].Value = foodAssignmentResponse.FoodName;
-                                worksheet.Cells[row, 5].Value = foodAssignmentResponse.AmountCooked;
-                                worksheet.Cells[row, 6].Value = foodAssignmentResponse.ReceivedAmount;
-                                worksheet.Cells[row, 7].Value = foodAssignmentResponse.Status;
-                                row++;
-                            }
-                        }
-                    }
-                    return excelPackage.GetAsByteArray();
-                }
-            }
-            catch(Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-
         public async Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate)
         {
             var result = new OperationResult<List<SupplierFoodAssignmentForSupplier>>();

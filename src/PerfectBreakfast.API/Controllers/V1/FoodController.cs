@@ -54,7 +54,7 @@ public class FoodController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin
+    /// API for Super Admin - FoodStatus: 0 là combo, 1 là bán lẻ
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
@@ -66,7 +66,7 @@ public class FoodController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin
+    /// API for Super Admin - FoodStatus: 0 là combo, 1 là bán lẻ
     /// </summary>
     /// <param name="id"></param>
     /// <param name="requestModel"></param>
