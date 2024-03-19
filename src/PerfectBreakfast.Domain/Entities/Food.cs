@@ -1,4 +1,5 @@
 using System.Collections;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Domain.Entities;
 
@@ -7,6 +8,7 @@ public class Food : BaseEntity
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; } 
     public string Image { get; set; } = string.Empty;
+    public FoodStatus FoodStatus { get; set; }
     
     //relationship
     public Guid? CategoryId { get; set; }
