@@ -392,6 +392,12 @@ namespace PerfectBreakfast.Application.Services
             {
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+                food.Name = requestModel.Name ?? food.Name;
+                food.Price = requestModel.Price ?? food.Price;
+                if (requestModel.Image is not null)
+                {
+                    food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+                }
                 if (requestModel.FoodStatus is not null)
                 {
                     if (requestModel.FoodStatus is not (0 or 1))
@@ -399,12 +405,6 @@ namespace PerfectBreakfast.Application.Services
                         result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
                     }
                     food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
-                }
-                food.Name = requestModel.Name ?? food.Name;
-                food.Price = requestModel.Price ?? food.Price;
-                if (requestModel.Image is not null)
-                {
-                    food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
                 }
                 // update
                 _unitOfWork.FoodRepository.Update(food);
