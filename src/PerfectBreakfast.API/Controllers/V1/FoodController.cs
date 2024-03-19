@@ -42,11 +42,11 @@ public class FoodController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin
+    /// API for Super Admin , Customer 
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    [HttpGet("{id}"), Authorize(Roles = $"{ConstantRole.CUSTOMER},{ConstantRole.SUPER_ADMIN}")]
     public async Task<IActionResult> GetFoodId(Guid id)
     {
         var response = await _foodService.GetFoodById(id);
