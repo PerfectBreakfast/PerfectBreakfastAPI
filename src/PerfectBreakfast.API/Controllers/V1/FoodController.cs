@@ -39,7 +39,7 @@ public class FoodController : BaseController
     /// <summary>
     /// API for Super Admin
     /// </summary>
-    /// <param name="requestModel"></param>
+    /// <param name="requestModel">FoodStatus: 0 là combo, 1 là bán lẻ</param>
     /// <returns></returns>
     [HttpPost, Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreateFood([FromForm] CreateFoodRequestModels requestModel)

@@ -14,7 +14,7 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Request
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public IFormFile? Image { get; set; }
-        public int FoodStatus { get; set; }
+        public int? FoodStatus { get; set; }
         //relationship
         public Guid? CategoryId { get; set; }
     }

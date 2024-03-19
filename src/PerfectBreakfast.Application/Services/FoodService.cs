@@ -390,15 +390,16 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<FoodResponse>();
             try
             {
-                if (requestModel.FoodStatus is not (0 or 1))
-                {
-                    result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
-                }
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
-                food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
-                // map from requestModel => supplier
-                //_mapper.Map(requestModel, food);
+                if (requestModel.FoodStatus is not null)
+                {
+                    if (requestModel.FoodStatus is not (0 or 1))
+                    {
+                        result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
+                    }
+                    food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
+                }
                 food.Name = requestModel.Name ?? food.Name;
                 food.Price = requestModel.Price ?? food.Price;
                 if (requestModel.Image is not null)
