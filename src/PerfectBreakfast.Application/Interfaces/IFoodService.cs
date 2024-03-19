@@ -1,12 +1,14 @@
 ﻿using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Interfaces
 {
     public interface IFoodService
     {
         public Task<OperationResult<List<FoodResponse>>> GetAllFoods();
+        public Task<OperationResult<List<FoodResponse>>> GetFoodByFoodStatus(FoodStatus status);
         public Task<OperationResult<FoodResponeCategory>> GetFoodById(Guid foodId);
         public Task<OperationResult<FoodResponse>> CreateFood(CreateFoodRequestModels requestModel);
         public Task<OperationResult<FoodResponse>> UpdateFood(Guid foodId, UpdateFoodRequestModels requestModel);

@@ -4,6 +4,7 @@ using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Utils;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -17,10 +18,26 @@ public class FoodController : BaseController
         _foodService = foodService;
     }
 
-    [HttpGet]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetAllFood()
     {
         var response = await _foodService.GetAllFoods();
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api for Super Admin ( 0-combo   1-Retail )
+    /// </summary>
+    /// <param name="status"></param>
+    /// <returns></returns>
+    [HttpGet("status"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> GetFoodByFoodStatus(FoodStatus status)
+    {
+        var response = await _foodService.GetFoodByFoodStatus(status);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
@@ -91,7 +108,6 @@ public class FoodController : BaseController
     /// API For Partner Admin-API lấy danh sách món theo daily order
     /// </summary>
     /// <returns></returns>
-    [Authorize]
     [HttpGet("{id}/dailyorderid/partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> GetFoodForPartner(Guid id)
     {
@@ -103,7 +119,6 @@ public class FoodController : BaseController
     /// API For Delivery Admin, Delivery Staff-API lấy danh sách món theo daily order
     /// </summary>
     /// <returns></returns>
-    [Authorize]
     [HttpGet("{id}/dailyorderid/delivery")]
     [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
     public async Task<IActionResult> GetFoodForDelivery(Guid id)
