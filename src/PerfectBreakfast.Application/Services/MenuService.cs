@@ -228,11 +228,11 @@ namespace PerfectBreakfast.Application.Services
                     //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
 
                     // Lấy danh sách Food từ Menu
-                    var foodEntities = menu.MenuFoods.Select(cf => cf.Food).ToList();
-                    var foodResponses = _mapper.Map<List<ComboAndFoodResponse?>>(foodEntities);
+                    var foodEntities = menu.MenuFoods.Select(cf => cf.Food).Where(f => !f.IsDeleted).ToList();
+                    var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
 
                     // Lấy danh sách Combo từ Menu
-                    var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).ToList();
+                    var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).Where(c => !c.IsDeleted).ToList();
                     var comboResponses = new List<ComboAndFoodResponse>();
                     // Duyệt qua từng Combo để lấy thông tin chi tiết
                     foreach (var combo in comboEntities)
@@ -261,7 +261,7 @@ namespace PerfectBreakfast.Application.Services
                     // Ánh xạ Menu chi tiết sang DTO
                     menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
                     menuResponse = menuResponse with { MenuDate = menuDate };
-                    menuResponse = menuResponse with { ComboFoodResponses = foodResponses };
+                    menuResponse = menuResponse with { FoodResponses = foodResponses };
                     menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
                     result.Payload = menuResponse;
                     
