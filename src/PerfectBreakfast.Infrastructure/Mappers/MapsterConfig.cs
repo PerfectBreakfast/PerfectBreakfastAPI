@@ -38,5 +38,7 @@ public class MapsterConfig : IRegister
         config.NewConfig<Supplier, SupplierDetailResponse>()
             .Map(dest => dest.ManagementUnitDtos, src => src.SupplyAssignments.Select(x => x.Partner))
             .Map(dest => dest.CommissionRates, src => src.SupplierCommissionRates);
+        config.NewConfig<Category, CategoryDetailFood>()
+            .Map(dest => dest.FoodResponse, src => src.Foods);
     }
 }

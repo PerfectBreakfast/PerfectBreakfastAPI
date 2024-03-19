@@ -10,7 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -24,23 +26,24 @@ namespace PerfectBreakfast.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<OperationResult<List<CategoryDetailFood>>> GetCategoryId(Guid categoryId)
+        public async Task<OperationResult<List<CategoryDetailFood>>> GetCategoryId(Guid categoryId,FoodStatus status)
         {
             var result = new OperationResult<List<CategoryDetailFood>>();
             try
             {
-                var category = await _unitOfWork.CategoryRepository.FindSingleAsync(o => o.Id == categoryId, o => o.Foods);
-                if (category == null)
-                {
-                    result.AddUnknownError("Id does not exist");
-                    return result;
-                }
+                //var category = await _unitOfWork.CategoryRepository.FindSingleAsync(o => o.Id == categoryId, o => o.Foods);
+                //var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId, x => x.Foods);
+                var category = await _unitOfWork.CategoryRepository.GetCategoryDetail(categoryId, status);
 
                 var foodDtos = _mapper.Map<List<FoodResponse>>(category.Foods); // Assuming FoodResponse is your DTO
                 var categoryDetails = _mapper.Map<CategoryDetailFood>(category);
                 categoryDetails.FoodResponse = foodDtos; // Assuming CategoryDetailFood has a Foods property
                 result.Payload = new List<CategoryDetailFood> { categoryDetails };
 
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound,"Not found by ID");
             }
             catch (Exception e)
             {

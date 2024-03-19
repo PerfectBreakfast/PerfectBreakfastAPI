@@ -1,13 +1,9 @@
 ﻿using PerfectBreakfast.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PerfectBreakfast.Domain.Enums;
 
-namespace PerfectBreakfast.Application.Repositories
+namespace PerfectBreakfast.Application.Repositories;
+
+public interface ICategoryRepository : IGenericRepository<Category>
 {
-    public interface ICategoryRepository : IGenericRepository<Category>
-    {
-    }
+    public Task<Category> GetCategoryDetail(Guid id, FoodStatus status);
 }

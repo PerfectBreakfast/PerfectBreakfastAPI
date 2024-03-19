@@ -6,6 +6,7 @@ using PerfectBreakfast.Application.Models.CategoryModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Application.Utils;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.API.Controllers.V1;
 
@@ -30,10 +31,16 @@ public class CategoryController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// Api for Super Admin (0-combo  1-retail)
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
     [HttpGet("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetCategoryById(Guid id)
+    public async Task<IActionResult> GetCategoryById(Guid id,FoodStatus status)
     {
-        var response = await _categoryService.GetCategoryId(id);
+        var response = await _categoryService.GetCategoryId(id,status);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
