@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
@@ -55,6 +56,21 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var foods = await _unitOfWork.FoodRepository.GetAllAsync();
+                result.Payload = _mapper.Map<List<FoodResponse>>(foods);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<List<FoodResponse>>> GetFoodByFoodStatus(FoodStatus status)
+        {
+            var result = new OperationResult<List<FoodResponse>>();
+            try
+            {
+                var foods = await _unitOfWork.FoodRepository.FindAll(x => x.FoodStatus == status).ToListAsync();
                 result.Payload = _mapper.Map<List<FoodResponse>>(foods);
             }
             catch (Exception e)
