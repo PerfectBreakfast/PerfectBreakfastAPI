@@ -228,11 +228,17 @@ namespace PerfectBreakfast.Application.Services
                     //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
 
                     // Lấy danh sách Food từ Menu
-                    var foodEntities = menu.MenuFoods.Select(cf => cf.Food).Where(f => !f.IsDeleted).ToList();
+                    var foodEntities = menu.MenuFoods
+                        .Select(cf => cf.Food)
+                        .Where(food => food != null )
+                        .ToList();
                     var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
 
                     // Lấy danh sách Combo từ Menu
-                    var comboEntities = menu.MenuFoods.Select(cf => cf.Combo).Where(c => !c.IsDeleted).ToList();
+                    var comboEntities = menu.MenuFoods
+                        .Select(cf => cf.Combo)
+                        .Where(combo => combo is { IsDeleted: false }) // Check for non-null and not deleted
+                        .ToList();
                     var comboResponses = new List<ComboAndFoodResponse>();
                     // Duyệt qua từng Combo để lấy thông tin chi tiết
                     foreach (var combo in comboEntities)
