@@ -32,8 +32,14 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<FoodResponse>();
             try
             {
+                if (requestModel.FoodStatus is not (0 or 1))
+                {
+                    result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
+                }
+                
                 // map model to Entity
                 var food = _mapper.Map<Food>(requestModel);
+                food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
                 food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
                 // Add to DB
                 var entity = await _unitOfWork.FoodRepository.AddAsync(food);
@@ -384,8 +390,13 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<FoodResponse>();
             try
             {
+                if (requestModel.FoodStatus is not (0 or 1))
+                {
+                    result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
+                }
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+                food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
                 // map from requestModel => supplier
                 //_mapper.Map(requestModel, food);
                 food.Name = requestModel.Name ?? food.Name;

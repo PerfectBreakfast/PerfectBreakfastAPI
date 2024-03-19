@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Models.FoodModels.Request
 {
@@ -13,7 +14,7 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Request
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public IFormFile? Image { get; set; }
-
+        public int FoodStatus { get; set; }
         //relationship
         public Guid? CategoryId { get; set; }
     }

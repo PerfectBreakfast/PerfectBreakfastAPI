@@ -65,9 +65,10 @@ public class OrderService : IOrderService
             {
                 // Fetch Combo by Id
                 var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
-                if (combo is null)
+                var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)od.FoodId);
+                if (combo is null && food is null)
                 {
-                    result.AddError(ErrorCode.NotFound, "Combo is not exist");
+                    result.AddError(ErrorCode.NotFound, "Combo or food is not exist");
                     return result;
                 }
 
@@ -79,7 +80,7 @@ public class OrderService : IOrderService
                         result.AddError(ErrorCode.BadRequest, "Combo khong co thuc an");
                         return result;
                     }
-
+                    
                     decimal totalFoodPrice = foods.Sum(food => food.Price);
                     od.UnitPrice = totalFoodPrice;
                 }
@@ -407,6 +408,10 @@ public class OrderService : IOrderService
         var result = new OperationResult<OrderStatisticResponse>();
         try
         {
+            if (fromDate >= toDate || toDate.AddDays(-2) <= fromDate)
+            {
+                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn ít nhất 2 ngày so với 'đến ngày'");
+            }
             var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
             var completeOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.Complete).ToList();
             
