@@ -32,7 +32,7 @@ public class AuthorizationMiddlewareHandler : IAuthorizationMiddlewareResultHand
             context.Response.Headers["Access-Control-Allow-Origin"] = "*";
             //response body
             await context.Response.WriteAsJsonAsync(new ErrorResponse(
-                 401, validationResult, validationResult, DateTime.UtcNow.AddHours(7)
+                 401, validationResult, validationResult
             ));
             return;
         }
@@ -42,7 +42,7 @@ public class AuthorizationMiddlewareHandler : IAuthorizationMiddlewareResultHand
             context.Response.Headers["Access-Control-Allow-Origin"] = "*";
             //response body
             await context.Response.WriteAsJsonAsync(new ErrorResponse(
-                403, "Forbidden", "Permission: You do not have permission to access this resource", DateTime.UtcNow.AddHours(7)
+                403, "Forbidden", "Permission: You do not have permission to access this resource"
             ));
             return;
         }

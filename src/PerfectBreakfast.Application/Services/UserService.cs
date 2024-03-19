@@ -533,6 +533,28 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<OperationResult<bool>> UpdateUserLoginGoogle(Guid id, UpdateUserLoginGoogleRequest requestModel)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            //_mapper.Map(requestModel, user);
+            //user.Name = requestModel.Name ?? user.Name;
+            user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
+            user.CompanyId = requestModel.CompanyId;
+
+            _unitOfWork.UserRepository.Update(user);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
     public async Task<OperationResult<bool>> UpdateImageUser(Guid id, IFormFile image)
     {
         var result = new OperationResult<bool>();
