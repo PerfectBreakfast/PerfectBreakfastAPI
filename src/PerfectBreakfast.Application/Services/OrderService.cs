@@ -60,22 +60,19 @@ public class OrderService : IOrderService
             }
             var order = _mapper.Map<Order>(orderRequest);
             order.MealId = orderRequest.MealId;
-            var orderDetail = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
-            foreach (var od in orderDetail)
+            var orderDetails = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
+            foreach (var od in orderDetails)
             {
-                // Fetch Combo by Id
-                var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
-                var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)od.FoodId);
-                if (combo is null && food is null)
+                if (od.ComboId != null)
                 {
-                    result.AddError(ErrorCode.NotFound, "Combo or food is not exist");
-                    return result;
-                }
-
-                if (combo != null)
-                {
+                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
+                    if (combo == null)
+                    {
+                        result.AddUnknownError($"Combo with Id {od.ComboId} not found.");
+                        return result;
+                    }
                     var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                    if (foods is null)
+                    if (foods == null)
                     {
                         result.AddError(ErrorCode.BadRequest, "Combo khong co thuc an");
                         return result;
@@ -86,21 +83,27 @@ public class OrderService : IOrderService
                 }
                 else
                 {
-                    result.AddUnknownError($"Combo with Id {od.ComboId} not found.");
-                    return result;
+                    var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)od.FoodId!);
+                    if (food.FoodStatus != FoodStatus.Retail)
+                    {
+                        result.AddUnknownError($"Món này không hợp lệ");
+                        return result;
+                    }
+                    od.UnitPrice = food.Price;
                 }
+                
             }
             // lấy phương thức thanh toán
             var paymentMethod = orderRequest.Payment.ToUpper();
             
-            decimal totalPrice = orderDetail.Sum(detail => detail.Quantity * detail.UnitPrice);
-            long orderCode = Utils.RandomCode.GenerateOrderCode();
+            var totalPrice = orderDetails.Sum(detail => detail.Quantity * detail.UnitPrice);
+            var orderCode = Utils.RandomCode.GenerateOrderCode();
             order.OrderCode = orderCode;
             order.WorkerId = userId;
             order.OrderStatus = OrderStatus.Pending;
             order.DailyOrder = dailyOrder;
             order.TotalPrice = totalPrice;
-            order.OrderDetails = orderDetail;
+            order.OrderDetails = orderDetails!;
             order.PaymentMethodId = (await _unitOfWork.PaymentMethodRepository.FindSingleAsync(x => x.Name == paymentMethod)).Id;
             var entity = await _unitOfWork.OrderRepository.AddAsync(order);
             
