@@ -5,6 +5,7 @@ using Net.payOS;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Models.PaymentModels.Request;
 using PerfectBreakfast.Application.Models.PayOSModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -19,15 +20,17 @@ public class PayOsService : IPayOsService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
     private readonly IDistributedCache _cache;
+    private readonly IMailService _mailService;
     public PayOsService(PayOS payOs, AppConfiguration appConfiguration,
         IUnitOfWork unitOfWork,ICurrentTime currentTime,
-        IDistributedCache cache)
+        IDistributedCache cache, IMailService mailService)
     {
         _payOs = payOs;
         _appConfiguration = appConfiguration;
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _cache = cache;
+        _mailService = mailService;
     }
 
     public async Task<PaymentResponse> CreatePaymentLink(Order order)
@@ -81,31 +84,36 @@ public class PayOsService : IPayOsService
         {
             // check signature
             WebhookData data =  _payOs.verifyPaymentWebhookData(type);
-            
-            if (data.code == "00")
+            Console.WriteLine("############ đã Verify Payment WebhookData ############# ");
+
+            if (data.code != "00") return new Response(0, "Ok", null);
+            var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
+            if (order.OrderStatus != OrderStatus.Pending)
             {
-                var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
-                if (order.OrderStatus != OrderStatus.Pending)
-                {
-                    return new Response(0, "Ok", null);
-                }
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId!.Value);
-                if (data.amount != order.TotalPrice) return new Response(0, "Ok", null);
-                order.OrderStatus = OrderStatus.Paid;
-                dailyOrder.TotalPrice += order.TotalPrice;
-                dailyOrder.OrderQuantity++;
-                _unitOfWork.DailyOrderRepository.Update(dailyOrder);
-                await _unitOfWork.SaveChangeAsync();
-                    
-                // thực hiện xóa cache payment link đi 
-                await _cache.RemoveAsync($"order-{order.Id}");
                 return new Response(0, "Ok", null);
             }
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId!.Value);
+            if (data.amount != order.TotalPrice) return new Response(0, "Ok", null);
+            order.OrderStatus = OrderStatus.Paid;
+            dailyOrder.TotalPrice += order.TotalPrice;
+            dailyOrder.OrderQuantity++;
+            _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            await _unitOfWork.SaveChangeAsync();
+                    
+            // thực hiện xóa cache payment link đi 
+            await _cache.RemoveAsync($"order-{order.Id}");
             return new Response(0, "Ok", null);
         }
         catch (Exception e)
         {
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: ["hnv2311@gmail.com"],
+                subject: "Thông báo lỗi webhook PayOs",
+                body: $"{e.Message}"
+            );
             Console.WriteLine(e.Message);
+            var result = await _mailService.SendEmailAsync(mailData, new CancellationToken());
             return new Response(-1, "fail", null);
         }
     }

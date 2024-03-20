@@ -114,7 +114,6 @@ public class OrderService : IOrderService
                     paymentResponse = await _payOsService.CreatePaymentLink(entity);
                     if (paymentResponse.IsSuccess)
                     {
-                        entity.OrderStatus = OrderStatus.Paid;
                         result.Payload = paymentResponse;
                     }
 
