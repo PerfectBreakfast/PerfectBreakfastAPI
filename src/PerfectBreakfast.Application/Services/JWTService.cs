@@ -5,26 +5,31 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
 
-public class JWTService
+public class JWTService : IJwtService
 {
     private readonly AppConfiguration _appConfiguration;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public JWTService(AppConfiguration appConfiguration)
+    public JWTService(AppConfiguration appConfiguration,IUnitOfWork unitOfWork)
     {
         _appConfiguration = appConfiguration;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserLoginResponse> CreateJWT(User user, string refreshToken)
+    public async Task<UserLoginResponse> CreateJWT(string email, string refreshToken)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appConfiguration.JwtSettings.SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+        
+        var user = await _unitOfWork.UserRepository.GetUserByEmail(email);
+        
         var claims = new List<Claim>
         {
             //new Claim("UserId", user.Id.ToString()),

@@ -22,7 +22,7 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
-    private readonly JWTService _jwtService;
+    private readonly IJwtService _jwtService;
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
     private readonly IMailService _mailService;
@@ -31,7 +31,7 @@ public class UserService : IUserService
     public UserService(IUnitOfWork unitOfWork
         , IMapper mapper
         , IClaimsService claimsService
-        , JWTService jwtService
+        , IJwtService jwtService
         , ICurrentTime currentTime
         , IImgurService imgurService
         , IMailService mailService
@@ -83,7 +83,7 @@ public class UserService : IUserService
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2); // tạo ngày hết hạn mới là sau 2 tháng 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -145,7 +145,7 @@ public class UserService : IUserService
                      await _unitOfWork.UserManager.AddLoginAsync(user, info);
                  }
              }
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(googleUserInfo.Email, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -192,7 +192,7 @@ public class UserService : IUserService
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2); // tạo ngày hết hạn mới là sau 2 tháng 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -261,7 +261,7 @@ public class UserService : IUserService
             user.RefreshToken = GenerateRefreshToken.RandomRefreshToken();
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {

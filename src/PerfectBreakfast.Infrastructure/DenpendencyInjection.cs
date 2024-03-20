@@ -21,7 +21,7 @@ public static class DenpendencyInjection
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
-        services.AddTransient<JWTService>();
+        services.AddTransient<IJwtService,JWTService>();
         services.AddTransient<IMailService, MailService>();
         services.AddScoped<IManagementService, ManagementService>();
         services.AddScoped<IImgurService, ImgurService>();
