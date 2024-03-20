@@ -92,7 +92,7 @@ public class UserController : BaseController
     /// <param name="requestModel"></param>
     /// <returns></returns>
     [HttpPut("{id}/google")]
-    public async Task<IActionResult> UpdateUserLoginGoogle(Guid id,[FromForm]UpdateUserLoginGoogleRequest requestModel)
+    public async Task<IActionResult> UpdateUserLoginGoogle(Guid id,UpdateUserLoginGoogleRequest requestModel)
     {
         var response = await _userService.UpdateUserLoginGoogle(id,requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);

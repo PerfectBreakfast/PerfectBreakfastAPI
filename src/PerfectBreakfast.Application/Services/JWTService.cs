@@ -32,7 +32,7 @@ public class JWTService : IJwtService
         
         var claims = new List<Claim>
         {
-            //new Claim("UserId", user.Id.ToString()),
+            new Claim("UserId", user.Id.ToString()),
             new Claim("CompanyId", user.CompanyId.ToString() ?? string.Empty),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
