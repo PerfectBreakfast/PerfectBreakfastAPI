@@ -97,6 +97,7 @@ public class PayOsService : IPayOsService
             order.OrderStatus = OrderStatus.Paid;
             dailyOrder.TotalPrice += order.TotalPrice;
             dailyOrder.OrderQuantity++;
+            _unitOfWork.OrderRepository.Update(order);
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             await _unitOfWork.SaveChangeAsync();
                     
@@ -106,7 +107,7 @@ public class PayOsService : IPayOsService
         }
         catch (Exception e)
         {
-            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            // Tạo dữ liệu email
             var mailData = new MailDataViewModel(
                 to: ["hnv2311@gmail.com"],
                 subject: "Thông báo lỗi webhook PayOs",
