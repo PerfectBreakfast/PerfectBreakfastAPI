@@ -65,7 +65,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<DailyOrder?> GetById(Guid id)
         {
-            return await _dbSet.Where(d => d.Id == id)
+            return await _dbSet.AsNoTracking().Where(d => d.Id == id)
                 .Include(d => d.MealSubscription)
                 .FirstOrDefaultAsync();
              

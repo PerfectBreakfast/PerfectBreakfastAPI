@@ -18,6 +18,14 @@ namespace PerfectBreakfast.API.Validations.Food
             RuleFor(x => x.Image)
                 .NotNull().WithMessage("Image cannot be null")
                 .NotEmpty().WithMessage("Image cannot be empty");
+            
+            RuleFor(x => x.FoodStatus)
+                .NotNull().WithMessage("Image cannot be null")
+                .NotEmpty().WithMessage("Image cannot be empty");
+            
+            RuleFor(x => x.CategoryId)
+                .NotNull().WithMessage("Image cannot be null")
+                .NotEmpty().WithMessage("Image cannot be empty");
         }
     }
 }

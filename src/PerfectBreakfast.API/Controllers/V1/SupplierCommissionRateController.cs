@@ -20,11 +20,11 @@ public class SupplierCommissionRateController : BaseController
   
 
     /// <summary>
-    /// 
+    /// Api For Super Admin
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetSupplierCommissionRate(Guid id)
     {
         var response = await _supplierCommissionRate.GetSupplierCommissionRateId(id);
@@ -66,18 +66,13 @@ public class SupplierCommissionRateController : BaseController
         var response = await _supplierCommissionRate.UpdateSupplierCommissionRate(id, supplierCommissionRateRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    [HttpPut("{id}/suppliercomissionrate-status")]
-    public async Task<IActionResult> DeleteSupplierCommissionRate(Guid id)
-    {
-        var response = await _supplierCommissionRate.DeleteCSupplierCommissionRate(id);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
+    
+    // [HttpPut("{id}/suppliercomissionrate-status")]
+    // public async Task<IActionResult> DeleteSupplierCommissionRate(Guid id)
+    // {
+    //     var response = await _supplierCommissionRate.DeleteCSupplierCommissionRate(id);
+    //     return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    // }
 
     
     /// <summary>

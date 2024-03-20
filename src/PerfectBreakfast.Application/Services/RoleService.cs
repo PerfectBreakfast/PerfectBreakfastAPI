@@ -5,6 +5,7 @@ using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.RoleModels.Request;
 using PerfectBreakfast.Application.Models.RoleModels.Response;
 using PerfectBreakfast.Application.CustomExceptions;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -20,13 +21,14 @@ namespace PerfectBreakfast.Application.Services
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<OperationResult<List<RoleResponse>>> GetAllRoles()
+        public async Task<OperationResult<List<RoleResponse>>> GetManagementRole()
         {
             var result = new OperationResult<List<RoleResponse>>();
             try
             {
                 var roles = await _unitOfWork.RoleRepository.GetAllAsync();
-                result.Payload = _mapper.Map<List<RoleResponse>>(roles);
+                var filteredRoles = roles.Where(role => role.Name != ConstantRole.CUSTOMER).ToList();
+                result.Payload = _mapper.Map<List<RoleResponse>>(filteredRoles);
             }
             catch (Exception e)
             {
@@ -34,6 +36,7 @@ namespace PerfectBreakfast.Application.Services
             }
             return result;
         }
+        
         public async Task<OperationResult<RoleResponse>> GetRoleById(Guid id)
         {
             var result = new OperationResult<RoleResponse>();

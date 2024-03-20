@@ -16,15 +16,12 @@ public class DailyOrderService : IDailyOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly ICurrentTime _currentTime;
     private readonly IClaimsService _claimsService;
 
-    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime,
-        IClaimsService claimsService)
+    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _currentTime = currentTime;
         _claimsService = claimsService;
     }
 
@@ -65,12 +62,12 @@ public class DailyOrderService : IDailyOrderService
             var partnerInclude = new IncludeInfo<User>
             {
                 NavigationProperty = x => x.Partner,
-                ThenIncludes = new List<Expression<Func<object, object>>>
-                {
+                ThenIncludes =
+                [
                     sp => ((Partner)sp).Companies,
                     sp => ((Company)sp).MealSubscriptions,
-                    sp => ((MealSubscription)sp).Meal
-                }
+                    sp => ((MealSubscription)sp).Meal!
+                ]
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
 
@@ -425,6 +422,39 @@ public class DailyOrderService : IDailyOrderService
         {
             result.AddUnknownError(e.Message);
         }*/
+
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> CompleteDailyOrder(Guid id)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(id, d => d.Orders);
+            var allOrdersCompleted = dailyOrder.Orders.All(order => order!.OrderStatus == OrderStatus.Complete);
+            if (allOrdersCompleted)
+            {
+                dailyOrder.Status = DailyOrderStatus.Complete;
+                _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            }
+            else
+            {
+                result.AddError(ErrorCode.BadRequest, "Vẫn chưa hoàn tất các đơn hàng");
+                return result;
+            }
+
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+        }
+        catch (NotFoundIdException)
+        {
+            result.AddError(ErrorCode.NotFound, "Id is not exist");
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
 
         return result;
     }

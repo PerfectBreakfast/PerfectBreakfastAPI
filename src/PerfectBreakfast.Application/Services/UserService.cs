@@ -22,7 +22,7 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
-    private readonly JWTService _jwtService;
+    private readonly IJwtService _jwtService;
     private readonly ICurrentTime _currentTime;
     private readonly IImgurService _imgurService;
     private readonly IMailService _mailService;
@@ -31,7 +31,7 @@ public class UserService : IUserService
     public UserService(IUnitOfWork unitOfWork
         , IMapper mapper
         , IClaimsService claimsService
-        , JWTService jwtService
+        , IJwtService jwtService
         , ICurrentTime currentTime
         , IImgurService imgurService
         , IMailService mailService
@@ -52,10 +52,17 @@ public class UserService : IUserService
         var result = new OperationResult<UserLoginResponse>();
         try
         {
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(request.Email);
+            var user = await _unitOfWork.UserRepository.GetUserByEmail(request.Email);
             if (user is null)
             {
-                result.AddError(ErrorCode.UnAuthorize, "wrong email");
+                result.AddError(ErrorCode.UnAuthorize, "Email không tồn tại");
+                return result;
+            }
+            // check đúng role là customer mới được 
+            var isCustomer = user.UserRoles != null && user.UserRoles.Any(x => x.Role.Name == ConstantRole.CUSTOMER);
+            if (!isCustomer)
+            {
+                result.AddError(ErrorCode.UnAuthorize, "Role không hợp lệ");
                 return result;
             }
 
@@ -68,7 +75,7 @@ public class UserService : IUserService
                     return result;
                 }
 
-                result.AddError(ErrorCode.UnAuthorize, "wrong pass");
+                result.AddError(ErrorCode.UnAuthorize, "Sai mật Khẩu");
                 return result;
             }
 
@@ -76,7 +83,7 @@ public class UserService : IUserService
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2); // tạo ngày hết hạn mới là sau 2 tháng 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -114,7 +121,7 @@ public class UserService : IUserService
              var user = await _unitOfWork.UserManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
              if (user == null)
              {
-                 user = await _unitOfWork.UserManager.FindByEmailAsync(googleUserInfo.Email);
+                 user = await _unitOfWork.UserRepository.GetUserByEmail(googleUserInfo.Email);
                  if (user == null)
                  {
                      user = new User
@@ -138,7 +145,7 @@ public class UserService : IUserService
                      await _unitOfWork.UserManager.AddLoginAsync(user, info);
                  }
              }
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(googleUserInfo.Email, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -147,22 +154,24 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<UserLoginResponse>> DeliveryStaffSignIn(SignInModel request)
+    public async Task<OperationResult<UserLoginResponse>> ManagementLogin(ManagementLoginModel request)
     {
         var result = new OperationResult<UserLoginResponse>();
         try
         {
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(request.Email);
+            //var user = await _unitOfWork.UserManager.FindByEmailAsync(request.Email);
+            var user = await _unitOfWork.UserRepository.GetUserByEmail(request.Email);
             if (user is null)
             {
-                result.AddError(ErrorCode.UnAuthorize, "wrong email");
+                result.AddError(ErrorCode.UnAuthorize, "Email không tồn tại");
                 return result;
             }
 
+            var hasRole = user.UserRoles != null && user.UserRoles.Any(x => x.RoleId == request.RoleId);
             // check role account 
-            if (!await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.DELIVERY_STAFF))
+            if (!hasRole)
             {
-                result.AddError(ErrorCode.NotFound, "Đây không phải Account DELIVERY_STAFF");
+                result.AddError(ErrorCode.NotFound, "Sai Role!!!");
                 return result;
             }
 
@@ -175,7 +184,7 @@ public class UserService : IUserService
                     return result;
                 }
 
-                result.AddError(ErrorCode.UnAuthorize, "wrong pass");
+                result.AddError(ErrorCode.UnAuthorize, "Sai mật khẩu");
                 return result;
             }
 
@@ -183,7 +192,7 @@ public class UserService : IUserService
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(2); // tạo ngày hết hạn mới là sau 2 tháng 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -205,7 +214,7 @@ public class UserService : IUserService
             {
                 user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(user.CompanyId.Value);
             }
-
+            
             user.UserName = request.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
@@ -252,7 +261,7 @@ public class UserService : IUserService
             user.RefreshToken = GenerateRefreshToken.RandomRefreshToken();
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = await _jwtService.CreateJWT(user, user.RefreshToken!);
+            result.Payload = await _jwtService.CreateJWT(user.Email!, user.RefreshToken!);
         }
         catch (Exception e)
         {
@@ -466,7 +475,10 @@ public class UserService : IUserService
                 user.Code = await _unitOfWork.UserRepository.CalculateSupplierCode(user.SupplierId.Value);
             }
 
-            user.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+            if (requestModel.Image is not null)
+            {
+                user.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+            }
             user.UserName = requestModel.Email;
             user.EmailConfirmed = true;
             user.CreationDate = _currentTime.GetCurrentTime();
@@ -492,7 +504,6 @@ public class UserService : IUserService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
@@ -519,6 +530,28 @@ public class UserService : IUserService
             result.AddUnknownError(e.Message);
         }
 
+        return result;
+    }
+
+    public async Task<OperationResult<bool>> UpdateUserLoginGoogle(Guid id, UpdateUserLoginGoogleRequest requestModel)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            //_mapper.Map(requestModel, user);
+            //user.Name = requestModel.Name ?? user.Name;
+            user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
+            user.CompanyId = requestModel.CompanyId;
+
+            _unitOfWork.UserRepository.Update(user);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
         return result;
     }
 

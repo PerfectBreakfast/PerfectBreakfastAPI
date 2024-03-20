@@ -13,6 +13,5 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<FoodAssignmentResponse>> CompleteFoodAssignment(Guid id);
         public Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment);
         public Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate);
-        public byte[] DownloadSupplierFoodAssignmentExcel(SupplierFoodAssignmentForSupplier supplierFood);
     }
 }

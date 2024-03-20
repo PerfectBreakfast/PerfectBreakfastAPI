@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Services
@@ -32,8 +33,14 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<FoodResponse>();
             try
             {
+                if (requestModel.FoodStatus is not (0 or 1))
+                {
+                    result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
+                }
+                
                 // map model to Entity
                 var food = _mapper.Map<Food>(requestModel);
+                food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
                 food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
                 // Add to DB
                 var entity = await _unitOfWork.FoodRepository.AddAsync(food);
@@ -55,6 +62,21 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var foods = await _unitOfWork.FoodRepository.GetAllAsync();
+                result.Payload = _mapper.Map<List<FoodResponse>>(foods);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<List<FoodResponse>>> GetFoodByFoodStatus(FoodStatus status)
+        {
+            var result = new OperationResult<List<FoodResponse>>();
+            try
+            {
+                var foods = await _unitOfWork.FoodRepository.FindAll(x => x.FoodStatus == status).ToListAsync();
                 result.Payload = _mapper.Map<List<FoodResponse>>(foods);
             }
             catch (Exception e)
@@ -132,7 +154,7 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 
-                var foodCounts = new Dictionary<Food, int>();
+                var foodCounts = new Dictionary<(Food, string), int>();
                         
                 // Lấy daily order
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(dailyOrderId);
@@ -162,52 +184,53 @@ namespace PerfectBreakfast.Application.Services
                 // Lấy chi tiết các order detail
                 var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
                 var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
-
-                // Đếm số lượng từng loại food
+                
+                //Đếm số lượng món theo khẩu phần
                 foreach (var orderDetail in orderDetails)
                 {
                     if (orderDetail.Combo != null)
                     {
-                        // Nếu là combo thì lấy chi tiết các food trong combo
+                        // Xử lý combo
                         var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
-                        var comboFoods = combo.ComboFoods;
-
-                        // Với mỗi food trong combo, cộng dồn số lượng
-                        foreach (var comboFood in comboFoods)
+                        foreach (var comboFood in combo.ComboFoods)
                         {
                             var food = comboFood.Food;
-                            // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                            if (foodCounts.ContainsKey(food))
+                            // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
+                            var key = (food, "khẩu phần combo");
+                            if (foodCounts.ContainsKey(key))
                             {
-                                // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                                foodCounts[food] += orderDetail.Quantity;
+                                foodCounts[key] += orderDetail.Quantity;
                             }
                             else
                             {
-                                // Nếu chưa tồn tại, thêm mới vào foodCounts
-                                foodCounts[food] = orderDetail.Quantity;
+                                foodCounts[key] = orderDetail.Quantity;
                             }
                         }
                     }
                     else if (orderDetail.Food != null)
                     {
-                        // Xử lý order detail là food đơn lẻ
                         var food = orderDetail.Food;
-                        // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                        if (foodCounts.ContainsKey(food))
+                        // Food đơn lẻ với Status là Retail sẽ được xử lý như khẩu phần đơn lẻ
+                        var key = (food, "khẩu phần đơn lẻ");
+                        if (foodCounts.ContainsKey(key))
                         {
-                            // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                            foodCounts[food] += orderDetail.Quantity;
+                            foodCounts[key] += orderDetail.Quantity;
                         }
                         else
                         {
-                            // Nếu chưa tồn tại, thêm mới vào foodCounts
-                            foodCounts[food] = orderDetail.Quantity;
+                            foodCounts[key] = orderDetail.Quantity;
                         }
                     }
                 }
+
                 // Tạo danh sách totalFoodList từ foodCounts
-                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse {Id = pair.Key.Id, Name = pair.Key.Name, Quantity = pair.Value }).ToList();
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
+                {
+                    Id = pair.Key.Item1.Id, // Truy cập Food thông qua Item1 của tuple
+                    Name = $"{pair.Key.Item1.Name} - {pair.Key.Item2}", // Kết hợp tên Food với loại
+                    Quantity = pair.Value
+                }).ToList();
+                
                 var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.MealId);
                 var com = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.CompanyId);
                 var totalFoodForPartner = new TotalFoodForPartnerResponse()
@@ -258,7 +281,7 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 
-                var foodCounts = new Dictionary<Food, int>();
+                var foodCounts = new Dictionary<(Food, string), int>();
                         
                 // Lấy daily order
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(dailyOrderId);
@@ -294,46 +317,45 @@ namespace PerfectBreakfast.Application.Services
                 {
                     if (orderDetail.Combo != null)
                     {
-                        // Nếu là combo thì lấy chi tiết các food trong combo
+                        // Xử lý combo
                         var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
-                        var comboFoods = combo.ComboFoods;
-
-                        // Với mỗi food trong combo, cộng dồn số lượng
-                        foreach (var comboFood in comboFoods)
+                        foreach (var comboFood in combo.ComboFoods)
                         {
                             var food = comboFood.Food;
-                            // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                            if (foodCounts.ContainsKey(food))
+                            // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
+                            var key = (food, "khẩu phần combo");
+                            if (foodCounts.ContainsKey(key))
                             {
-                                // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                                foodCounts[food] += orderDetail.Quantity;
+                                foodCounts[key] += orderDetail.Quantity;
                             }
                             else
                             {
-                                // Nếu chưa tồn tại, thêm mới vào foodCounts
-                                foodCounts[food] = orderDetail.Quantity;
+                                foodCounts[key] = orderDetail.Quantity;
                             }
                         }
                     }
                     else if (orderDetail.Food != null)
                     {
-                        // Xử lý order detail là food đơn lẻ
                         var food = orderDetail.Food;
-                        // Kiểm tra xem thức ăn đã tồn tại trong foodCounts chưa
-                        if (foodCounts.ContainsKey(food))
+                        // Food đơn lẻ với Status là Retail sẽ được xử lý như khẩu phần đơn lẻ
+                        var key = (food, "khẩu phần đơn lẻ");
+                        if (foodCounts.ContainsKey(key))
                         {
-                            // Nếu đã tồn tại, cộng dồn số lượng mới vào số lượng hiện có
-                            foodCounts[food] += orderDetail.Quantity;
+                            foodCounts[key] += orderDetail.Quantity;
                         }
                         else
                         {
-                            // Nếu chưa tồn tại, thêm mới vào foodCounts
-                            foodCounts[food] = orderDetail.Quantity;
+                            foodCounts[key] = orderDetail.Quantity;
                         }
                     }
                 }
                 // Tạo danh sách totalFoodList từ foodCounts
-                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse {Id = pair.Key.Id, Name = pair.Key.Name, Quantity = pair.Value }).ToList();
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
+                {
+                    Id = pair.Key.Item1.Id, // Truy cập Food thông qua Item1 của tuple
+                    Name = $"{pair.Key.Item1.Name} - {pair.Key.Item2}", // Kết hợp tên Food với loại
+                    Quantity = pair.Value
+                }).ToList();
                 var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.MealId);
                 var com = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.CompanyId);
                 var totalFoodForPartner = new TotalFoodForPartnerResponse()
@@ -386,13 +408,19 @@ namespace PerfectBreakfast.Application.Services
             {
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
-                // map from requestModel => supplier
-                //_mapper.Map(requestModel, food);
                 food.Name = requestModel.Name ?? food.Name;
                 food.Price = requestModel.Price ?? food.Price;
                 if (requestModel.Image is not null)
                 {
                     food.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+                }
+                if (requestModel.FoodStatus is not null)
+                {
+                    if (requestModel.FoodStatus is not (0 or 1))
+                    {
+                        result.AddError(ErrorCode.BadRequest, "Food status must be 0 or 1");
+                    }
+                    food.FoodStatus = requestModel.FoodStatus == 0 ? FoodStatus.Combo : FoodStatus.Retail;
                 }
                 // update
                 _unitOfWork.FoodRepository.Update(food);

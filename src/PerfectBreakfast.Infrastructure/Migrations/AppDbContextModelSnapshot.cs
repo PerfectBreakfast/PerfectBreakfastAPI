@@ -283,6 +283,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasIndex("DeliveryId");
 
+                    b.HasIndex("Name");
+
                     b.HasIndex("PartnerId");
 
                     b.ToTable("Company", (string)null);
@@ -413,6 +415,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FoodStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("Image")
                         .IsRequired()
@@ -928,6 +933,41 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("Role", (string)null);
+                });
+
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Setting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<TimeOnly>("Time")
+                        .HasColumnType("time(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Setting", (string)null);
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.ShippingOrder", b =>

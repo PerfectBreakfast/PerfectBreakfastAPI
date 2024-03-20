@@ -15,6 +15,7 @@ public class CompanyConfig : IEntityTypeConfiguration<Company>
         builder.Property(x => x.Email).HasMaxLength(50);
         builder.Property(x => x.Address).HasMaxLength(300);
         builder.Property(x => x.PhoneNumber).HasMaxLength(10);
+        builder.HasIndex(x => x.Name);
         
         builder.HasOne(x => x.Partner)
             .WithMany(x => x.Companies)

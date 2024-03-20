@@ -119,25 +119,25 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 
 
 
-    public async Task<OperationResult<SupplierCommissionRateRespone>> DeleteCSupplierCommissionRate(Guid id)
-    {
-        var result = new OperationResult<SupplierCommissionRateRespone>();
-        try
-        {
-            var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-            _unitOfWork.SupplierCommissionRateRepository.Remove(supplierCommissionRate);
-            await _unitOfWork.SaveChangeAsync();
-        }
-        catch (NotFoundIdException)
-        {
-            result.AddUnknownError("Id is not exsit");
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-        return result;
-    }
+    // public async Task<OperationResult<SupplierCommissionRateRespone>> DeleteCSupplierCommissionRate(Guid id)
+    // {
+    //     var result = new OperationResult<SupplierCommissionRateRespone>();
+    //     try
+    //     {
+    //         var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
+    //         _unitOfWork.SupplierCommissionRateRepository.Remove(supplierCommissionRate);
+    //         await _unitOfWork.SaveChangeAsync();
+    //     }
+    //     catch (NotFoundIdException)
+    //     {
+    //         result.AddUnknownError("Id is not exsit");
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         result.AddUnknownError(e.Message);
+    //     }
+    //     return result;
+    // }
 
     public async Task<OperationResult<SupplierCommissionRateRespone>> UpdateSupplierCommissionRate(Guid id, UpdateSupplierCommissionRateRequest supplierCommissionRateRequest)
     {

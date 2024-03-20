@@ -1,4 +1,6 @@
-﻿namespace PerfectBreakfast.Application.Models.MenuModels.Response
+﻿using PerfectBreakfast.Application.Models.FoodModels.Response;
+
+namespace PerfectBreakfast.Application.Models.MenuModels.Response
 {
     public record MenuResponse
     {
@@ -8,5 +10,6 @@
         public DateTime CreationDate { get; set; }
         public bool IsDeleted { get; set; }
         public List<ComboAndFoodResponse?> ComboFoodResponses { get; set; }
+        public List<FoodResponse?> FoodResponses { get; set; }
     }
 }

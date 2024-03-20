@@ -17,6 +17,10 @@ public class DailyOrderController : BaseController
         _dailyOrderService = dailyOrderService;
     }
 
+    /// <summary>
+    /// Api For All
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetDailyOrders()
     {

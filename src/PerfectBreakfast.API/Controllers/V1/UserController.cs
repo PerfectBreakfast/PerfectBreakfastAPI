@@ -36,7 +36,7 @@ public class UserController : BaseController
     }
     
     /// <summary>
-    /// Api for All , Get user by Id
+    /// Api for All login , Get user by Id
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -65,7 +65,7 @@ public class UserController : BaseController
     /// </summary>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpPost]
+    [HttpPost,Authorize]
     public async Task<IActionResult> CreateUser([FromForm]CreateUserRequestModel requestModel)
     {
         var response = await _userService.CreateUser(requestModel);
@@ -73,12 +73,12 @@ public class UserController : BaseController
     }
 
     /// <summary>
-    /// Api for All
+    /// Api for All login
     /// </summary>
     /// <param name="id"></param>
     /// <param name="requestModel"></param>
     /// <returns></returns>
-    [HttpPut("{id}")]
+    [HttpPut("{id}"),Authorize]
     public async Task<IActionResult> UpdateUser(Guid id,[FromForm]UpdateUserRequestModel requestModel)
     {
         var response = await _userService.UpdateUser(id,requestModel);
@@ -86,12 +86,25 @@ public class UserController : BaseController
     }
     
     /// <summary>
-    /// Update image user
+    /// Api for Customer (hàm cập nhật thông tin sdt và công ty sau khi login google)
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
+    [HttpPut("{id}/google")]
+    public async Task<IActionResult> UpdateUserLoginGoogle(Guid id,UpdateUserLoginGoogleRequest requestModel)
+    {
+        var response = await _userService.UpdateUserLoginGoogle(id,requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Update image user 
     /// </summary>
     /// <param name="id"></param>
     /// <param name="image"></param>
     /// <returns></returns>
-    [HttpPut("{id}/image")]
+    [HttpPut("{id}/image"),Authorize]
     public async Task<IActionResult> UpdateImageUser(Guid id,IFormFile image)
     {
         var response = await _userService.UpdateImageUser(id,image);
@@ -104,7 +117,7 @@ public class UserController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("deliverystaff/pagination")]
+    [HttpGet("deliverystaff/pagination"),Authorize(policy: ConstantRole.RequireDeliveryAdminRole)]
     public async Task<IActionResult> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _userService.GetDeliveryStaffByDeliveryAdmin(pageIndex,pageSize);

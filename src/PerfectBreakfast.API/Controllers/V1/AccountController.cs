@@ -18,6 +18,11 @@ public class AccountController : BaseController
         _userService = userService;
     }
 
+    /// <summary>
+    /// API for all (Đăng kí account Customer)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("signup")]
     [ApiVersionNeutral]
     public async Task<IActionResult> SignUp(SignUpModel request)
@@ -26,14 +31,24 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// API for all (login của Customer)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("signin")]
     [ApiVersionNeutral]
-    public async Task<IActionResult> SignIn(SignInModel request)
+    public async Task<IActionResult> SignInForCustomer(SignInModel request)
     {
         var response = await _userService.SignIn(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="code"></param>
+    /// <returns></returns>
     [HttpPost("google")]
     [ApiVersionNeutral]
     public async Task<IActionResult> GoogleLogin(string code)
@@ -42,14 +57,24 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    [HttpPost("deliverystaff/login")]
+    /// <summary>
+    /// (Api login cho tất cả role quản lý)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("management/login")]
     [ApiVersionNeutral]
-    public async Task<IActionResult> SignInDeliveryStaff(SignInModel request)
+    public async Task<IActionResult> ManagementLogin(ManagementLoginModel request)
     {
-        var response = await _userService.DeliveryStaffSignIn(request);
+        var response = await _userService.ManagementLogin(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <param name="tokenModel"></param>
+    /// <returns></returns>
     [HttpPost("refresh-user-token")]
     public async Task<IActionResult> RefreshUserToken(TokenModel tokenModel)
     {
@@ -57,6 +82,10 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("current-user")]
     [ApiVersionNeutral]
     [Authorize]

@@ -11,10 +11,12 @@ namespace PerfectBreakfast.API.Controllers.V1;
 public class SupplierFoodAssignmentController : BaseController
 {
     private readonly ISupplierFoodAssignmentService _supplierFoodAssignmentService;
+    private readonly IExportExcelService _exportExcelService;
 
-    public SupplierFoodAssignmentController(ISupplierFoodAssignmentService supplierFoodAssignmentService)
+    public SupplierFoodAssignmentController(ISupplierFoodAssignmentService supplierFoodAssignmentService, IExportExcelService exportExcelService)
     {
         _supplierFoodAssignmentService = supplierFoodAssignmentService;
+        _exportExcelService = exportExcelService;
     }
 
     /// <summary>
@@ -108,7 +110,7 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return HandleErrorResponse(response.Errors);
         }
-        var content = _supplierFoodAssignmentService.DownloadSupplierFoodAssignmentExcel(response.Payload[0]);
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentExcel(response.Payload[0]);
         if (content == null)
         {
             return NotFound("Some thing wrong");

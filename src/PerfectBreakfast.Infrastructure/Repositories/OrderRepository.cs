@@ -53,11 +53,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return orders;
         }
 
-        public Task<Order> GetOrderByOrderCode(long orderCode)
+        public async Task<Order> GetOrderByOrderCode(long orderCode)
         {
-            return _dbSet.SingleAsync(x => x.OrderCode == orderCode);
+            var order = await _dbSet.AsNoTracking().SingleAsync(x => x.OrderCode == orderCode);
+            return order;
         }
-        
-        
     }
 }

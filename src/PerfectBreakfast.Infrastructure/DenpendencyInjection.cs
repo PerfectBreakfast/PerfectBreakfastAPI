@@ -11,6 +11,7 @@ using PerfectBreakfast.Infrastructure.ImgurServices;
 using PerfectBreakfast.Infrastructure.MailServices;
 using PerfectBreakfast.Infrastructure.Payments;
 using System.Reflection;
+using PerfectBreakfast.Infrastructure.ExportService;
 
 namespace PerfectBreakfast.Infrastructure;
 
@@ -20,10 +21,11 @@ public static class DenpendencyInjection
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentTime, CurrentTime>();
-        services.AddTransient<JWTService>();
+        services.AddTransient<IJwtService,JWTService>();
         services.AddTransient<IMailService, MailService>();
         services.AddScoped<IManagementService, ManagementService>();
         services.AddScoped<IImgurService, ImgurService>();
+        services.AddScoped<IExportExcelService, ExportExcelService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>

@@ -5,7 +5,9 @@ using Net.payOS;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.PaymentModels.Respone;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Models.PaymentModels.Request;
+using PerfectBreakfast.Application.Models.PayOSModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -18,15 +20,17 @@ public class PayOsService : IPayOsService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
     private readonly IDistributedCache _cache;
+    private readonly IMailService _mailService;
     public PayOsService(PayOS payOs, AppConfiguration appConfiguration,
         IUnitOfWork unitOfWork,ICurrentTime currentTime,
-        IDistributedCache cache)
+        IDistributedCache cache, IMailService mailService)
     {
         _payOs = payOs;
         _appConfiguration = appConfiguration;
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _cache = cache;
+        _mailService = mailService;
     }
 
     public async Task<PaymentResponse> CreatePaymentLink(Order order)
@@ -74,48 +78,44 @@ public class PayOsService : IPayOsService
         }
     }
 
-    public async Task<bool> HandleWebhook(WebhookType type)
+    public async Task<Response> HandleWebhook(WebhookType type)
     {
         try
         {
-            // khong check signature
-            //WebhookData data =  await _payOs.verifyPaymentWebhookData(type);
-            var data = type.data;
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            Console.WriteLine("trạng thái: " + data.code + ", mô tả: " + data.desc);
-            if (data.code == "00")
+            // check signature
+            WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            Console.WriteLine("############ đã Verify Payment WebhookData ############# ");
+
+            if (data.code != "00") return new Response(0, "Ok", null);
+            var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
+            if (order.OrderStatus != OrderStatus.Pending)
             {
-                Console.WriteLine(data.desc);
-                var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(data.orderCode);
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId.Value);
-                if (data.amount == order.TotalPrice)
-                {
-                    order.OrderStatus = OrderStatus.Paid;
-                    dailyOrder.TotalPrice += order.TotalPrice;
-                    dailyOrder.OrderQuantity++;
-                    _unitOfWork.DailyOrderRepository.Update(dailyOrder);
-                    await _unitOfWork.SaveChangeAsync();
-                    
-                    // thực hiện xóa cache payment link đi 
-                    await _cache.RemoveAsync($"order-{order.Id}");
-                }
-                return true;
+                return new Response(0, "Ok", null);
             }
-            Console.WriteLine(data.desc);
-            return true;
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId!.Value);
+            if (data.amount != order.TotalPrice) return new Response(0, "Ok", null);
+            order.OrderStatus = OrderStatus.Paid;
+            dailyOrder.TotalPrice += order.TotalPrice;
+            dailyOrder.OrderQuantity++;
+            _unitOfWork.OrderRepository.Update(order);
+            _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            await _unitOfWork.SaveChangeAsync();
+                    
+            // thực hiện xóa cache payment link đi 
+            await _cache.RemoveAsync($"order-{order.Id}");
+            return new Response(0, "Ok", null);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            // Tạo dữ liệu email
+            var mailData = new MailDataViewModel(
+                to: ["hnv2311@gmail.com"],
+                subject: "Thông báo lỗi webhook PayOs",
+                body: $"{e.Message}"
+            );
+            Console.WriteLine(e.Message);
+            var result = await _mailService.SendEmailAsync(mailData, new CancellationToken());
+            return new Response(-1, "fail", null);
         }
-        
     }
 }

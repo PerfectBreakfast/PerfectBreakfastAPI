@@ -55,12 +55,12 @@ public class ShippingOrderController : BaseController
     }
     
     /// <summary>
-    /// Api for Delivery Staff- (API xác nhận món lấy hàng đi giao)
+    /// Api for Delivery Staff Or Delivery Admin- (API xác nhận món lấy hàng đi giao)
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPut("confirmation/{id:guid}")]
-    [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> ConfirmStatusShippingOrder(Guid id)
     {
         var response = await _shippingOrderService.ConfirmShippingOrderByShipper(id); // Pass both ID and DTO to the service

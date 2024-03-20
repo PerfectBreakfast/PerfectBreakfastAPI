@@ -44,12 +44,12 @@ public class OrderController : BaseController
     /// <summary>
     /// Api for Customer (Hủy thanh toán đơn hàng)
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="orderCode"></param>
     /// <returns></returns>
-    [HttpPut("{id}/cancel"),Authorize(Policy = ConstantRole.RequireCustomerRole)]
-    public async Task<IActionResult> CancelOrder(Guid id)
+    [HttpPut("{orderCode}/cancel"),Authorize(Policy = ConstantRole.RequireCustomerRole)]
+    public async Task<IActionResult> CancelOrder(long orderCode)
     {
-        var response = await _orderService.CancelOrder(id);
+        var response = await _orderService.CancelOrder(orderCode);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
@@ -61,7 +61,7 @@ public class OrderController : BaseController
     }
 
     /// <summary>
-    /// API for all 
+    /// Api For All login 
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -91,7 +91,7 @@ public class OrderController : BaseController
     /// <param name="updateOrderRequest"></param>
     /// <returns></returns>
     [HttpPut("{id}")]
-    [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
+    [Authorize(Roles = $"{ConstantRole.CUSTOMER},{ConstantRole.SUPER_ADMIN}")]
     public async Task<IActionResult> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)
     {
         var response = await _orderService.UpdateOrder(id, updateOrderRequest);
@@ -117,7 +117,7 @@ public class OrderController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
+    [Authorize(Roles = $"{ConstantRole.CUSTOMER},{ConstantRole.SUPER_ADMIN}")]
     public async Task<IActionResult> RemoveOrder(Guid id)
     {
         var response = await _orderService.DeleteOrder(id);
@@ -130,7 +130,7 @@ public class OrderController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPatch("{id}/status-complete")]
-    [Authorize]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> CompleteOrder(Guid id)
     {
         var response = await _orderService.CompleteOrder(id);

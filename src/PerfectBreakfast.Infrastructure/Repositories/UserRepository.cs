@@ -142,6 +142,14 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .SingleOrDefaultAsync();
     }
 
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await _dbSet.AsNoTracking().Where(x => x.Email == email)
+            .Include(x => x.UserRoles)!
+            .ThenInclude(x => x.Role)
+            .SingleOrDefaultAsync();
+    }
+
 
     public async Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId)
     {

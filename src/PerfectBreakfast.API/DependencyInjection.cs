@@ -37,7 +37,7 @@ public static class DependencyInjection
                     .Select(e => new ErrorValidator(e.Key, e.Value.Errors.First().ErrorMessage))
                     .ToList();
 
-                return new BadRequestObjectResult(new ErrorResponse(400, "Bad Request", errors, DateTime.Now));
+                return new BadRequestObjectResult(new ErrorResponse(400, "Bad Request", errors));
             };
         });
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareHandler>();

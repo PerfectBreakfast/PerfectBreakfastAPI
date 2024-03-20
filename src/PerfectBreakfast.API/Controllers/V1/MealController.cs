@@ -18,10 +18,10 @@ public class MealController : BaseController
     }
     
     /// <summary>
-    /// Api for All
+    /// Api for Super Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetMeals()
     {
         var response = await _mealService.GetMeals();
@@ -33,7 +33,7 @@ public class MealController : BaseController
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost]
+    [HttpPost,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> CreateMeal(CreateMealRequest request)
     {
         var response = await _mealService.CreateMeal(request);
@@ -41,7 +41,7 @@ public class MealController : BaseController
     }
 
     /// <summary>
-    /// Api For Customer
+    /// Api For Customer (Lấy ra các bữa ăn theo Customer)
     /// </summary>
     /// <returns></returns>
     [HttpGet("customer"), Authorize(Policy = ConstantRole.RequireCustomerRole)]

@@ -16,6 +16,10 @@ public class CompanyController : BaseController
         _companyService = companyService;
     }
 
+    /// <summary>
+    /// Api for All
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetCompanies()
     {
@@ -41,7 +45,7 @@ public class CompanyController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id}/users")]
-    [Authorize(Roles = "SUPER ADMIN, PARTNER ADMIN")]
+    [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN},{ConstantRole.PARTNER_ADMIN}")]
     public async Task<IActionResult> GetUsersByCompany(Guid id)
     {
         var response = await _companyService.GetUsersByCompanyId(id);
@@ -124,6 +128,18 @@ public class CompanyController : BaseController
     public async Task<IActionResult> GetCompaniesByDelivery(string? searchTerm, int pageIndex = 0, int pageSize = 10)
     {
         var response = await _companyService.GetCompanyByDelivery(searchTerm, pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API for all-Tìm kiếm công ty trả về ít nhất 2 kết quả
+    /// </summary>
+    /// /// <param name="searchTerm"></param>
+    /// <returns></returns>
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchCompanies(string searchTerm)
+    {
+        var response = await _companyService.SearchCompany(searchTerm);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

@@ -9,6 +9,6 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Response
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public string Image { get; set; } = string.Empty;
-        
+        public string FoodStatus { get; set; }
     }
 }

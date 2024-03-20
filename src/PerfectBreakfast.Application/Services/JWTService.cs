@@ -5,36 +5,40 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 
 namespace PerfectBreakfast.Application.Services;
 
-public class JWTService
+public class JWTService : IJwtService
 {
     private readonly AppConfiguration _appConfiguration;
-    private readonly UserManager<User> _userManager;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public JWTService(AppConfiguration appConfiguration,UserManager<User> userManager)
+    public JWTService(AppConfiguration appConfiguration,IUnitOfWork unitOfWork)
     {
         _appConfiguration = appConfiguration;
-        _userManager = userManager;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserLoginResponse> CreateJWT(User user, string refreshToken)
+    public async Task<UserLoginResponse> CreateJWT(string email, string refreshToken)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appConfiguration.JwtSettings.SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+        
+        var user = await _unitOfWork.UserRepository.GetUserByEmail(email);
+        
         var claims = new List<Claim>
         {
             new Claim("UserId", user.Id.ToString()),
+            new Claim("CompanyId", user.CompanyId.ToString() ?? string.Empty),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
         };
-        var roles = await _userManager.GetRolesAsync(user);
+        var roles = user.UserRoles!.Select(x => x.Role.Name).ToList();
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role,role)));
         var token = new JwtSecurityToken(
             claims: claims,
@@ -44,7 +48,7 @@ public class JWTService
             //expires: DateTime.UtcNow.AddSeconds(30),
             signingCredentials: credentials);
 
-        return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles.ToList(), new JwtSecurityTokenHandler().WriteToken(token),refreshToken);
+        return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles, new JwtSecurityTokenHandler().WriteToken(token),refreshToken);
     }
     
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)

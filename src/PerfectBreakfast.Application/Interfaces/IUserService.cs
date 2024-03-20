@@ -11,7 +11,7 @@ public interface IUserService
     // action auth
     public Task<OperationResult<UserLoginResponse>> SignIn(SignInModel request);
     public Task<OperationResult<UserLoginResponse>> ExternalLogin(string code);
-    public Task<OperationResult<UserLoginResponse>> DeliveryStaffSignIn(SignInModel request);
+    public Task<OperationResult<UserLoginResponse>> ManagementLogin(ManagementLoginModel request);
     public Task<OperationResult<bool>> SignUp(SignUpModel request);
     public Task<OperationResult<UserLoginResponse>> RefreshUserToken(TokenModel tokenModel);
     public Task<OperationResult<UserDetailResponse>> GetCurrentUser();
@@ -24,6 +24,7 @@ public interface IUserService
     public Task<OperationResult<UserResponse>> GetUser(Guid id);
     public Task<OperationResult<bool>> CreateUser(CreateUserRequestModel requestModel);
     public Task<OperationResult<bool>> UpdateUser(Guid id,UpdateUserRequestModel requestModel);
+    public Task<OperationResult<bool>> UpdateUserLoginGoogle(Guid id,UpdateUserLoginGoogleRequest requestModel);
     public Task<OperationResult<bool>> UpdateImageUser(Guid id,IFormFile image);
     public Task<OperationResult<dynamic>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDeliveryAdminList();

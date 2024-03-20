@@ -192,15 +192,17 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var combos = await _unitOfWork.ComboRepository.GetAllCombo();
-                List<ComboResponse> comboResponses = new List<ComboResponse>();
+                var comboResponses = new List<ComboResponse>();
                 foreach (var combo in combos)
                 {
+                    if (combo.IsDeleted) continue;
                     var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                    decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
+                    var totalFoodPrice = foodEntities.Sum(food => food.Price);
                     var co = _mapper.Map<ComboResponse>(combo);
                     co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
                     co.comboPrice = totalFoodPrice;
                     comboResponses.Add(co);
+
                 }
                 result.Payload = comboResponses;
             }

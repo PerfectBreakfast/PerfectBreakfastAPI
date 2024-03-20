@@ -1,6 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.Drawing;
+using System.Linq.Expressions;
 using MapsterMapper;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -45,7 +47,7 @@ namespace PerfectBreakfast.Application.Services
                 var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
                 if (suppliers == null)
                 {
-                    result.AddError(ErrorCode.BadRequest, "Partner doesn't have supplier");
+                    result.AddError(ErrorCode.BadRequest, "Đối tác chưa có nhà cung cấp");
                     return result;
                 }
                 
@@ -61,7 +63,7 @@ namespace PerfectBreakfast.Application.Services
                 // Tổng số lượng food cần nấu cho tất cả cty thuộc management Unit
                 var totalFoodCountOperationResult = await _foodService.GetFoodsForPartner((Guid)request.DailyOrderId);
                 var totalFoodCounts = totalFoodCountOperationResult.Payload;
-                var totalFoodReceive = new Dictionary<Guid?, Dictionary<string, int>>();
+                var totalFoodReceive = new Dictionary<string, int>();
                 
                 //Lay cac supplier trung voi supplier nhap vao
                 var filteredSuppliers = new List<Supplier>();
@@ -97,7 +99,7 @@ namespace PerfectBreakfast.Application.Services
                         var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)supplierFoodAssignment.FoodId);
                         if (supplierCommissionRate == null)
                         {
-                            result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                            result.AddError(ErrorCode.BadRequest, "Nhà cung cấp chưa đăng kí món");
                             return result;
                         }
                         supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
@@ -105,29 +107,22 @@ namespace PerfectBreakfast.Application.Services
                         supplierFoodAssignment.PartnerId = partner.Id;
                         supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
                         supplierFoodAssignment.DailyOrderId = request.DailyOrderId;
-                        var check = supplierFoodAssignment;
-                        // Add food vao totalFoodReceive de so sanh
-                        var foodName = food.Name;
                         
-                        // Thêm thức ăn vào totalFoodReceive
-                        if (!totalFoodReceive.ContainsKey(supplierFoodAssignment.DailyOrderId))
+                        // Add food vao totalFoodReceive de so sanh
+                        var foodNameKey = food.FoodStatus == FoodStatus.Combo ? $"{food.Name} - khẩu phần combo" : $"{food.Name} - khẩu phần đơn lẻ";
+                        
+                        // Thêm thức ăn vào totalFoodReceive hoặc cập nhật số lượng nếu đã tồn tại
+                        if (totalFoodReceive.ContainsKey(foodNameKey))
                         {
-                            // Nếu daily order chưa tồn tại, khởi tạo một Dictionary mới cho Meal
-                            totalFoodReceive[supplierFoodAssignment.DailyOrderId] = new Dictionary<string, int>();
-                        }
-
-                        if (totalFoodReceive[supplierFoodAssignment.DailyOrderId].ContainsKey(foodName))
-                        {
-                            // Nếu Meal đã tồn tại, cập nhật AmountCooked
-                            totalFoodReceive[supplierFoodAssignment.DailyOrderId][foodName] += supplierFoodAssignment.AmountCooked;
+                            // Nếu thức ăn đã tồn tại, cập nhật số lượng
+                            totalFoodReceive[foodNameKey] += supplierFoodAssignment.AmountCooked;
                         }
                         else
                         {
-                            // Nếu Meal chưa tồn tại, thêm mới với AmountCooked
-                            totalFoodReceive[supplierFoodAssignment.DailyOrderId].Add(foodName, supplierFoodAssignment.AmountCooked);
+                            // Nếu thức ăn chưa tồn tại, thêm mới với số lượng
+                            totalFoodReceive.Add(foodNameKey, supplierFoodAssignment.AmountCooked);
                         }
-
-
+                        
                         await _unitOfWork.SupplierFoodAssignmentRepository.AddAsync(supplierFoodAssignment);
                         foodAssignmentsResult.Add(supplierFoodAssignment);
                     }
@@ -136,12 +131,22 @@ namespace PerfectBreakfast.Application.Services
                     foreach (var item in foodAssignmentsResult)
                     {
                         var fo = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)item.FoodId);
+                        // Kiểm tra trạng thái của fo và cập nhật FoodName tương ứng
+                        string foodName = fo.Name;
+                        if (fo.FoodStatus == FoodStatus.Combo)
+                        {
+                            foodName += " - khẩu phần combo";
+                        }
+                        else if (fo.FoodStatus == FoodStatus.Retail)
+                        {
+                            foodName += " - khẩu phần đơn lẻ";
+                        }
                         var foodAssignmentResponse = new FoodAssignmentResponse()
                         {
                             PartnerName = partner.Name,
                             DailyOrderId = item.DailyOrderId,
                             AmountCooked = item.AmountCooked,
-                            FoodName = fo.Name,
+                            FoodName = foodName,
                             ReceivedAmount = item.ReceivedAmount,
                             Status = item.Status.ToString()
                         };
@@ -157,20 +162,29 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Check xem số lượng nhập vào có đủ hay không
-                var dailyOrderId = totalFoodCounts.DailyOrderId;
                 if (totalFoodCounts.TotalFoodResponses != null)
                 {
                     foreach (var foodResponse in totalFoodCounts.TotalFoodResponses)
                     {
                         var foodName = foodResponse.Name;
                         var requiredQuantity = foodResponse.Quantity;
-
-                        // Kiểm tra xem đã nấu đủ số lượng thức ăn yêu cầu chưa
-                        if (!totalFoodReceive.ContainsKey(dailyOrderId) || !totalFoodReceive[dailyOrderId].ContainsKey(foodName) || totalFoodReceive[dailyOrderId][foodName] != requiredQuantity)
+                        // Kiểm tra xem totalFoodReceive có chứa tên thức ăn này không và số lượng có đủ không
+                        if (totalFoodReceive.ContainsKey(foodName))
                         {
-                            result.AddError(ErrorCode.BadRequest, $"Not enough {foodName} cooked for order {dailyOrderId}.");
-                            return result; 
+                            if (totalFoodReceive[foodName] != requiredQuantity)
+                            {
+                                // Nếu số lượng thực tế không bằng với số lượng yêu cầu
+                                result.AddError(ErrorCode.BadRequest, $"Số lượng của {foodName} không đủ yêu cầu: Yêu cầu {requiredQuantity}, thực tế {totalFoodReceive[foodName]}.");
+                                return result;
+                            }
                         }
+                        else
+                        {
+                            // Nếu tên thức ăn không tồn tại trong totalFoodReceive, coi như số lượng thực tế là 0
+                            result.AddError(ErrorCode.BadRequest, $"{foodName} món này không có trong đơn hàng");
+                            return result;
+                        }
+
                     }
                 }
 
@@ -286,12 +300,20 @@ namespace PerfectBreakfast.Application.Services
                             // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
                             var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
                             {
-                            
+                                var foodName = supplierFoodAssignment.Food?.Name;
+                                if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Combo)
+                                {
+                                    foodName += " - khẩu phần combo";
+                                }
+                                else if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Retail)
+                                {
+                                    foodName += " - khẩu phần đơn lẻ";
+                                }
                                 // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
-                                    FoodName = supplierFoodAssignment.Food?.Name,
+                                    FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
                                     Status = supplierFoodAssignment.Status.ToString()
@@ -395,12 +417,20 @@ namespace PerfectBreakfast.Application.Services
                             // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
                             var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
                             {
-                                
+                                var foodName = supplierFoodAssignment.Food?.Name;
+                                if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Combo)
+                                {
+                                    foodName += " - khẩu phần combo";
+                                }
+                                else if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Retail)
+                                {
+                                    foodName += " - khẩu phần đơn lẻ";
+                                }
                                 // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
-                                    FoodName = supplierFoodAssignment.Food?.Name,
+                                    FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
                                     Status = supplierFoodAssignment.Status.ToString()
@@ -590,7 +620,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync((Guid)updateSupplierFoodAssignment.SupplierFoodAssignmentId);
                 if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
                 {
-                    result.AddError(ErrorCode.BadRequest, "This assignment must be Declined");
+                    result.AddError(ErrorCode.BadRequest, "Đơn hàng này phải bị từ chối");
                     return result;
                 }
                 //Đổi nhà cung cấp khác
@@ -600,7 +630,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
                 if (supplierCommissionRate == null)
                 {
-                    result.AddError(ErrorCode.BadRequest, " Supplier don't have commission rate");
+                    result.AddError(ErrorCode.BadRequest, "Nhà cung cấp này chưa đăng kí món");
                     return result;
                 }
                 supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
@@ -655,60 +685,6 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
         
-        public byte[] DownloadSupplierFoodAssignmentExcel(SupplierFoodAssignmentForSupplier supplierFood)
-        {
-            try
-            {
-                // Tạo gói Excel
-                using (var excelPackage = new ExcelPackage())
-                {
-                    // Thêm một bảng tính
-                    var worksheet = excelPackage.Workbook.Worksheets.Add("SupplierFoodAssignments");
-
-                    // Thêm tiêu đề
-                    worksheet.Cells[1, 1].Value = "Ngày Đặt";
-                    worksheet.Cells[1, 2].Value = "Tên Đối Tác";
-                    worksheet.Cells[1, 3].Value = "Thời Gian Giao Hàng";
-                    worksheet.Cells[1, 4].Value = "Tên Món Ăn";
-                    worksheet.Cells[1, 5].Value = "Số Lượng Nấu";
-                    worksheet.Cells[1, 6].Value = "Số Lượng Nhận";
-                    worksheet.Cells[1, 7].Value = "Trạng Thái";
-
-                    int row = 2;
-
-                    // Ghi giá trị Date
-                    worksheet.Cells[row, 1].Value = supplierFood.Date;
-
-                    foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
-                    {
-                        // Ghi giá trị PartnerName
-                        worksheet.Cells[row, 2].Value = foodAssignmentGroup.PartnerName;
-
-                        foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
-                        {
-                            // Ghi giá trị DeliveryTime
-                            worksheet.Cells[row, 3].Value = deliveryTimeResponse.DeliveryTime;
-
-                            foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
-                            {
-                                // Ghi các giá trị còn lại vào các cột tương ứng
-                                worksheet.Cells[row, 4].Value = foodAssignmentResponse.FoodName;
-                                worksheet.Cells[row, 5].Value = foodAssignmentResponse.AmountCooked;
-                                worksheet.Cells[row, 6].Value = foodAssignmentResponse.ReceivedAmount;
-                                worksheet.Cells[row, 7].Value = foodAssignmentResponse.Status;
-                                row++;
-                            }
-                        }
-                    }
-                    return excelPackage.GetAsByteArray();
-                }
-            }
-            catch(Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-
         public async Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate)
         {
             var result = new OperationResult<List<SupplierFoodAssignmentForSupplier>>();
