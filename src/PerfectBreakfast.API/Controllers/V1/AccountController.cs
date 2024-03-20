@@ -18,6 +18,11 @@ public class AccountController : BaseController
         _userService = userService;
     }
 
+    /// <summary>
+    /// API for all (Đăng kí account Customer)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("signup")]
     [ApiVersionNeutral]
     public async Task<IActionResult> SignUp(SignUpModel request)
@@ -26,6 +31,11 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// API for all (login của Customer)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("signin")]
     [ApiVersionNeutral]
     public async Task<IActionResult> SignInForCustomer(SignInModel request)
@@ -34,6 +44,11 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="code"></param>
+    /// <returns></returns>
     [HttpPost("google")]
     [ApiVersionNeutral]
     public async Task<IActionResult> GoogleLogin(string code)
@@ -55,6 +70,11 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <param name="tokenModel"></param>
+    /// <returns></returns>
     [HttpPost("refresh-user-token")]
     public async Task<IActionResult> RefreshUserToken(TokenModel tokenModel)
     {
@@ -62,6 +82,10 @@ public class AccountController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
+    /// <summary>
+    /// API for all
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("current-user")]
     [ApiVersionNeutral]
     [Authorize]
