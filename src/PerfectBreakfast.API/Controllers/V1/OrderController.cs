@@ -61,7 +61,7 @@ public class OrderController : BaseController
     }
 
     /// <summary>
-    /// API for all 
+    /// Api For All login 
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -91,7 +91,7 @@ public class OrderController : BaseController
     /// <param name="updateOrderRequest"></param>
     /// <returns></returns>
     [HttpPut("{id}")]
-    [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
+    [Authorize(Roles = $"{ConstantRole.CUSTOMER},{ConstantRole.SUPER_ADMIN}")]
     public async Task<IActionResult> UpdateOrder(Guid id, UpdateOrderRequest updateOrderRequest)
     {
         var response = await _orderService.UpdateOrder(id, updateOrderRequest);
@@ -117,7 +117,7 @@ public class OrderController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
+    [Authorize(Roles = $"{ConstantRole.CUSTOMER},{ConstantRole.SUPER_ADMIN}")]
     public async Task<IActionResult> RemoveOrder(Guid id)
     {
         var response = await _orderService.DeleteOrder(id);
@@ -130,7 +130,7 @@ public class OrderController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpPatch("{id}/status-complete")]
-    [Authorize]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> CompleteOrder(Guid id)
     {
         var response = await _orderService.CompleteOrder(id);

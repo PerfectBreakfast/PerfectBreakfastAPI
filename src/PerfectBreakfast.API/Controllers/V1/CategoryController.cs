@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.CategoryModels.Request;
-using PerfectBreakfast.Application.Models.RoleModels.Request;
-using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Enums;
 

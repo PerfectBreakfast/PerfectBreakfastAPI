@@ -17,6 +17,10 @@ public class MenuController : BaseController
         _menuService = menuService;
     }
 
+    /// <summary>
+    /// Api For All 
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetMenus()
     {

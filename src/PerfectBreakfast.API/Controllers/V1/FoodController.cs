@@ -120,7 +120,7 @@ public class FoodController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet("{id}/dailyorderid/delivery")]
-    [Authorize(Roles = "DELIVERY ADMIN, DELIVERY STAFF")]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> GetFoodForDelivery(Guid id)
     {
         var response = await _foodService.GetFoodsForDelivery(id);

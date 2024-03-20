@@ -19,10 +19,10 @@ public class DeliveryController : BaseController
     }
 
     /// <summary>
-    /// Api for All
+    /// Api for Super Admin
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetDeliveries()
     {
         var response = await _deliveryService.GetDeliveries();
@@ -67,11 +67,11 @@ public class DeliveryController : BaseController
     }
     
     /// <summary>
-    /// Api for All
+    /// Api for Super Admin
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetDeliveryId(Guid id)
     {
         var response = await _deliveryService.GetDeliveryId(id);

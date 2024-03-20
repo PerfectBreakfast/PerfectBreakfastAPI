@@ -17,7 +17,11 @@ public class ComboController : BaseController
         _comboService = comboService;
     }
 
-    [HttpGet]
+    /// <summary>
+    /// Api for Super Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet,Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetCombos()
     {
         var response = await _comboService.GetCombos();
@@ -29,7 +33,7 @@ public class ComboController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet("{id}")]
-    [Authorize(Roles = "SUPER ADMIN, CUSTOMER")]
+    [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN},{ConstantRole.CUSTOMER}")]
     public async Task<IActionResult> GetCombo(Guid id)
     {
         var response = await _comboService.GetCombo(id);

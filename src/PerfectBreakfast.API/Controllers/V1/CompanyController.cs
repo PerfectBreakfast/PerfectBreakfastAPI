@@ -16,6 +16,10 @@ public class CompanyController : BaseController
         _companyService = companyService;
     }
 
+    /// <summary>
+    /// Api for All
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetCompanies()
     {
@@ -41,7 +45,7 @@ public class CompanyController : BaseController
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id}/users")]
-    [Authorize(Roles = "SUPER ADMIN, PARTNER ADMIN")]
+    [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN},{ConstantRole.PARTNER_ADMIN}")]
     public async Task<IActionResult> GetUsersByCompany(Guid id)
     {
         var response = await _companyService.GetUsersByCompanyId(id);
