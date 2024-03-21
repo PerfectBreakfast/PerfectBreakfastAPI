@@ -341,6 +341,14 @@ public class OrderService : IOrderService
                     sp => ((OrderDetail)sp).Combo
                 }
             };
+            var dailyOrderInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.DailyOrder,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((DailyOrder)sp).MealSubscription
+                }
+            };
             var workerInclude = new IncludeInfo<Order>
             {
                 NavigationProperty = x => x.Worker,
@@ -349,7 +357,7 @@ public class OrderService : IOrderService
                     sp => ((User)sp).Company
                 }
             };
-            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,pageNumber, orderdetailInclude, workerInclude);
+            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,pageNumber, orderdetailInclude, dailyOrderInclude, workerInclude);
             result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
         }
         catch (Exception e)

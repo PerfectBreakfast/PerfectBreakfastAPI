@@ -11,10 +11,12 @@ namespace PerfectBreakfast.API.Controllers.V1;
 public class DailyOrderController : BaseController
 {
     private readonly IDailyOrderService _dailyOrderService;
+    private readonly IExportExcelService _exportExcelService;
 
-    public DailyOrderController(IDailyOrderService dailyOrderService)
+    public DailyOrderController(IDailyOrderService dailyOrderService, IExportExcelService exportExcelService)
     {
         _dailyOrderService = dailyOrderService;
+        _exportExcelService = exportExcelService;
     }
 
     /// <summary>
@@ -112,5 +114,31 @@ public class DailyOrderController : BaseController
     {
         var response = await _dailyOrderService.GetDailyOrderByDelivery(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Super Admin
+    /// </summary>
+    /// <param name="fromDate"></param>
+    /// <param name="toDate"></param>
+    /// <returns></returns>
+    [HttpGet("Statistic")]
+    public async Task<IActionResult> GetDailyOrderStatistic(DateOnly fromDate, DateOnly toDate)
+    {
+        var response = await _dailyOrderService.GetDailyOrderForDownload(fromDate, toDate);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        var content = _exportExcelService.DownloadDailyOrderStatistic(response.Payload);
+        if (content == null)
+        {
+            return NotFound("Some thing wrong");
+        }
+        else
+        {
+            var fileName = $"Thống kê đơn hàng từ {fromDate} đến {toDate}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<FoodAssignmentResponse>> ChangeStatusFoodAssignment(Guid id, int status);
         public Task<OperationResult<FoodAssignmentResponse>> CompleteFoodAssignment(Guid id);
         public Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment);
-        public Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsForDownload(DateOnly bookingDate);
+        public Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsByBookingDate(DateOnly bookingDate);
+        public Task<OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>> GetSupplierFoodAssignmentsForSuperAdmin(DateOnly fromDate, DateOnly toDate);
     }
 }

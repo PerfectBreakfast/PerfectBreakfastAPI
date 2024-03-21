@@ -32,6 +32,11 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
+            if (companyRequest.Meals.Any(meal => meal.StartTime > meal.EndTime))
+            {
+                result.AddError(ErrorCode.BadRequest, "Giờ bắt đầu phải trước giờ kết thúc");
+                return result;
+            }
             // map to Company 
             var company = _mapper.Map<Company>(companyRequest);
             // add to return CompanyId 
@@ -277,6 +282,7 @@ public class CompanyService : ICompanyService
             var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
             var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
+            company.MemberCount = companyEntity.Workers.Count;
             company.Delivery = delivery;
             company.Partner = partner;
             company.Meals = mealsSubscription

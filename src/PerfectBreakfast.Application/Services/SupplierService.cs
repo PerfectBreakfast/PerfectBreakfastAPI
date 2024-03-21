@@ -269,4 +269,37 @@ public class SupplierService : ISupplierService
 
         return result;
     }
+
+    public async Task<OperationResult<List<SupplierDTO>>> GetSupplierByFood(Guid id)
+    {
+        var result = new OperationResult<List<SupplierDTO>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
+            if (suppliers == null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Supplier does not have partner");
+                return result;
+            }
+            
+            var existSupplier = suppliers
+                .Where(s => s.SupplierCommissionRates.Any(c => c.FoodId == id) && !s.IsDeleted)
+                .ToList();
+            if (existSupplier.Count == 0)
+            {
+                result.AddError(ErrorCode.BadRequest, "Không có nhà cung cấp nào đăng kí món này");
+                return result;
+            }
+            result.Payload = _mapper.Map<List<SupplierDTO>>(existSupplier);
+
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
 }
