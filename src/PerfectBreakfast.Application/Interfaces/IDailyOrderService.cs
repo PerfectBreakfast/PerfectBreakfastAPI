@@ -1,7 +1,7 @@
 ﻿using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Models.DailyOrder.Request;
 using PerfectBreakfast.Application.Models.DailyOrder.Response;
-using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.StatisticResponse;
 
 namespace PerfectBreakfast.Application.Interfaces
 {
@@ -15,7 +15,8 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<Pagination<DailyOrderForPartnerResponse>>> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderProcessingByDelivery(int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10);
-        public Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetail(Guid id, DateOnly bookingDate);
         public Task<OperationResult<bool>> CompleteDailyOrder(Guid id);
+        public Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDownload(DateOnly fromDate,
+            DateOnly toDate);
     }
 }

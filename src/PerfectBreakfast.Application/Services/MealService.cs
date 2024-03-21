@@ -52,8 +52,17 @@ public class MealService : IMealService
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, companyInclude);
-            var meals = user.Company.MealSubscriptions.Select(x => x.Meal);
-            result.Payload = _mapper.Map<List<MealResponse>>(meals);
+            var meals = user.Company.MealSubscriptions.Select(x => x.Meal).ToList();
+            var mealSubscriptions = user.Company.MealSubscriptions
+                .Select(x => new MealSubscription()
+                {
+                    MealId = x.Meal.Id,
+                    Meal = x.Meal,
+                    StartTime = x.StartTime,
+                    EndTime = x.EndTime
+                })
+                .ToList();
+            result.Payload = _mapper.Map<List<MealResponse>>(mealSubscriptions);
         }
         catch (Exception e)
         {

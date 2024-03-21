@@ -9,6 +9,8 @@ using System.Linq.Expressions;
 using PerfectBreakfast.Application.Models.CompanyModels.Response;
 using PerfectBreakfast.Application.Models.DailyOrder.Request;
 using PerfectBreakfast.Application.Models.DailyOrder.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.StatisticResponse;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -83,10 +85,11 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
-                .OrderByDescending(group => group.Key)
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
-                    dateGroup.Key,
+                    dateGroup.Key.CreationDate,
+                    dateGroup.Key.BookingDate, 
                     dateGroup
                         .Select(d => d.MealSubscription.Company)
                         .Distinct()
@@ -94,6 +97,8 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
+                            company.Delivery?.Name,
+                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -155,10 +160,11 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
-                .OrderByDescending(group => group.Key)
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
-                    dateGroup.Key,
+                    dateGroup.Key.CreationDate,
+                    dateGroup.Key.BookingDate,
                     dateGroup
                         .Select(d => d.MealSubscription.Company)
                         .Distinct()
@@ -166,6 +172,8 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
+                            company.Delivery?.Name,
+                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -237,6 +245,8 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
+                            company.Delivery?.Name,
+                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -306,6 +316,8 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
+                            company.Delivery?.Name,
+                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -335,96 +347,7 @@ public class DailyOrderService : IDailyOrderService
         }
         return result;
     }
-
-
-    public async Task<OperationResult<TotalFoodForCompanyResponse>> GetDailyOrderDetail(Guid id,
-        DateOnly bookingDate)
-    {
-        var result = new OperationResult<TotalFoodForCompanyResponse>();
-        /*try
-        {
-            var company = await _unitOfWork.CompanyRepository.GetCompanyById(id);
-            if (company == null)
-            {
-                result.AddUnknownError("Company is not exist");
-                return result;
-            }
-
-            var foodCounts = new Dictionary<string, int>();
-
-            // Lấy daily order
-            var dailyOrder = company.DailyOrders.SingleOrDefault(x => x.BookingDate == bookingDate);
-
-            // Lấy chi tiết các order detail
-            var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
-            var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
-
-            // Đếm số lượng từng loại food
-            foreach (var orderDetail in orderDetails)
-            {
-                if (orderDetail.Combo != null)
-                {
-                    // Nếu là combo thì lấy chi tiết các food trong combo
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
-                    var comboFoods = combo.ComboFoods;
-
-                    // Với mỗi food trong combo, cộng dồn số lượng
-                    foreach (var comboFood in comboFoods)
-                    {
-                        var foodName = comboFood.Food.Name;
-                        //... cộng dồn số lượng cho từng food
-                        if (foodCounts.ContainsKey(foodName))
-                        {
-                            foodCounts[foodName] += orderDetail.Quantity;
-                        }
-                        else
-                        {
-                            foodCounts[foodName] = orderDetail.Quantity;
-                        }
-                    }
-                }
-                else if (orderDetail.Food != null)
-                {
-                    // Xử lý order detail là food đơn lẻ
-                    var foodName = orderDetail.Food.Name;
-                    // cộng dồn số lượng cho từng food
-                    if (foodCounts.ContainsKey(foodName))
-                    {
-                        foodCounts[foodName] += orderDetail.Quantity;
-                    }
-                    else
-                    {
-                        foodCounts[foodName] = orderDetail.Quantity;
-                    }
-                }
-            }
-
-            // Tạo danh sách totalFoodList từ foodCounts
-            var totalFoodList = foodCounts
-                .Select(pair => new TotalFoodResponse { Name = pair.Key, Quantity = pair.Value }).ToList();
-            var totalFoodForCompany = new TotalFoodForCompanyResponse()
-            {
-                DailyOrderId = dailyOrder.Id,
-                CompanyName = company.Name,
-                PhoneNumber = company.PhoneNumber,
-                Address = company.Address,
-                BookingDate = dailyOrder.BookingDate,
-                Status = dailyOrder.Status.ToString(),
-                TotalFoodResponses = totalFoodList
-            };
-            result.Payload = totalFoodForCompany;
-        }
-        catch (NotFoundIdException)
-        {
-            result.AddUnknownError("Id is not exsit");
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }*/
-
-        return result;
-    }
+    
 
     public async Task<OperationResult<bool>> CompleteDailyOrder(Guid id)
     {
@@ -459,6 +382,119 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
+    public async Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDownload(DateOnly fromDate, DateOnly toDate)
+    {
+        var result = new OperationResult<List<DailyOrderStatisticResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var partnerInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Partner,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Partner)sp).Companies,
+                    sp => ((Company)sp).MealSubscriptions,
+                    sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
+            var dailyOrders =  await _unitOfWork.DailyOrderRepository.GetForStatistic();
+            if (await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.PARTNER_ADMIN))
+            {
+                // get các bữa ăn của từng công ty
+                var mealSubscriptionIds = user.Partner.Companies
+                    .Where(c => !c.IsDeleted)
+                    .SelectMany(x => x.MealSubscriptions
+                        .Where(c => !c.IsDeleted)
+                        .Select(x => x.Id)).ToList();
+                dailyOrders = await _unitOfWork.DailyOrderRepository.GetByMeal(mealSubscriptionIds);
+            }
+            dailyOrders = dailyOrders.Where(d =>
+                fromDate <= d.BookingDate && d.BookingDate <= toDate && d.Status != DailyOrderStatus.Initial && d.OrderQuantity > 0)
+                .ToList();
+            if (dailyOrders.Count == 0)
+            {
+                result.AddError(ErrorCode.BadRequest, "Ngày này không có đơn hàng nào");
+                return result;
+            }
+            var dailyOrdersGroup = dailyOrders.GroupBy(x => x.BookingDate)
+                .ToDictionary(x => x.Key, g => g.ToList());
+            
+            //Custom output
+            var dailyOrderResponse = dailyOrdersGroup.Select(d =>
+            {
+                var bookingDate = d.Key;
+                var creationDate = bookingDate.AddDays(-1);
+                var companyForDailyOrderGroup = d.Value.GroupBy(d => new
+                    {
+                        Id = d.MealSubscription.Company.Id, 
+                        Company = d.MealSubscription.Company.Name 
+                    })
+                    .ToDictionary(y => y.Key, g => g.ToList());
+                var companyForDailyOrder = companyForDailyOrderGroup.Select(d =>
+                {
+                    var companyId = d.Key.Id;
+                    var company = d.Key.Company;
+                    var co = _unitOfWork.CompanyRepository
+                        .GetByIdAsync(companyId, c => c.Partner, c => c.Delivery)
+                        .Result;
+                    var partner = co.Partner.Name;
+                    var delivery = co.Delivery.Name;
+                    var mealForDailyOrder = d.Value.Select(d =>
+                    {
+                        var meal = d.MealSubscription.Meal.MealType;
+                        var time = new TimeOnly(1, 0, 0);
+                        var foodForDailyOrder = new List<FoodForDailyOrder>();
+
+                        var orders =  _unitOfWork.OrderRepository.GetOrderByDailyOrderId(d.Id).Result;
+                        var orderDetails = orders
+                            .SelectMany(order => order.OrderDetails)
+                            .ToList();
+                        foreach (var orderDetail in orderDetails)
+                        {
+                            if (orderDetail.ComboId != null)
+                            {
+                                var combo =  _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.ComboId).Result;
+                                var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                                var comboForOrder = new FoodForDailyOrder
+                                (
+                                    combo.Name,
+                                    $"{string.Join(", ", foodEntities.Select(food => food.Name))} - khẩu phầm combo",
+                                    orderDetail.Quantity
+                                );
+                                foodForDailyOrder.Add(comboForOrder);
+                            }
+                            else if(orderDetail.FoodId != null)
+                            {
+                                var foodForOrder = new FoodForDailyOrder
+                                (
+                                    "None",
+                                    orderDetail.Food.Name + "- khẩu phầm đơn lẻ",
+                                    orderDetail.Quantity
+                                );
+                                foodForDailyOrder.Add(foodForOrder);
+                            }
+                        }
+                        return new MealForDailyOrder(meal, time, foodForDailyOrder);
+                    }).ToList(); 
+                    
+                    return new CompanyForDailyOrder(company, partner, delivery, mealForDailyOrder);
+                }).ToList();
+
+                return new DailyOrderStatisticResponse(creationDate, bookingDate,
+                    companyForDailyOrder);
+            }).ToList();
+
+            result.Payload = dailyOrderResponse;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
     public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(
         int pageIndex = 0, int pageSize = 10)
     {
@@ -483,6 +519,8 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
+                            company.Delivery?.Name,
+                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,

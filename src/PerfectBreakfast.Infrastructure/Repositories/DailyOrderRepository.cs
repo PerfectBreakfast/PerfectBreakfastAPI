@@ -181,5 +181,30 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
             return result;
         }
+
+        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds)
+        {
+            return await _dbSet
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
+                .Include(d => d.Orders)
+                .OrderByDescending(d => d.BookingDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<DailyOrder>> GetForStatistic()
+        {
+            return await _dbSet
+                .Where(d => d.OrderQuantity > 0)
+                .Include(d => d.MealSubscription)
+                .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                .ThenInclude(ms => ms.Meal)
+                .OrderByDescending(d => d.BookingDate)
+                .ToListAsync();
+        }
     }
 }

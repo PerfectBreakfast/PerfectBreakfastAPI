@@ -17,7 +17,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId).ToListAsync();
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetByBookingDate()
+        public async Task<List<SupplierFoodAssignment>> GetByBookingDateForSupplier()
         {
             return await _dbSet.Where(s => s.Status == SupplierFoodAssignmentStatus.Confirmed)
                 .Include(s => s.Partner)
@@ -25,6 +25,17 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(s => s.SupplierCommissionRate)
                 .Include(s => s.DailyOrder)
                     .ThenInclude(s => s.MealSubscription)
+                .ToListAsync();
+        }
+
+        public async Task<List<SupplierFoodAssignment>> GetByForSuperAdmin()
+        {
+            return await _dbSet.Where(s => s.Status != SupplierFoodAssignmentStatus.Pending)
+                .Include(s => s.Partner)
+                .Include(s => s.Food)
+                .Include(s => s.SupplierCommissionRate)
+                .Include(s => s.DailyOrder)
+                .ThenInclude(s => s.MealSubscription)
                 .ToListAsync();
         }
     }

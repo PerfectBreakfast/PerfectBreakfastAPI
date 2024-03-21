@@ -14,4 +14,5 @@ public interface ISupplierService
     public Task<OperationResult<SupplierResponse>> RemoveSupplier(Guid supplierId);
     public Task<OperationResult<Pagination<SupplierDTO>>> GetSupplierByPartner(string? searchTerm,int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<List<SupplierDTO>>> GetAllSupplierByPartner();
+    public Task<OperationResult<List<SupplierDTO>>> GetSupplierByFood(Guid id);
 }

@@ -8,6 +8,7 @@
         public string? FoodName { get; set; }
         public int AmountCooked { get; set; }
         public decimal? ReceivedAmount { get; set; }
+        public decimal? CommissionRate { get; set; }
         public string Status { get; set; }
     }
 }

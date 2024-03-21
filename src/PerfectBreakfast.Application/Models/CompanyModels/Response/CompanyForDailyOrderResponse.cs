@@ -6,5 +6,7 @@ public record CompanyForDailyOrderResponse(
     Guid Id,
     string Name,
     string Address,
+    string? Delivery,
+    string? Partner,
     List<DailyOrderModelResponse> DailyOrders
     );
