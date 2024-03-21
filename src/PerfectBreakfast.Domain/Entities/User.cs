@@ -27,6 +27,7 @@ public class User : IdentityUser<Guid>
     public ICollection<Order?> OrdersDeliveryStaff { get; set; }
     public ICollection<ShippingOrder?> ShippingOrders { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
+    public ICollection<ActionHistory?> ActionHistories { get; set; }
     
     public ICollection<UserRole?>? UserRoles { get; set; }
 }

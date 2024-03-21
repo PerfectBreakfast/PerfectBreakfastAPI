@@ -69,4 +69,5 @@ public class UnitOfWork : IUnitOfWork
     public IMenuFoodRepository MenuFoodRepository => new MenuFoodRepository(_dbContext, _currentTime, _claimsService);
     public IComboFoodRepository ComboFoodRepository => new ComboFoodRepository(_dbContext, _currentTime, _claimsService);
     public ISettingRepository SettingRepository => new SettingRepository(_dbContext, _currentTime, _claimsService);
+    public IActionHistoryRepository ActionHistoryRepository => new ActionHistoryRepository(_dbContext, _currentTime, _claimsService);
 }

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Linq.Expressions;
+using Hangfire;
 using MapsterMapper;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
@@ -40,11 +41,12 @@ namespace PerfectBreakfast.Application.Services
             var userId = _claimsService.GetCurrentUserId;
             try
             {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId,x => x.Partner);
                 var supplierFoodAssignmentsResult = new List<SupplierFoodAssignmentResponse>();
-                var partner = await _unitOfWork.PartnerRepository.GetByIdAsync((Guid)user.PartnerId);
+                //var partner = await _unitOfWork.PartnerRepository.GetByIdAsync((Guid)user.PartnerId);
+                var partner = user.Partner;
                 // Lấy supplier từ management Unit
-                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner((Guid)user.PartnerId);
+                var suppliers = await _unitOfWork.SupplierRepository.GetSupplierByPartner(user.PartnerId!.Value);
                 if (suppliers == null)
                 {
                     result.AddError(ErrorCode.BadRequest, "Đối tác chưa có nhà cung cấp");
@@ -213,14 +215,9 @@ namespace PerfectBreakfast.Application.Services
                     subject: "Thông báo",
                     body: $"Đơn hàng hôm nay đã được phân chia. Các nhà cung cấp có thể xác nhận món"
                 );
-                var ct = new CancellationToken();
-
-                // Gửi email và xử lý kết quả
-                var sendResult = await _mailService.SendAsync(mailData, ct);
-                if (sendResult == false)
-                {
-                    Console.WriteLine("Gửi mail thất bại");
-                }
+                
+                // gửi mail ở luồng khác 
+                var jobId  = BackgroundJob.Enqueue<IManagementService>(x => x.SendMailToSupplierWhenPartnerAssignFood(mailData));
                 
                 //Trả kết quả về API
                 result.Payload = supplierFoodAssignmentsResult;

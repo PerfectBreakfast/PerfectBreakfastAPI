@@ -141,4 +141,22 @@ public class ManagementService : IManagementService
             throw;
         }
     }
+
+    public async Task SendMailToSupplierWhenPartnerAssignFood(MailDataViewModel model)
+    {
+        try
+        {
+            // Gửi email và xử lý kết quả
+            var sendResult = await _mailService.SendAsync(model, new CancellationToken());
+            if (sendResult == false)
+            {
+                Console.WriteLine("Gửi mail thất bại");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }
