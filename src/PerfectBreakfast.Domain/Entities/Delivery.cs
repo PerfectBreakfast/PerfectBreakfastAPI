@@ -5,7 +5,7 @@ public class Delivery : BaseEntity
     public required string Name { get; set; } 
     public required string Address { get; set; } 
     public required string PhoneNumber { get; set; }
-    public required int CommissionRate { get; set; }
+    public required decimal CommissionRate { get; set; }
     public double? Longitude { get; set; } 
     public double? Latitude { get; set; } 
     

@@ -2,7 +2,7 @@ namespace PerfectBreakfast.Domain.Entities;
 
 public class SupplierCommissionRate : BaseEntity
 {
-    public int CommissionRate { get; set; }
+    public decimal CommissionRate { get; set; }
     
     // relationship 
     public Guid? FoodId { get; set; }
