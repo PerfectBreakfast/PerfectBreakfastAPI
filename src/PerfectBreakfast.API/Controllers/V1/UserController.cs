@@ -86,6 +86,18 @@ public class UserController : BaseController
     }
     
     /// <summary>
+    /// Api for All login
+    /// </summary>
+    /// <param name="requestModel"></param>
+    /// <returns></returns>
+    [HttpPut ,Authorize]
+    public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileModel requestModel)
+    {
+        var response = await _userService.UpdateProfile(requestModel);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
     /// Api for Customer (hàm cập nhật thông tin sdt và công ty sau khi login google)
     /// </summary>
     /// <param name="id"></param>

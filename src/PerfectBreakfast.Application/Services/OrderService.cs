@@ -346,7 +346,8 @@ public class OrderService : IOrderService
                 NavigationProperty = x => x.DailyOrder,
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
-                    sp => ((DailyOrder)sp).MealSubscription
+                    sp => ((DailyOrder)sp).MealSubscription,
+                    sp => ((MealSubscription)sp).Meal
                 }
             };
             var workerInclude = new IncludeInfo<Order>

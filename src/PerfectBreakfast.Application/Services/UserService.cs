@@ -401,6 +401,36 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<OperationResult<bool>> UpdateProfile(UpdateProfileModel requestModel)
+    {
+        var result = new OperationResult<bool>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            //_mapper.Map(requestModel, user);
+            user.Name = requestModel.Name ?? user.Name;
+            user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
+            if (requestModel.Image is not null)
+            {
+                user.Image = await _imgurService.UploadImageAsync(requestModel.Image);
+            }
+            else if (requestModel.CompanyId is not null)
+            {
+                user.CompanyId = requestModel.CompanyId;
+            }
+            _unitOfWork.UserRepository.Update(user);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<List<UserResponse>>> GetUsers()
     {
         var result = new OperationResult<List<UserResponse>>();
