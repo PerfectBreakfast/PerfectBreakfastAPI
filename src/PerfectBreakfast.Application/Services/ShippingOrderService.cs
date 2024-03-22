@@ -173,14 +173,11 @@ public class ShippingOrderService : IShippingOrderService
                 var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
 
                 // Đếm số lượng từng loại combo và bỏ vào comboCount
-                foreach (var orderDetail in orderDetails)
+                foreach (var comboName in orderDetails.Select(orderDetail => orderDetail.Combo.Name))
                 {
-                    // Nếu là combo thì lấy chi tiết các food trong combo
-                    var comboName = orderDetail.Combo.Name;
-
-                    if (comboCounts.ContainsKey(comboName))
+                    if (comboCounts.TryGetValue(comboName, out var value))
                     {
-                        comboCounts[comboName]++;
+                        comboCounts[comboName] = ++value;
                     }
                     else
                     {
@@ -239,17 +236,16 @@ public class ShippingOrderService : IShippingOrderService
                 result.AddError(ErrorCode.BadRequest, "Đơn hàng này không phải phân công của bạn");
                 return result;
             }
-            if (shippingOrder.Status == ShippingStatus.Confirm)
+            switch (shippingOrder.Status)
             {
-                result.AddError(ErrorCode.BadRequest, "Đơn hàng phân công của bạn đã được xác nhận và đang đi giao");
-                return result;
+                case ShippingStatus.Confirm:
+                    result.AddError(ErrorCode.BadRequest, "Đơn hàng phân công của bạn đã được xác nhận và đang đi giao");
+                    return result;
+                case ShippingStatus.Complete:
+                    result.AddError(ErrorCode.BadRequest, "Đơn hàng phân công của bạn đã được hoàn thành");
+                    return result;
             }
-            if (shippingOrder.Status != ShippingStatus.Complete)
-            {
-                result.AddError(ErrorCode.BadRequest, "Đơn hàng phân công của bạn đã được hoàn thành");
-                return result;
-            }
-            
+
             var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
             // check xem xem tổng đơn(dailyOrder) đã ở trạng thái sẵn sàng chờ đến lấy đi giao hay chưa ? 
             if (dailyOrder is not { Status: DailyOrderStatus.Waiting })
