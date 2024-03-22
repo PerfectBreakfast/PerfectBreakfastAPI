@@ -8,4 +8,4 @@ public record UpdateProfileModel
         string? PhoneNumber,
         IFormFile? Image,
         Guid? CompanyId
-        );
+    );

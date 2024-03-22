@@ -113,6 +113,19 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             return result;
         }
 
+        public async Task<TEntity> GetByIdAndIncludeAsync(Guid id, params IncludeInfo<TEntity>[]? includeProperties)
+        {
+            var query  = _dbSet.AsNoTracking().Where(x => x.Id == id);
+            if (includeProperties == null) return await query.SingleAsync();
+            foreach (var includeProperty in includeProperties)
+            {
+                var queryWithInclude = query.Include(includeProperty.NavigationProperty);
+                queryWithInclude = includeProperty.ThenIncludes.Aggregate(queryWithInclude, (current, thenInclude) => current.ThenInclude(thenInclude));
+                query = queryWithInclude;
+            }
+            return await query.SingleAsync();
+        }
+
         public override void UpdateRange(List<TEntity> entities)
         {
             foreach (var entity in entities)
