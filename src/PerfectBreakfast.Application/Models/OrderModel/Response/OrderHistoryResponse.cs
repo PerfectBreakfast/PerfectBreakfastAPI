@@ -8,4 +8,6 @@ public sealed record OrderHistoryResponse(
     int OrderCode,
     DateTime CreationDate,
     int ComboCount,
-    string CompanyName);
+    string CompanyName,
+    DateOnly DeliveryDate,
+    string Meal);

@@ -113,4 +113,15 @@ public class SupplierController : BaseController
         var response = await _supplierService.GetAllSupplierByPartner();
         return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
     }
+    
+    /// <summary>
+    /// API for Partner Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("food/{id:guid}"),Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierByFood(Guid id)
+    {
+        var response = await _supplierService.GetSupplierByFood(id);
+        return response.IsError? HandleErrorResponse(response.Errors) : Ok(response?.Payload);
+    }
 }

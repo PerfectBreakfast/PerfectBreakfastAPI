@@ -17,5 +17,6 @@ public class DailyOrder : BaseEntity
     public ICollection<ShippingOrder?> ShippingOrders { get; set; }
     public ICollection<Order?> Orders { get; set; }
     public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
+    public ICollection<ActionHistory?> ActionHistories { get; set; }
 
 }

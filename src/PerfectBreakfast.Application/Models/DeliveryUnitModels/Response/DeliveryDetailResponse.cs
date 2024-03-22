@@ -7,7 +7,7 @@ public record DeliveryDetailResponse(
     string Name,
     string Address,
     string PhoneNumber ,
-    int CommissionRate,
+    decimal CommissionRate,
     double? Longitude,
     double? Latitude,
     List<string> Owners,

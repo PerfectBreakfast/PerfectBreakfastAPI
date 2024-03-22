@@ -27,20 +27,17 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return u;
         }
 
-        public async Task<Menu> GetMenuFoodByStatusAsync()
+        public async Task<Menu?> GetMenuFoodByStatusAsync()
         {
-            var u = await _dbSet.Where(c => c.IsSelected == true)
+            return await _dbSet.Where(c => c.IsSelected == true)
                 .Include(c => c.MenuFoods)
                     .ThenInclude(mf => mf.Combo)
+                        .ThenInclude(x => x.ComboFoods)
+                            .ThenInclude(x => x.Food)
                 .Include(f => f.MenuFoods)
                     .ThenInclude(mf => mf.Food)
                 .SingleOrDefaultAsync();
-            if (u == null)
-            {
-                u = null;
-            }
-            return u;
+            
         }
-        
     }
 }

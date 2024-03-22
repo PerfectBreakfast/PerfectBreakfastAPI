@@ -34,4 +34,5 @@ public interface IUnitOfWork : IDisposable
     public IMenuFoodRepository MenuFoodRepository{ get;}
     public IComboFoodRepository ComboFoodRepository{ get;}
     public ISettingRepository SettingRepository{ get;}
+    public IActionHistoryRepository ActionHistoryRepository{ get;}
 }

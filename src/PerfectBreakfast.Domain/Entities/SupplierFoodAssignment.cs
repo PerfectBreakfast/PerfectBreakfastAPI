@@ -7,6 +7,7 @@ public class SupplierFoodAssignment : BaseEntity
     public SupplierFoodAssignmentStatus Status { get; set; }
     public int AmountCooked { get; set; }
     public decimal? ReceivedAmount { get; set; }
+    public TimeOnly Deadline { get; set; }
     
     // relationship
     public Guid? FoodId { get; set; }

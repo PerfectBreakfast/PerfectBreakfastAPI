@@ -11,6 +11,7 @@ public class SupplierCommissionRateConfig : IEntityTypeConfiguration<SupplierCom
         builder.ToTable("SupplierCommissionRate");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Property(x => x.CommissionRate).HasColumnType("decimal(18,2)");
         
         builder.HasOne(x => x.Supplier)
             .WithMany(x => x.SupplierCommissionRates)

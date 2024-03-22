@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PerfectBreakfast.Infrastructure;
 
@@ -10,9 +11,11 @@ using PerfectBreakfast.Infrastructure;
 namespace PerfectBreakfast.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240321065033_actionHistory")]
+    partial class actionHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -398,8 +401,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<decimal>("CommissionRate")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("CommissionRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("char(36)");
@@ -803,8 +806,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
-                    b.Property<decimal>("CommissionRate")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("CommissionRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("char(36)");
@@ -1122,8 +1125,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<decimal>("CommissionRate")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("CommissionRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("char(36)");
@@ -1178,9 +1181,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.Property<Guid?>("DailyOrderId")
                         .HasColumnType("char(36)");
-
-                    b.Property<TimeOnly>("Deadline")
-                        .HasColumnType("time(6)");
 
                     b.Property<Guid?>("DeleteBy")
                         .HasColumnType("char(36)");

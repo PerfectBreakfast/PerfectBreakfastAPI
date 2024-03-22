@@ -136,8 +136,8 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var now = _currentTime.GetCurrentTime(); // Lấy thời gian hiện tại
-                DateTime compareTime = DateTime.Today.AddHours(16); // Tạo một đối tượng DateTime đại diện cho 16:00 hôm nay
-                bool isAfter16 = now.TimeOfDay > compareTime.TimeOfDay; // Kiểm tra xem thời gian hiện tại có sau 16:00 không
+                //DateTime compareTime = DateTime.Today.AddHours(16); // Tạo một đối tượng DateTime đại diện cho 16:00 hôm nay
+                //bool isAfter16 = now.TimeOfDay > compareTime.TimeOfDay; // Kiểm tra xem thời gian hiện tại có sau 16:00 không
 
                 // if (!isAfter16)
                 // {

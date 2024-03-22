@@ -96,7 +96,7 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
-    /// API For Supplier Admin
+    /// API For Supplier Admin - Supplier download
     /// </summary>
     /// <param name="bookingDate"></param>
     /// <returns></returns>
@@ -105,19 +105,46 @@ public class SupplierFoodAssignmentController : BaseController
     public async Task<IActionResult> DownloadSupplierFoodAssignment(DateOnly bookingDate)
     {
         
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForDownload(bookingDate);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsByBookingDate(bookingDate);
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
         }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentExcel(response.Payload[0]);
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSupplier(response.Payload[0]);
         if (content == null)
         {
             return NotFound("Some thing wrong");
         }
         else
         {
-            var fileName = $"Món ăn phân chia.xlsx";
+            var fileName = $"Món ăn phân chia cho ngày {bookingDate.ToString("dd/mmm/yyyy")}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+    }
+
+    /// <summary>
+    /// API For Super Admin - Super Admin download theo ngày giao hàng
+    /// </summary>
+    /// <param name="fromDate"></param>
+    /// <param name="toDate"></param>
+    /// <returns></returns>
+    [HttpGet("super-admin/download-excel")]
+    public async Task<IActionResult> DownloadSupplierFoodAssignmentBySuperAdmin(DateOnly fromDate, DateOnly toDate)
+    {
+        
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSuperAdmin(fromDate, toDate);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSuperAdmin(response.Payload);
+        if (content == null)
+        {
+            return NotFound("Some thing wrong");
+        }
+        else
+        {
+            var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
