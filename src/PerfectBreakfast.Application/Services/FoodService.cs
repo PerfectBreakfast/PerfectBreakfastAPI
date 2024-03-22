@@ -147,8 +147,6 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.NotFound, "partner does not exist");
                     return result;
                 }
-                
-                var foodCounts = new Dictionary<(Food, string), int>();
                         
                 // Lấy daily order
                 var mealInclude = new IncludeInfo<DailyOrder>
@@ -201,16 +199,19 @@ namespace PerfectBreakfast.Application.Services
                 var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
                 
                 //Đếm số lượng món theo khẩu phần
+                var foodCounts = new Dictionary<(Food, string), int>();
                 foreach (var orderDetail in orderDetails)
                 {
                     if (orderDetail.Combo != null)
                     {
+                        
                         // Xử lý combo
-                        foreach (var comboFood in orderDetail.Combo.ComboFoods)
+                        var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
+                        foreach (var comboFood in combo.ComboFoods)
                         {
                             var food = comboFood.Food;
-                            // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
                             var key = (food, "khẩu phần combo");
+                            // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
                             if (foodCounts.ContainsKey(key))
                             {
                                 foodCounts[key] += orderDetail.Quantity;
