@@ -115,15 +115,20 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
 
         public async Task<TEntity> GetByIdAndIncludeAsync(Guid id, params IncludeInfo<TEntity>[]? includeProperties)
         {
-            var query  = _dbSet.AsNoTracking().Where(x => x.Id == id);
-            if (includeProperties == null) return await query.SingleAsync();
-            foreach (var includeProperty in includeProperties)
+            var query  = _dbSet.Where(x => x.Id == id);
+            if (includeProperties != null)
             {
-                var queryWithInclude = query.Include(includeProperty.NavigationProperty);
-                queryWithInclude = includeProperty.ThenIncludes.Aggregate(queryWithInclude, (current, thenInclude) => current.ThenInclude(thenInclude));
-                query = queryWithInclude;
+                foreach (var includeProperty in includeProperties)
+                {
+                    var queryWithInclude = query.Include(includeProperty.NavigationProperty);
+                    foreach (var thenInclude in includeProperty.ThenIncludes)
+                    {
+                        queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+                    }
+                    query = queryWithInclude;
+                }
             }
-            return await query.SingleAsync();
+            return await query.AsNoTracking().SingleAsync();
         }
 
         public override void UpdateRange(List<TEntity> entities)

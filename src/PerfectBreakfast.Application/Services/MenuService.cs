@@ -264,7 +264,11 @@ namespace PerfectBreakfast.Application.Services
                     }
                     
                     var currentTime = _currentTime.GetCurrentTime();
-                    var menuDate = currentTime.AddDays(currentTime.Hour < 16 ? 1 : 2);
+                    
+                    // lấy time settings 
+                    var setting = (await _unitOfWork.SettingRepository.GetAllAsync()).First();
+                    var menuDate = currentTime.AddDays(currentTime.Hour < setting.Time.Hour ? 1 : 2);
+                    
                     // Ánh xạ Menu chi tiết sang DTO
                     menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
                     menuResponse = menuResponse with { MenuDate = menuDate };
