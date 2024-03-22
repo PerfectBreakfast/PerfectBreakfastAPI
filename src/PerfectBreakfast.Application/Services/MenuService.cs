@@ -18,6 +18,7 @@ namespace PerfectBreakfast.Application.Services
         private readonly ICurrentTime _currentTime;
         private readonly IMemoryCache _cache;
         private readonly string cacheKey = "hehehe";
+
         public MenuService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
@@ -135,6 +136,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "Menu is currently selected");
                     return result;
                 }
+
                 _unitOfWork.MenuRepository.SoftRemove(menu);
                 await _unitOfWork.SaveChangeAsync();
             }
@@ -184,14 +186,12 @@ namespace PerfectBreakfast.Application.Services
                         continue;
                     }
 
-                    var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
-
                     // Lấy danh sách Food từ Combo
-                    var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodEntitiesInCombo = combo.ComboFoods.Select(cf => cf.Food).ToList();
                     var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
                     decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
                     // Ánh xạ Combo chi tiết sang DTO
-                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
+                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(combo);
                     comboResponse.FoodResponses = foodResponsesInCombo;
                     comboResponse.Price = totalFoodPrice;
                     comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
@@ -221,78 +221,79 @@ namespace PerfectBreakfast.Application.Services
                 result.Payload = menuResponse;
                 return result;
             }
-            else
+
+            try
             {
-                try
+                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+                if (menu is null)
                 {
-                    var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
-                    if (menu is null)
-                    {
-                        result.AddUnknownError("No menu selected");
-                        return result;
-                    }
-                    //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
-
-                    // Lấy danh sách Food từ Menu
-                    var foodEntities = menu.MenuFoods
-                        .Select(cf => cf.Food)
-                        .Where(food => food != null && !food.IsDeleted)
-                        .ToList();
-                    var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
-
-                    // Lấy danh sách Combo từ Menu
-                    var comboEntities = menu.MenuFoods
-                        .Select(cf => cf.Combo)
-                        .Where(combo => combo != null && !combo.IsDeleted)  // Check for non-null and not deleted
-                        .ToList();
-                    var comboResponses = new List<ComboAndFoodResponse>();
-                    // Duyệt qua từng Combo để lấy thông tin chi tiết
-                    foreach (var combo in comboEntities)
-                    {
-                        if (combo == null)
-                        {
-                            continue;
-                        }
-
-                        var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
-
-                        // Lấy danh sách Food từ Combo
-                        var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
-                        var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
-                        decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
-                        // Ánh xạ Combo chi tiết sang DTO
-                        var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
-                        comboResponse.FoodResponses = foodResponsesInCombo;
-                        comboResponse.Price = totalFoodPrice;
-                        comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
-                        comboResponses.Add(comboResponse);
-                    }
-                    
-                    var currentTime = _currentTime.GetCurrentTime();
-                    var menuDate = currentTime.AddDays(currentTime.Hour < 16 ? 1 : 2);
-                    // Ánh xạ Menu chi tiết sang DTO
-                    menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
-                    menuResponse = menuResponse with { MenuDate = menuDate };
-                    menuResponse = menuResponse with { FoodResponses = foodResponses };
-                    menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
-                    result.Payload = menuResponse;
-                    
-                    // tạo option cho cache 
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-                        .SetSlidingExpiration(TimeSpan.FromSeconds(45))   // thời gian cache hết hạn nếu không có ai gọi tới 
-                        .SetAbsoluteExpiration(TimeSpan.FromSeconds(3600)) // thời gian mặc định cache sẽ phải hết hạn dù có gọi tới hay không 
-                        .SetPriority(CacheItemPriority.Normal);
-
-                    // set lại data vào cache 
-                    Console.WriteLine("- Đã save cache mới -");
-                    _cache.Set(cacheKey, menuResponse, cacheEntryOptions);
+                    result.AddUnknownError("No menu selected");
+                    return result;
                 }
-                catch (Exception e)
+
+                // Lấy danh sách Food từ Menu
+                var foodEntities = menu.MenuFoods
+                    .Select(cf => cf.Food)
+                    .Where(food => food != null && !food.IsDeleted)
+                    .ToList();
+                var foodResponses = _mapper.Map<List<FoodResponse?>>(foodEntities);
+
+                // Lấy danh sách Combo từ Menu
+                var comboEntities = menu.MenuFoods
+                    .Select(cf => cf.Combo)
+                    .Where(combo => combo != null && !combo.IsDeleted) // Check for non-null and not deleted
+                    .ToList();
+                var comboResponses = new List<ComboAndFoodResponse>();
+                // Duyệt qua từng Combo để lấy thông tin chi tiết
+                foreach (var combo in comboEntities)
                 {
-                    result.AddUnknownError(e.Message);
+                    if (combo == null)
+                    {
+                        continue;
+                    }
+
+                    // Lấy danh sách Food từ Combo
+                    var foodEntitiesInCombo = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
+                    var totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
+                    // Ánh xạ Combo chi tiết sang DTO
+                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(combo);
+                    comboResponse.FoodResponses = foodResponsesInCombo;
+                    comboResponse.Price = totalFoodPrice;
+                    comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
+                    comboResponses.Add(comboResponse);
                 }
-                return result;
+
+                var currentTime = _currentTime.GetCurrentTime();
+
+                // lấy time settings 
+                var setting = (await _unitOfWork.SettingRepository.GetAllAsync()).First();
+                var menuDate = currentTime.AddDays(currentTime.Hour < setting.Time.Hour ? 1 : 2);
+
+                // Ánh xạ Menu chi tiết sang DTO
+                menuResponse = _mapper.Map<MenuIsSelectedResponse>(menu);
+                menuResponse = menuResponse with { MenuDate = menuDate };
+                menuResponse = menuResponse with { FoodResponses = foodResponses };
+                menuResponse = menuResponse with { ComboFoodResponses = comboResponses };
+                result.Payload = menuResponse;
+
+                // tạo option cho cache 
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(45)) // thời gian cache hết hạn nếu không có ai gọi tới 
+                    .SetAbsoluteExpiration(
+                        TimeSpan.FromSeconds(3600)) // thời gian mặc định cache sẽ phải hết hạn dù có gọi tới hay không 
+                    .SetPriority(CacheItemPriority.Normal);
+
+                // set lại data vào cache 
+                Console.WriteLine("- Đã save cache mới -");
+                _cache.Set(cacheKey, menuResponse, cacheEntryOptions);
             }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+
+            return result;
         }
 
         public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm,

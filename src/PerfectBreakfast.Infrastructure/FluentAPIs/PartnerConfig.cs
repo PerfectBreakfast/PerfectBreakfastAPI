@@ -15,5 +15,6 @@ public class PartnerConfig : IEntityTypeConfiguration<Partner>
         builder.Property(x => x.Address).IsRequired().HasMaxLength(200);
         builder.Property(x => x.PhoneNumber).HasMaxLength(10);
         builder.Property(x => x.CommissionRate).HasColumnType("decimal(18,2)");
+        builder.HasIndex(x => x.Name).IsUnique();
     }
 }

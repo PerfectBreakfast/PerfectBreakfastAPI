@@ -148,15 +148,14 @@ public class UserController : BaseController
     }
     
     /// <summary>
-    /// API for all
+    /// API for all login
     /// </summary>
-    /// <param name="currentPassword"></param>
-    /// <param name="newPassword"></param>
+    /// <param name="changePassword"></param>
     /// <returns></returns>
-    [HttpPut("change-password")]
-    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
+    [HttpPut("change-password"), Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePassword changePassword)
     {
-        var response = await _userService.ChangePassword(currentPassword, newPassword);
+        var response = await _userService.ChangePassword(changePassword);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
