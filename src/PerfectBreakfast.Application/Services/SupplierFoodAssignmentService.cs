@@ -560,7 +560,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierFoodAssignments =
                     await _unitOfWork.SupplierFoodAssignmentRepository
                         .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
-                bool allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
+                var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
                 if (allConfirmed)
                 {
                     var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
@@ -570,9 +570,6 @@ namespace PerfectBreakfast.Application.Services
                         {
                             case DailyOrderStatus.Complete:
                                 result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
-                                return result;
-                            case DailyOrderStatus.Cooking:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
                                 return result;
                             case DailyOrderStatus.Initial:
                                 result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
