@@ -44,8 +44,8 @@ public class JWTService : IJwtService
             claims: claims,
             issuer: _appConfiguration.JwtSettings.Issuer,
             audience: _appConfiguration.JwtSettings.Audience,
-            //expires: DateTime.UtcNow.AddMinutes(_appConfiguration.JwtSettings.ExpiryMinutes),
-            expires: DateTime.UtcNow.AddSeconds(30),
+            expires: DateTime.UtcNow.AddMinutes(_appConfiguration.JwtSettings.ExpiryMinutes),
+            //expires: DateTime.UtcNow.AddSeconds(30),
             signingCredentials: credentials);
 
         return new UserLoginResponse(user.Id,user.Name,user.Email,user.Image,roles, new JwtSecurityTokenHandler().WriteToken(token),refreshToken);
