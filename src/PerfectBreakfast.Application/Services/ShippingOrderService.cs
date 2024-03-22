@@ -173,14 +173,11 @@ public class ShippingOrderService : IShippingOrderService
                 var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
 
                 // Đếm số lượng từng loại combo và bỏ vào comboCount
-                foreach (var orderDetail in orderDetails)
+                foreach (var comboName in orderDetails.Select(orderDetail => orderDetail.Combo.Name))
                 {
-                    // Nếu là combo thì lấy chi tiết các food trong combo
-                    var comboName = orderDetail.Combo.Name;
-
-                    if (comboCounts.ContainsKey(comboName))
+                    if (comboCounts.TryGetValue(comboName, out var value))
                     {
-                        comboCounts[comboName]++;
+                        comboCounts[comboName] = ++value;
                     }
                     else
                     {
