@@ -38,7 +38,6 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
 
     public async Task<List<Partner>> GetPartnersByToday(DateTime dateTime)
     {
-        var dateToCompare = dateTime.Date;
         return await _dbSet.Include(mu => mu.Companies)
             .ToListAsync();
     }
