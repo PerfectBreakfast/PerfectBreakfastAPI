@@ -184,14 +184,12 @@ namespace PerfectBreakfast.Application.Services
                         continue;
                     }
 
-                    var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
-
                     // Lấy danh sách Food từ Combo
-                    var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodEntitiesInCombo = combo.ComboFoods.Select(cf => cf.Food).ToList();
                     var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
                     decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
                     // Ánh xạ Combo chi tiết sang DTO
-                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
+                    var comboResponse = _mapper.Map<ComboAndFoodResponse>(combo);
                     comboResponse.FoodResponses = foodResponsesInCombo;
                     comboResponse.Price = totalFoodPrice;
                     comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";
@@ -231,7 +229,6 @@ namespace PerfectBreakfast.Application.Services
                         result.AddUnknownError("No menu selected");
                         return result;
                     }
-                    //var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id, x => x.MenuFoods);
 
                     // Lấy danh sách Food từ Menu
                     var foodEntities = menu.MenuFoods
@@ -254,14 +251,12 @@ namespace PerfectBreakfast.Application.Services
                             continue;
                         }
 
-                        var detailedCombo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(combo.Id);
-
                         // Lấy danh sách Food từ Combo
-                        var foodEntitiesInCombo = detailedCombo.ComboFoods.Select(cf => cf.Food).ToList();
+                        var foodEntitiesInCombo = combo.ComboFoods.Select(cf => cf.Food).ToList();
                         var foodResponsesInCombo = _mapper.Map<List<FoodResponse?>>(foodEntitiesInCombo);
                         decimal totalFoodPrice = foodEntitiesInCombo.Sum(food => food.Price);
                         // Ánh xạ Combo chi tiết sang DTO
-                        var comboResponse = _mapper.Map<ComboAndFoodResponse>(detailedCombo);
+                        var comboResponse = _mapper.Map<ComboAndFoodResponse>(combo);
                         comboResponse.FoodResponses = foodResponsesInCombo;
                         comboResponse.Price = totalFoodPrice;
                         comboResponse.Foods = $"{string.Join(", ", foodResponsesInCombo.Select(food => food.Name))}";

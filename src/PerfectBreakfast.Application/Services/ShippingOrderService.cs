@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using System.Linq.Expressions;
+using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DailyOrder.Response;
@@ -154,22 +155,37 @@ public class ShippingOrderService : IShippingOrderService
         var userId = _claimsService.GetCurrentUserId;
         try
         {
+            var dailyOrderInclude = new IncludeInfo<ShippingOrder>
+            {
+                NavigationProperty = x => x.DailyOrder,
+                ThenIncludes =
+                [
+                    sp => ((DailyOrder)sp).MealSubscription,
+                    sp => ((MealSubscription)sp).Meal,
+                    sp => ((MealSubscription)sp).Company,
+                    sp => ((DailyOrder)sp).Orders,
+                    sp => ((Order)sp).OrderDetails,
+                    sp => ((OrderDetail)sp).Combo
+                ]
+            };
+            var shipperInclude = new IncludeInfo<ShippingOrder>
+            {
+                NavigationProperty = x => x.Shipper
+
+            };
             var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperId(userId);
-            var shippingOrderPendings = shippingOrders.Where(s => s.Status == ShippingStatus.Pending);
             var comboCounts = new Dictionary<string, int>();
-            foreach (var shippingOrderPending in shippingOrderPendings)
+            foreach (var shippingOrder in shippingOrders)
             {
                 // Lấy daily order
-                var dailyOrder =
-                    await _unitOfWork.DailyOrderRepository.GetById((Guid)shippingOrderPending.DailyOrderId);
-                if (dailyOrder is null)
+                if (shippingOrder.DailyOrder is null)
                 {
                     result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
                     return result;
                 }
 
                 // Lấy chi tiết các order detail
-                var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
+                var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(shippingOrder.DailyOrder.Id);
                 var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
 
                 // Đếm số lượng từng loại combo và bỏ vào comboCount
@@ -191,17 +207,17 @@ public class ShippingOrderService : IShippingOrderService
                     Name = kv.Key,
                     Quantity = kv.Value
                 }).ToList();
-                var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.MealId);
-                var com = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.CompanyId);
+                var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)shippingOrder.DailyOrder.MealSubscription.MealId);
+                var company = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)shippingOrder.DailyOrder.MealSubscription.CompanyId);
                 var totalFood = new TotalFoodForCompanyResponse()
                 {
-                    DailyOrderId = dailyOrder.Id,
+                    DailyOrderId = shippingOrder.DailyOrder.Id,
                     Meal = meal.MealType,
-                    DeliveryTime = dailyOrder.MealSubscription.StartTime?.AddHours(-1),
-                    CompanyName = com.Name,
-                    Address = com.Address,
-                    PhoneNumber = com.PhoneNumber,
-                    BookingDate = dailyOrder.BookingDate,
+                    DeliveryTime = shippingOrder.DailyOrder.MealSubscription.StartTime?.AddHours(-1),
+                    CompanyName = company.Name,
+                    Address = company.Address,
+                    PhoneNumber = company.PhoneNumber,
+                    BookingDate = shippingOrder.DailyOrder.BookingDate,
                     TotalFoodResponses = totalCombo
                 };
                 totalFoods.Add(totalFood);
@@ -210,6 +226,7 @@ public class ShippingOrderService : IShippingOrderService
                 .Select(g => new TotalComboForStaff(
                     BookingDate: g.Key,
                     TotalFoodForCompanyResponses: g.ToList()))
+                .OrderByDescending(g => g.BookingDate)
                 .ToList();
             
             result.Payload = groupedByDate;
