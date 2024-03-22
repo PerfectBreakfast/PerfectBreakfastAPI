@@ -333,7 +333,7 @@ public class OrderService : IOrderService
         try
         {
             //var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
-            var orderdetailInclude = new IncludeInfo<Order>
+            var orderDetailInclude = new IncludeInfo<Order>
             {
                 NavigationProperty = x => x.OrderDetails,
                 ThenIncludes = new List<Expression<Func<object, object>>>
@@ -358,7 +358,7 @@ public class OrderService : IOrderService
                     sp => ((User)sp).Company
                 }
             };
-            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId,pageNumber, orderdetailInclude, dailyOrderInclude, workerInclude);
+            var orders = await _unitOfWork.OrderRepository.GetOrderHistory(userId, pageNumber, orderDetailInclude, dailyOrderInclude, workerInclude);
             result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
         }
         catch (Exception e)

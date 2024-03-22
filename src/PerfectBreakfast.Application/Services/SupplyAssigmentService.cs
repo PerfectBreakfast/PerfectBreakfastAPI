@@ -39,7 +39,7 @@ public class SupplyAssigmentService : ISupplyAssigmentService
         {
             if (requestModel.PartnerId.HasValue && requestModel.SupplierId.HasValue)
             {
-                bool isDuplicate = await _unitOfWork.SupplyAssigmentRepository
+                var isDuplicate = await _unitOfWork.SupplyAssigmentRepository
                     .IsDuplicateAssignment(requestModel.PartnerId.Value, requestModel.SupplierId.Value);
                 if (isDuplicate)
                 {
