@@ -21,6 +21,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             var u = await _dbSet.Where(c => c.Id == id)
                 .Include(c => c.MenuFoods)
                     .ThenInclude(mf => mf.Combo)
+                        .ThenInclude(x => x.ComboFoods)
+                            .ThenInclude(x => x.Food)
                 .Include(f => f.MenuFoods)
                     .ThenInclude(mf => mf.Food)
                 .FirstOrDefaultAsync();
