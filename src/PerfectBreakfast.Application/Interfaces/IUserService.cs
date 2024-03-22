@@ -29,4 +29,5 @@ public interface IUserService
     public Task<OperationResult<dynamic>> GetDeliveryStaffByDeliveryAdmin(int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDeliveryAdminList();
     public Task<OperationResult<bool>> ChangePassword(string currentPassword, string newPassword);
+    public Task<OperationResult<bool>> UpdateProfile(UpdateProfileModel requestModel);
 }
