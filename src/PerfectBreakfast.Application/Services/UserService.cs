@@ -373,20 +373,26 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<bool>> ChangePassword(string currentPassword, string newPassword)
+    public async Task<OperationResult<bool>> ChangePassword(ChangePassword changePassword)
     {
         var result = new OperationResult<bool>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
             // Kiểm tra xem mật khẩu cũ và mới có giống nhau không
-            if (currentPassword == newPassword)
+            if (changePassword.CurrentPassword == changePassword.NewPassword)
             {
                 result.AddError(ErrorCode.BadRequest, "Mật khẩu mới không được trùng với mật khẩu cũ.");
+                return result;
+            }
+            if(!changePassword.NewPassword.Equals(changePassword.ConfirmNewPassword))
+            {
+                result.AddError(ErrorCode.BadRequest, "Xác nhận mật khẩu không trùng khớp");
+                return result;
             }
 
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
-            var identityResult = await _unitOfWork.UserManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            var identityResult = await _unitOfWork.UserManager.ChangePasswordAsync(user, changePassword.CurrentPassword, changePassword.NewPassword);
             result.Payload = identityResult.Succeeded;
         }
         catch (NotFoundIdException)
