@@ -394,8 +394,8 @@ public class DailyOrderService : IDailyOrderService
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Partner)sp).Companies,
-                    sp => ((Company)sp).MealSubscriptions,
-                    sp => ((MealSubscription)sp).Meal
+                        sp => ((Company)sp).MealSubscriptions,
+                            sp => ((MealSubscription)sp).Meal
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);

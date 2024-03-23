@@ -199,18 +199,16 @@ namespace PerfectBreakfast.Application.Services
                 var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
                 
                 //Đếm số lượng món theo khẩu phần
-                var foodCounts = new Dictionary<(Food, string), int>();
+                var foodCounts = new Dictionary<(Guid, string), int>();
                 foreach (var orderDetail in orderDetails)
                 {
                     if (orderDetail.Combo != null)
                     {
-                        
                         // Xử lý combo
-                        var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(orderDetail.Combo.Id);
-                        foreach (var comboFood in combo.ComboFoods)
+                        foreach (var comboFood in orderDetail.Combo.ComboFoods)
                         {
                             var food = comboFood.Food;
-                            var key = (food, "khẩu phần combo");
+                            var key = (food.Id, $"{food.Name} - khẩu phần combo");
                             // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
                             if (foodCounts.ContainsKey(key))
                             {
@@ -226,7 +224,7 @@ namespace PerfectBreakfast.Application.Services
                     {
                         var food = orderDetail.Food;
                         // Food đơn lẻ với Status là Retail sẽ được xử lý như khẩu phần đơn lẻ
-                        var key = (food, "khẩu phần đơn lẻ");
+                        var key = (food.Id, $"{food.Name} - khẩu phần đơn lẻ");
                         if (foodCounts.ContainsKey(key))
                         {
                             foodCounts[key] += orderDetail.Quantity;
@@ -237,12 +235,13 @@ namespace PerfectBreakfast.Application.Services
                         }
                     }
                 }
-
+                
                 // Tạo danh sách totalFoodList từ foodCounts
-                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
+                var totalFoodList = foodCounts.Select(pair =>
+                    new TotalFoodResponse
                 {
-                    Id = pair.Key.Item1.Id, // Truy cập Food thông qua Item1 của tuple
-                    Name = $"{pair.Key.Item1.Name} - {pair.Key.Item2}", // Kết hợp tên Food với loại
+                    Id = pair.Key.Item1, // Truy cập Food thông qua Item1 của tuple
+                    Name = $"{pair.Key.Item2}", // Kết hợp tên Food với loại
                     Quantity = pair.Value
                 }).ToList();
                 
