@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text.Json;
 using Hangfire;
+using Hangfire.Server;
 using MapsterMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using PerfectBreakfast.Application.Commons;
@@ -244,13 +245,47 @@ public class OrderService : IOrderService
         var result = new OperationResult<OrderResponse>();
         try
         {
-            // get Order include OrderDetail , Worker
-            var order = await _unitOfWork.OrderRepository.FindSingleAsync(
-                o => o.Id == id,
-                or => or.OrderDetails,
-                x => x.Worker,
-                x => x.DailyOrder,
-                x => x.PaymentMethod);
+            var userInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.Worker,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).Company
+                }
+            };
+            var dailyOrderInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.DailyOrder,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((DailyOrder)sp).MealSubscription,
+                        sp => ((MealSubscription)sp).Meal,
+                }
+            };
+            var paymentMethodInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.PaymentMethod
+            };
+            var comboInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Combo,
+                        sp => ((Combo)sp).ComboFoods,
+                            sp => ((ComboFood)sp).Food,
+                }
+            };
+            var foodInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Food
+                }
+            };
+            var order = await _unitOfWork.OrderRepository.GetByIdAndIncludeAsync(id, userInclude, dailyOrderInclude,
+                paymentMethodInclude, comboInclude, foodInclude);
             if (order is null)
             {
                 result.AddError(ErrorCode.NotFound, "Id is not exist");
@@ -263,34 +298,31 @@ public class OrderService : IOrderService
             var orderDetails = new List<OrderDetailResponse>();
             foreach (var detail in order.OrderDetails)
             {
-                if (detail.ComboId != null)
+                if (detail.Combo != null)
                 {
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(detail.ComboId);
-                    var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodEntities = detail.Combo.ComboFoods.Select(cf => cf.Food).ToList();
                     var orderDetailResponse = new OrderDetailResponse
                     {
-                        ComboName = combo.Name,
+                        ComboName =  detail.Combo.Name,
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-                        Image = combo.Image,
+                        Image =  detail.Combo.Image,
                         Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}"
                     };
                     orderDetails.Add(orderDetailResponse);
                 }
-                else if(detail.FoodId != null)
+                else if(detail.Food != null)
                 {
-                    var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)detail.FoodId!);
                     var orderDetailResponse = new OrderDetailResponse
                     {
                         ComboName = "",
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-                        Image = food.Image,
-                        Foods = food.Name
+                        Image = detail.Food.Image,
+                        Foods = detail.Food.Name
                     };
                     orderDetails.Add(orderDetailResponse);
                 }
-
             }
 
             var or = _mapper.Map<OrderResponse>(order);

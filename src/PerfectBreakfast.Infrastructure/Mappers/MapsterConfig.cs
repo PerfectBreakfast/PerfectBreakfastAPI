@@ -32,7 +32,7 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.Meal, src => src.DailyOrder.MealSubscription.Meal.MealType);
         config.NewConfig<Order, OrderResponse>()
             .Map(dest => dest.PaymentMethod, src => src.PaymentMethod.Name)
-            .Map(dest => dest.User, src => src.Worker)
+            .Map(dest => dest.Meal, src => src.DailyOrder.MealSubscription.Meal.MealType)
             .Map(dest => dest.OrderDetails, src => src.OrderDetails);
         
         // Order Detail
