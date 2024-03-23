@@ -297,7 +297,7 @@ public class OrderService : IOrderService
             or.PaymentMethod = order.PaymentMethod?.Name ?? null;
             or.BookingDate = order.DailyOrder!.BookingDate;
             or.Company = _mapper.Map<CompanyDto>(company);
-            or.orderDetails = orderDetails;
+            or.OrderDetails = orderDetails;
             or.User = _mapper.Map<UserResponse>(order.Worker);
             result.Payload = or;
         }
@@ -472,6 +472,57 @@ public class OrderService : IOrderService
             }
             var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, comboPopular);
             result.Payload = orderStatistic;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<List<OrderResponse>>> GetOrderByDailyOrder(Guid dailyOrderId)
+    {
+        var result = new OperationResult<List<OrderResponse>>();
+        try
+        {
+            var orderInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).PaymentMethod
+                }
+            };
+            var workerInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).Worker
+                }
+            };
+            var comboInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).OrderDetails,
+                        sp => ((OrderDetail)sp).Combo
+                }
+            };
+            var foodInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).OrderDetails,
+                        sp => ((OrderDetail)sp).Food
+                }
+            };
+            var dailyOrder = await _unitOfWork.DailyOrderRepository
+                .GetByIdAndIncludeAsync(dailyOrderId, orderInclude, workerInclude, comboInclude, foodInclude);
+            result.Payload = _mapper.Map<List<OrderResponse>>(dailyOrder.Orders);
         }
         catch (Exception e)
         {

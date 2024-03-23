@@ -149,4 +149,16 @@ public class OrderController : BaseController
         var response = await _orderService.OrderStatistic(fromDate, toDate);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api For All login 
+    /// </summary>
+    /// <param name="dailyOrderId"></param>
+    /// <returns></returns>
+    [HttpGet("dailyOrder/{dailyOrderId:guid}"), Authorize]
+    public async Task<IActionResult> GetOrderByDailyOrder(Guid dailyOrderId)
+    {
+        var response = await _orderService.GetOrderByDailyOrder(dailyOrderId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
