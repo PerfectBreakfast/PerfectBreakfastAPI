@@ -109,15 +109,11 @@ public class DeliveryService : IDeliveryService
             try
             {
                 var delivery = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId,x =>x.Companies,x => x.Users);
-                var adminUserNames = new List<string>();
-
-                foreach (var user in delivery.Users)   // lấy ra danh sách user có role là Delivery Admin
-                {
-                    if (await CheckIfUserIsAdmin(user))
-                    {
-                        adminUserNames.Add(user.Name);
-                    }
-                }
+                var adminUsers = await _unitOfWork.UserManager.GetUsersInRoleAsync("DELIVERY ADMIN");
+                var adminUserNames = delivery.Users
+                    .Where(user => adminUsers.Any(adminUser => adminUser.Id == user.Id))
+                    .Select(user => user.Name)
+                    .ToList();
                 
                 var deliveryDetailResponse = new DeliveryDetailResponse(
                     delivery.Id,

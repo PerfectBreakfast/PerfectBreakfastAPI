@@ -71,27 +71,6 @@ public class ComboService : IComboService
         return result;
     }
 
-    public async Task<OperationResult<ComboResponse>> Delete(Guid id)
-    {
-        var result = new OperationResult<ComboResponse>();
-        try
-        {
-            var combo = await _unitOfWork.ComboRepository.GetByIdAsync(id);
-            _unitOfWork.ComboRepository.Remove(combo);
-            await _unitOfWork.SaveChangeAsync();
-        }
-        catch (NotFoundIdException)
-        {
-            result.AddError(ErrorCode.NotFound, "Id is not exist");
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
     public async Task<OperationResult<ComboResponse>> DeleteCombo(Guid id)
     {
         var result = new OperationResult<ComboResponse>();
@@ -125,13 +104,9 @@ public class ComboService : IComboService
                 return result;
             }
 
-            var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-            decimal totalFoodPrice = foodEntities.Sum(food => food.Price);
-            var listComboFood = _mapper.Map<List<FoodResponeCategory?>>(foodEntities);
+            var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
             var co = _mapper.Map<ComboDetailResponse>(combo);
-            co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-            co.FoodResponses = listComboFood;
-            co.comboPrice = totalFoodPrice;
+            co.FoodResponses = _mapper.Map<List<FoodResponseCategory?>>(foods);
             result.Payload = co;
         }
         catch (Exception e)
@@ -167,19 +142,7 @@ public class ComboService : IComboService
             var pagedCombos =
                 await _unitOfWork.ComboRepository.ToPagination(pageIndex, pageSize, searchPredicate, comboFoodInclude);
             // Chuyển đổi từ Combo sang ComboResponse
-            var comboResponses = pagedCombos.Items.Select(combo => new ComboResponse
-            {
-                Id = combo.Id,
-                Name = combo.Name,
-                Content = combo.Content,
-                Image = combo.Image,
-                Foods = String.Join(", ", combo.ComboFoods
-                    .Where(cf => cf != null && cf.Food != null)
-                    .Select(cf => cf.Food.Name)),
-                comboPrice = combo.ComboFoods
-                    .Where(cf => cf != null && cf.Food != null)
-                    .Sum(cf => cf.Food.Price)
-            }).ToList();
+            var comboResponses = _mapper.Map<List<ComboResponse>>(pagedCombos.Items);
             result.Payload = new Pagination<ComboResponse>
             {
                 PageIndex = pagedCombos.PageIndex,
@@ -192,7 +155,6 @@ public class ComboService : IComboService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
@@ -202,19 +164,7 @@ public class ComboService : IComboService
         try
         {
             var combos = await _unitOfWork.ComboRepository.GetAllCombo();
-            var comboResponses = new List<ComboResponse>();
-            foreach (var combo in combos)
-            {
-                if (combo.IsDeleted) continue;
-                var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                var totalFoodPrice = foodEntities.Sum(food => food.Price);
-                var co = _mapper.Map<ComboResponse>(combo);
-                co.Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-                co.comboPrice = totalFoodPrice;
-                comboResponses.Add(co);
-            }
-
-            result.Payload = comboResponses;
+            result.Payload = _mapper.Map<List<ComboResponse>>(combos);
         }
         catch (Exception e)
         {

@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
-namespace PerfectBreakfast.Application.Services
-{
+namespace PerfectBreakfast.Application.Services;
+
     public class MenuService : IMenuService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -104,28 +104,7 @@ namespace PerfectBreakfast.Application.Services
 
             return result;
         }
-
-        public async Task<OperationResult<MenuResponse>> Delete(Guid id)
-        {
-            var result = new OperationResult<MenuResponse>();
-            try
-            {
-                var menu = await _unitOfWork.MenuRepository.GetByIdAsync(id);
-                _unitOfWork.MenuRepository.Remove(menu);
-                await _unitOfWork.SaveChangeAsync();
-            }
-            catch (NotFoundIdException)
-            {
-                result.AddUnknownError("Id is not exsit");
-            }
-            catch (Exception e)
-            {
-                result.AddUnknownError(e.Message);
-            }
-
-            return result;
-        }
-
+        
         public async Task<OperationResult<MenuResponse>> DeleteMenu(Guid id)
         {
             var result = new OperationResult<MenuResponse>();
@@ -306,4 +285,3 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
     }
-}

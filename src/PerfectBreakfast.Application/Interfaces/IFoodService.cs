@@ -9,7 +9,7 @@ namespace PerfectBreakfast.Application.Interfaces
     {
         public Task<OperationResult<List<FoodResponse>>> GetAllFoods();
         public Task<OperationResult<List<FoodResponse>>> GetFoodByFoodStatus(FoodStatus status);
-        public Task<OperationResult<FoodResponeCategory>> GetFoodById(Guid foodId);
+        public Task<OperationResult<FoodResponseCategory>> GetFoodById(Guid foodId);
         public Task<OperationResult<FoodResponse>> CreateFood(CreateFoodRequestModels requestModel);
         public Task<OperationResult<FoodResponse>> UpdateFood(Guid foodId, UpdateFoodRequestModels requestModel);
         public Task<OperationResult<FoodResponse>> RemoveFood(Guid foodId);

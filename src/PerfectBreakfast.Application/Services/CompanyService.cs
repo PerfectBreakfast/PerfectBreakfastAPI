@@ -41,17 +41,14 @@ public class CompanyService : ICompanyService
             var company = _mapper.Map<Company>(companyRequest);
             // add to return CompanyId 
             var entity = await _unitOfWork.CompanyRepository.AddAsync(company);
-            foreach (var mealSubscription in companyRequest.Meals.Select(mealModel =>
-                         new MealSubscription
-                         {
-                             CompanyId = entity.Id,
-                             MealId = mealModel.MealId,
-                             StartTime = mealModel.StartTime,
-                             EndTime = mealModel.EndTime
-                         }))
+            var mealSubscriptions = companyRequest.Meals.Select(mealModel => new MealSubscription
             {
-                await _unitOfWork.MealSubscriptionRepository.AddAsync(mealSubscription);
-            }
+                CompanyId = entity.Id,
+                MealId = mealModel.MealId,
+                StartTime = mealModel.StartTime,
+                EndTime = mealModel.EndTime
+            }).ToList();
+            await _unitOfWork.MealSubscriptionRepository.AddRangeAsync(mealSubscriptions);
 
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
@@ -61,27 +58,6 @@ public class CompanyService : ICompanyService
             }
 
             result.Payload = _mapper.Map<CompanyResponse>(company);
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<CompanyResponse>> Delete(Guid id)
-    {
-        var result = new OperationResult<CompanyResponse>();
-        try
-        {
-            var com = await _unitOfWork.CompanyRepository.GetByIdAsync(id);
-            _unitOfWork.CompanyRepository.Remove(com);
-            await _unitOfWork.SaveChangeAsync();
-        }
-        catch (NotFoundIdException)
-        {
-            result.AddUnknownError("Id is not exsit");
         }
         catch (Exception e)
         {

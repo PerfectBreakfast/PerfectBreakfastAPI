@@ -9,9 +9,9 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Domain.Enums;
 
-namespace PerfectBreakfast.Application.Services
-{
-    public class FoodService : IFoodService
+namespace PerfectBreakfast.Application.Services;
+
+    public class FoodService : IFoodService 
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -85,9 +85,9 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<FoodResponeCategory>> GetFoodById(Guid foodId)
+        public async Task<OperationResult<FoodResponseCategory>> GetFoodById(Guid foodId)
         {
-            var result = new OperationResult<FoodResponeCategory>();
+            var result = new OperationResult<FoodResponseCategory>();
             try
             {
                 var food = await _unitOfWork.FoodRepository.FindSingleAsync(o => o.Id == foodId, o => o.Category);
@@ -96,7 +96,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.NotFound,"Id is not exist");
                     return result;
                 }
-                result.Payload = _mapper.Map<FoodResponeCategory>(food);
+                result.Payload = _mapper.Map<FoodResponseCategory>(food);
             }
             catch (Exception e)
             {
@@ -448,4 +448,3 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
     }
-}
