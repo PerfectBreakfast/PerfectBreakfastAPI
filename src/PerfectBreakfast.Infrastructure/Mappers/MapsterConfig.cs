@@ -1,7 +1,10 @@
+using BenchmarkDotNet.Reports;
 using Mapster;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
+using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
+using PerfectBreakfast.Application.Models.MealModels.Request;
 using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
@@ -42,7 +45,7 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.Foods, src => src.Food.Name);
         
         // Food 
-        config.NewConfig<Food, FoodResponeCategory>()
+        config.NewConfig<Food, FoodResponseCategory>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Name, src => src.Name)
             .Map(dest => dest.Price, src => src.Price)
@@ -68,6 +71,13 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.StartTime, src => src.StartTime)
             .Map(dest => dest.EndTime, src => src.EndTime);
         
+        //Meal Subscription
+        config.NewConfig<MealModel, MealSubscription>()
+            .Map(dest => dest.CompanyId, src => src.MealId)
+            .Map(dest => dest.MealId, src => src.MealId)
+            .Map(dest => dest.StartTime, src => src.StartTime)
+            .Map(dest => dest.EndTime, src => src.EndTime);
+        
         // Menu 
         config.NewConfig<Menu,MenuResponse>()
             .Map(dest => dest.ComboFoodResponses, src => src.MenuFoods.Select(cf => cf.Combo).Where(combo => combo != null && !combo.IsDeleted))
@@ -81,6 +91,12 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.FoodResponses, src => src.ComboFoods.Select(cf => cf.Food))
             .Map(dest => dest.Foods, src => string.Join(", ", src.ComboFoods.Select(cf => cf.Food.Name)))
             .Map(dest => dest.Price, src => src.ComboFoods.Sum(cf => cf.Food.Price));
+        config.NewConfig<Combo, ComboDetailResponse>()
+            .Map(dest => dest.Foods, src => string.Join(", ", src.ComboFoods.Select(cf => cf.Food.Name)))
+            .Map(dest => dest.comboPrice, src => src.ComboFoods.Sum(cf => cf.Food.Price));
+        config.NewConfig<Combo, ComboResponse>()
+            .Map(dest => dest.Foods, src => string.Join(", ", src.ComboFoods.Select(cf => cf.Food.Name)))
+            .Map(dest => dest.comboPrice, src => src.ComboFoods.Sum(cf => cf.Food.Price));        
         
         // Partner 
         config.NewConfig<Partner,PartnerDetailResponse>()

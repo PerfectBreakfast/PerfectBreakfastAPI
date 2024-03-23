@@ -10,5 +10,5 @@ public record ComboDetailResponse
     public string? Image { get; set; }
     public string Foods { get; set; }
     public decimal comboPrice { get; set; }
-    public List<FoodResponeCategory?> FoodResponses { get; set; }
+    public List<FoodResponseCategory?> FoodResponses { get; set; }
 }
