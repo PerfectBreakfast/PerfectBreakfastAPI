@@ -149,11 +149,11 @@ public class OrderService : IOrderService
             await _cache.SetAsync($"order-{entity.Id}", JsonSerializer.SerializeToUtf8Bytes(paymentResponse),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),  // set Thời gian cache tồn tại
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ConstantTime.ORDER_CACHE_DURATION_MINUTES),  // set Thời gian cache tồn tại
                 });
 
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order
-            var timeToCancel = DateTime.UtcNow.AddMinutes(15);
+            var timeToCancel = DateTime.UtcNow.AddMinutes(ConstantTime.JOB_DELAY_BEFORE_START_MINUTES);
             string id = BackgroundJob.Schedule<IManagementService>(
                 x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
@@ -284,13 +284,9 @@ public class OrderService : IOrderService
                     sp => ((OrderDetail)sp).Food
                 }
             };
+            
             var order = await _unitOfWork.OrderRepository.GetByIdAndIncludeAsync(id, userInclude, dailyOrderInclude,
                 paymentMethodInclude, comboInclude, foodInclude);
-            if (order is null)
-            {
-                result.AddError(ErrorCode.NotFound, "Id is not exist");
-                return result;
-            }
 
             // lấy thông tin công ty của worker
             var company = await _unitOfWork.CompanyRepository.GetByIdAsync(order.Worker.CompanyId.Value);

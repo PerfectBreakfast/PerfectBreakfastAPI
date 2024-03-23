@@ -6,7 +6,9 @@ using PerfectBreakfast.Application.Models.MenuModels.Request;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 
 namespace PerfectBreakfast.Application.Services
 {
@@ -265,11 +267,12 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id, m => m.MenuFoods);
-                foreach (var menuFood in menuEntity.MenuFoods)
-                {
-                    _unitOfWork.MenuFoodRepository.Remove(menuFood);
-                }
 
+                if (menuEntity.MenuFoods.Count > 0)
+                {
+                    _unitOfWork.MenuFoodRepository.RemoveRange(menuEntity.MenuFoods.ToList()!);
+                }
+                
                 var list = new List<MenuFood>();
                 foreach (var mf in menuRequest.MenuFoodRequests)
                 {
@@ -293,7 +296,7 @@ namespace PerfectBreakfast.Application.Services
             }
             catch (NotFoundIdException)
             {
-                result.AddUnknownError("Id is not exsit");
+                result.AddError(ErrorCode.NotFound,"Id is not exits");
             }
             catch (Exception e)
             {

@@ -81,5 +81,10 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.FoodResponses, src => src.ComboFoods.Select(cf => cf.Food))
             .Map(dest => dest.Foods, src => string.Join(", ", src.ComboFoods.Select(cf => cf.Food.Name)))
             .Map(dest => dest.Price, src => src.ComboFoods.Sum(cf => cf.Food.Price));
+        
+        // Partner 
+        config.NewConfig<Partner,PartnerDetailResponse>()
+            .Map(dest => dest.SupplierDTO, src => src.SupplyAssignments.Select(sa => sa.Supplier))
+            .Map(dest => dest.Companies, src => src.Companies);
     }
 }

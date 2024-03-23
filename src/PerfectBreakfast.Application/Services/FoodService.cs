@@ -2,7 +2,6 @@
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Request;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
@@ -94,14 +93,10 @@ namespace PerfectBreakfast.Application.Services
                 var food = await _unitOfWork.FoodRepository.FindSingleAsync(o => o.Id == foodId, o => o.Category);
                 if (food is null)
                 {
-                    result.AddUnknownError("Id is not exist");
+                    result.AddError(ErrorCode.NotFound,"Id is not exist");
                     return result;
                 }
-
-                var category = _mapper.Map<CategoryResponse>(food.Category);
-                var o = _mapper.Map<FoodResponeCategory>(food);
-                o.CategoryResponse = category;
-                result.Payload = o;
+                result.Payload = _mapper.Map<FoodResponeCategory>(food);
             }
             catch (Exception e)
             {
@@ -179,12 +174,9 @@ namespace PerfectBreakfast.Application.Services
                                     sp => ((ComboFood)sp).Food
                     ]
                 };
+                
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAndIncludeAsync(dailyOrderId, mealInclude, foodInclude, companyInclude, comboInclude);
-                if (dailyOrder is null)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
-                    return result;
-                }
+                
                 // Kiểm tra xem công ty có trong danh sách đối tác không
                 var companyFound = user.Partner.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
 
@@ -319,13 +311,10 @@ namespace PerfectBreakfast.Application.Services
                                     sp => ((ComboFood)sp).Food
                     ]
                 };
+                
                 var dailyOrder = await _unitOfWork.DailyOrderRepository
                     .GetByIdAndIncludeAsync(dailyOrderId, mealInclude, companyInclude, comboInclude, foodInclude);
-                if (dailyOrder is null)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
-                    return result;
-                }
+
                 // Kiểm tra xem công ty có trong danh sách đối tác không
                 var companyFound = user.Delivery.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
 

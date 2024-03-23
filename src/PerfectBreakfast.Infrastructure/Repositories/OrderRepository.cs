@@ -38,7 +38,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 }
                 itemsQuery = queryWithInclude;
             }
-            return await itemsQuery.AsNoTracking().ToListAsync();
+            return await itemsQuery.AsNoTracking().AsSplitQuery().ToListAsync();
         }
 
         public async Task<List<Order>> GetOrderByDate(DateOnly fromDate, DateOnly toDate)

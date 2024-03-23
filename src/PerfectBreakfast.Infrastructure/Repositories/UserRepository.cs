@@ -127,7 +127,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             }
         }
         
-        return await query.SingleAsync();
+        return await query.AsNoTracking().AsSplitQuery().SingleAsync();
     }
 
     public async Task<User?> GetInfoCurrentUserById(Guid id)

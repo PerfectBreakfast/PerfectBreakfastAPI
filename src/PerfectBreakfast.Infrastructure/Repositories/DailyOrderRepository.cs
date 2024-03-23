@@ -204,6 +204,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(d => d.MealSubscription)
                 .ThenInclude(ms => ms.Meal)
                 .OrderByDescending(d => d.BookingDate)
+                .AsSplitQuery()
                 .ToListAsync();
         }
     }

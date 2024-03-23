@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using BenchmarkDotNet.Attributes;
 using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -47,14 +46,10 @@ public class PartnerService : IPartnerService
             var partner = await _unitOfWork.PartnerRepository.GetPartnerDetail(id);
             if (partner == null)
             {
-                result.AddUnknownError("Id does not exist");
+                result.AddError(ErrorCode.NotFound,"Id does not exist");
                 return result;
             }
-
-            var suppliers = partner.SupplyAssignments.Select(o => o.Supplier).ToList();
             var mana = _mapper.Map<PartnerDetailResponse>(partner);
-            mana.SupplierDTO = _mapper.Map<List<SupplierDTO>>(suppliers);
-            mana.Companies = _mapper.Map<List<CompanyResponsePaging>>(partner.Companies);
             result.Payload = mana;
         }
         catch (NotFoundIdException e)
@@ -65,7 +60,6 @@ public class PartnerService : IPartnerService
         {
             result.AddUnknownError(ex.Message);
         }
-
         return result;
     }
 
@@ -98,7 +92,6 @@ public class PartnerService : IPartnerService
             // find supplier by ID
             var managementUnit = await _unitOfWork.PartnerRepository.GetByIdAsync(managementUnitId);
             // map from requestModel => supplier
-            //_mapper.Map(requestModel, managementUnit);
             managementUnit.Name = requestModel.Name ?? managementUnit.Name;
             managementUnit.Address = requestModel.Address ?? managementUnit.Address;
             managementUnit.PhoneNumber = requestModel.PhoneNumber ?? managementUnit.PhoneNumber;

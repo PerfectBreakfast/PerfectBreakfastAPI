@@ -39,7 +39,7 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
     public async Task<bool> ExistsWithDailyOrderAndShippers(Guid dailyOrderId, List<Guid?> shipperId)
     {
         return await _dbSet
-            .AnyAsync(so => so.DailyOrderId == dailyOrderId && shipperId.Contains(so.ShipperId.Value));
+            .AnyAsync(so => so.DailyOrderId == dailyOrderId && shipperId.Contains(so.ShipperId));
     }
 
     public async Task<List<ShippingOrder>> GetAllWithDailyOrdersAsync()
