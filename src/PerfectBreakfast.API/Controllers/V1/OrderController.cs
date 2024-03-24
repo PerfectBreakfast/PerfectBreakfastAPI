@@ -155,7 +155,7 @@ public class OrderController : BaseController
     /// </summary>
     /// <param name="dailyOrderId"></param>
     /// <returns></returns>
-    [HttpGet("dailyOrder/{dailyOrderId:guid}"), Authorize]
+    [HttpGet("daily-order/{id:guid}"), Authorize]
     public async Task<IActionResult> GetOrderByDailyOrder(Guid dailyOrderId)
     {
         var response = await _orderService.GetOrderByDailyOrder(dailyOrderId);
