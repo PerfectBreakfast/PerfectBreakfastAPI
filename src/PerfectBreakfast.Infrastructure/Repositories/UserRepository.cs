@@ -113,7 +113,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
 
     public async Task<User> GetUserByIdAsync(Guid id, params IncludeInfo<User>[]? includeProperties)
     {
-        var query  = _dbSet.Where(x => x.Id == id);
+        var query  = _dbSet.AsNoTracking().Where(x => x.Id == id);
         if (includeProperties != null)
         {
             foreach (var includeProperty in includeProperties)
@@ -127,7 +127,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             }
         }
         
-        return await query.AsNoTracking().AsSplitQuery().SingleAsync();
+        return await query.AsSplitQuery().SingleAsync();
     }
 
     public async Task<User?> GetInfoCurrentUserById(Guid id)
