@@ -108,12 +108,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForPartnerResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count,
+                TotalItemsCount = totalItemsCount,
                 Items = dailyOrderResponses
             };
         }
@@ -181,12 +184,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForPartnerResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count,
+                TotalItemsCount = totalItemsCount,
                 Items = dailyOrderResponses
             };
         }
@@ -252,12 +258,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
@@ -321,12 +330,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
@@ -530,12 +542,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
