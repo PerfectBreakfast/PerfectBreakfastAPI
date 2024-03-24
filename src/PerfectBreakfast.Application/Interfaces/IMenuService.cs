@@ -10,7 +10,7 @@ namespace PerfectBreakfast.Application.Interfaces;
         public Task<OperationResult<MenuResponse>> GetMenu(Guid id);
         public Task<OperationResult<MenuResponse>> DeleteMenu(Guid id);
         public Task<OperationResult<MenuResponse>> UpdateMenu(Guid id, UpdateMenuRequest menuRequest);
-        public Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
+        public Task<OperationResult<Pagination<MenuResponsePaging>>> GetMenuPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
         public Task<OperationResult<MenuResponse>> CreateMenu(CreateMenuFoodRequest createMenuFoodRequest);
         public Task<OperationResult<MenuIsSelectedResponse>> GetMenuByStatus();
         public Task<OperationResult<MenuResponse>> ChooseMenu(Guid id);

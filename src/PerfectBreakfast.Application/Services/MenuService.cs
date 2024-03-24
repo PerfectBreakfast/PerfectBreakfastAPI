@@ -144,14 +144,12 @@ namespace PerfectBreakfast.Application.Services;
                     return result;
                 }
                 // Ánh xạ Menu chi tiết sang DTO
-                var menuResponse = _mapper.Map<MenuResponse>(menu);
-                result.Payload = menuResponse;
+                result.Payload = _mapper.Map<MenuResponse>(menu);;
             }
             catch (Exception e)
             {
                 result.AddUnknownError(e.Message);
             }
-
             return result;
         }
 
@@ -203,18 +201,25 @@ namespace PerfectBreakfast.Application.Services;
             return result;
         }
 
-        public async Task<OperationResult<Pagination<MenuResponse>>> GetMenuPaginationAsync(string? searchTerm,
+        public async Task<OperationResult<Pagination<MenuResponsePaging>>> GetMenuPaginationAsync(string? searchTerm,
             int pageIndex = 0, int pageSize = 10)
         {
-            var result = new OperationResult<Pagination<MenuResponse>>();
+            var result = new OperationResult<Pagination<MenuResponsePaging>>();
             try
             {
                 // Tạo biểu thức tìm kiếm (predicate)
                 Expression<Func<Menu, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
                     ? (x => !x.IsDeleted)
                     : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
-                var menu = await _unitOfWork.MenuRepository.ToPagination(pageIndex, pageSize, searchPredicate);
-                result.Payload = _mapper.Map<Pagination<MenuResponse>>(menu);
+                var menuPages = await _unitOfWork.MenuRepository.ToPagination(pageIndex, pageSize, searchPredicate);
+                var menus = _mapper.Map<List<MenuResponsePaging>>(menuPages.Items);
+                result.Payload = new Pagination<MenuResponsePaging>()
+                {
+                    PageIndex = menuPages.PageIndex,
+                    PageSize = menuPages.PageSize,
+                    TotalItemsCount = menuPages.TotalItemsCount,
+                    Items = menus
+                };
             }
             catch (Exception e)
             {
