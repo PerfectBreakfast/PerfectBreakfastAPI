@@ -397,6 +397,49 @@ public class OrderService : IOrderService
         return result;
     }
 
+    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistoryByDeliveryStaff(int pageNumber)
+    {
+        pageNumber *= 5;
+        var result = new OperationResult<List<OrderHistoryResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var orderDetailInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Combo
+                }
+            };
+            var dailyOrderInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.DailyOrder,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((DailyOrder)sp).MealSubscription,
+                    sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var workerInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.Worker,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).Company
+                }
+            };
+            var orders = await _unitOfWork.OrderRepository.GetOrderHistoryByDeliveryStaff(userId, pageNumber, orderDetailInclude, dailyOrderInclude, workerInclude);
+            result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<OrderResponse>> RemoveOrder(Guid id)
     {
         var result = new OperationResult<OrderResponse>();

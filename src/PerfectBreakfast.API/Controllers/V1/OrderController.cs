@@ -83,6 +83,18 @@ public class OrderController : BaseController
         var response = await _orderService.GetOrderHistory(pageNumber);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api for Delivery Staff (xem lịch sử các đơn hàng đã quét)
+    /// </summary>
+    /// <param name="pageNumber"></param>
+    /// <returns></returns>
+    [HttpGet("deliverystaff/history"), Authorize(policy: ConstantRole.RequireDeliveryStaffRole)]
+    public async Task<IActionResult> GetOrderHistoryByDeliveryStaff(int pageNumber = 1)
+    {
+        var response = await _orderService.GetOrderHistoryByDeliveryStaff(pageNumber);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     /// <summary>
     /// API for Super Admin, Customer
