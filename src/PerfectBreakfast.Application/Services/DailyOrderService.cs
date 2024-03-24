@@ -18,12 +18,14 @@ public class DailyOrderService : IDailyOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+    private readonly ICurrentTime _currentTime;
 
-    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<DailyOrderResponse>> CreateDailyOrder(DailyOrderRequest dailyOrderRequest)
@@ -345,19 +347,27 @@ public class DailyOrderService : IDailyOrderService
         var result = new OperationResult<bool>();
         try
         {
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(id, d => d.Orders);
-            var allOrdersCompleted = dailyOrder.Orders.All(order => order!.OrderStatus == OrderStatus.Complete);
-            if (allOrdersCompleted)
+            var now = _currentTime.GetCurrentTime();
+            var mealInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.MealSubscription,
+            };
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAndIncludeAsync(id, mealInclude);
+            if(dailyOrder.MealSubscription?.EndTime > TimeOnly.FromTimeSpan(now.TimeOfDay))
+            {
+                result.AddError(ErrorCode.BadRequest, "Chưa tới giờ xác nhận đơn hàng");
+                return result;
+            }
+            if (dailyOrder.Status == DailyOrderStatus.Delivering)
             {
                 dailyOrder.Status = DailyOrderStatus.Complete;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
             else
             {
-                result.AddError(ErrorCode.BadRequest, "Vẫn chưa hoàn tất các đơn hàng");
+                result.AddError(ErrorCode.BadRequest, "Đơn hàng phải trong quá trình giao");
                 return result;
             }
-
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             result.Payload = isSuccess;
         }
