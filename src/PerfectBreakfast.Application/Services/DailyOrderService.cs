@@ -67,7 +67,7 @@ public class DailyOrderService : IDailyOrderService
                 [
                     sp => ((Partner)sp).Companies,
                     sp => ((Company)sp).MealSubscriptions,
-                    sp => ((MealSubscription)sp).Meal!
+                    sp => ((MealSubscription)sp).Meal
                 ]
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
@@ -84,7 +84,7 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) ,  d.BookingDate} )
                 .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
                     dateGroup.Key.CreationDate,
@@ -96,8 +96,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -159,7 +157,7 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) ,  d.BookingDate} )
                 .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
                     dateGroup.Key.CreationDate,
@@ -171,8 +169,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -244,8 +240,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -315,8 +309,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -518,8 +510,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
