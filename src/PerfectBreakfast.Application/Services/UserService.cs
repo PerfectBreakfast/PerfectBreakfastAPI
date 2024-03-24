@@ -391,7 +391,7 @@ public class UserService : IUserService
                 return result;
             }
 
-            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.UserManager.FindByIdAsync(userId.ToString());
             var identityResult = await _unitOfWork.UserManager.ChangePasswordAsync(user, changePassword.CurrentPassword, changePassword.NewPassword);
             result.Payload = identityResult.Succeeded;
         }
