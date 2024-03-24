@@ -53,6 +53,18 @@ public class DailyOrderController : BaseController
         var response = await _dailyOrderService.GetDailyOrderPaginationAsync(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Super Admin
+    /// </summary>
+    /// <returns></returns>
+    [Authorize]
+    [HttpPut("/Completion/{id:guid}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> UpdateDailyOrder(Guid id)
+    {
+        var response = await _dailyOrderService.CompleteDailyOrder(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     /// <summary>
     /// API For Super Admin
@@ -60,7 +72,7 @@ public class DailyOrderController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpPut("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> UpdateDailyOrer(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
+    public async Task<IActionResult> UpdateDailyOrder(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
     {
         var response = await _dailyOrderService.UpdateDailyOrder(id, updateDailyOrderRequest);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -72,7 +84,7 @@ public class DailyOrderController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpGet("partner/process"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
-    public async Task<IActionResult> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDailyOrderProcessingByPartner(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _dailyOrderService.GetDailyOrderProcessingByPartner(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -85,7 +97,7 @@ public class DailyOrderController : BaseController
     /// <param name="pageSize"></param>
     /// <returns></returns>
     [HttpGet("delivery/process"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
-    public async Task<IActionResult> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDailyOrderProcessingByDelivery(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _dailyOrderService.GetDailyOrderProcessingByDelivery(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -97,7 +109,7 @@ public class DailyOrderController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpGet("partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
-    public async Task<IActionResult> GetDailyOrderInitAndCompleteByPartner(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDailyOrderByPartner(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _dailyOrderService.GetDailyOrderByPartner(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
@@ -110,7 +122,7 @@ public class DailyOrderController : BaseController
     /// <param name="pageSize"></param>
     /// <returns></returns>
     [HttpGet("delivery"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
-    public async Task<IActionResult> GetDailyOrderInitAndCompleteByDelivery(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDailyOrderByDelivery(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _dailyOrderService.GetDailyOrderByDelivery(pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
