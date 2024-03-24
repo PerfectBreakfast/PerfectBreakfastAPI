@@ -169,6 +169,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             var items = await _dbSet
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Where(d => d.OrderQuantity > 0)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
