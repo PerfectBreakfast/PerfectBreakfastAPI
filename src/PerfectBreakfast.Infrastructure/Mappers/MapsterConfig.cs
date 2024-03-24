@@ -2,6 +2,7 @@ using BenchmarkDotNet.Reports;
 using Mapster;
 using PerfectBreakfast.Application.Models.CategoryModels.Response;
 using PerfectBreakfast.Application.Models.ComboModels.Response;
+using PerfectBreakfast.Application.Models.DailyOrder.Response;
 using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.MealModels.Request;
@@ -9,6 +10,7 @@ using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
+using PerfectBreakfast.Application.Models.ShippingOrder.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
@@ -102,5 +104,16 @@ public class MapsterConfig : IRegister
         config.NewConfig<Partner,PartnerDetailResponse>()
             .Map(dest => dest.SupplierDTO, src => src.SupplyAssignments.Select(sa => sa.Supplier))
             .Map(dest => dest.Companies, src => src.Companies);
+        
+        // ShippingOrder
+        config.NewConfig<ShippingOrder, ShippingOrderForShipperResponse>();
+        
+        // DailyOrder 
+        config.NewConfig<DailyOrder, DailyOrderDto>()
+            .Map(dest => dest.Meal, src => src.MealSubscription.Meal.MealType)
+            .Map(dest => dest.PickupTime,src => src.MealSubscription.StartTime)
+            .Map(dest => dest.HandoverTime,src => src.MealSubscription.StartTime)
+            .Map(dest => dest.Company,src => src.MealSubscription.Company)
+            .Map(dest => dest.Partner,src => src.MealSubscription.Company.Partner);
     }
 }

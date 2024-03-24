@@ -21,6 +21,23 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
                 .ThenInclude(x => x.MealSubscription)
                     .ThenInclude(x => x.Company)
             .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+        return shippingOrders;
+    }
+
+    public async Task<List<ShippingOrder>> GetShippingOrderTodayByShipperIdAndDate(Guid shipperId, DateOnly date)
+    {
+        var shippingOrders = await _dbSet.Where(x => x.ShipperId == shipperId && x.DailyOrder.BookingDate == date)
+            .Include(x => x.DailyOrder)
+                .ThenInclude(x => x.MealSubscription)
+                    .ThenInclude(x => x.Company)
+                        .ThenInclude(c => c.Partner)
+            .Include(x => x.DailyOrder) // Repeating this Include to start a new chain
+                    .ThenInclude(x => x.MealSubscription)
+                        .ThenInclude(x => x.Meal)
+            .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
         return shippingOrders;
     }

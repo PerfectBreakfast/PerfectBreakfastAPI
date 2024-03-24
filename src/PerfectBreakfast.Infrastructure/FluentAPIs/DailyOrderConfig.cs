@@ -12,6 +12,7 @@ public class DailyOrderConfig : IEntityTypeConfiguration<DailyOrder>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
+        builder.HasIndex(x => x.BookingDate);
         
         
         builder.HasOne(r => r.MealSubscription)
