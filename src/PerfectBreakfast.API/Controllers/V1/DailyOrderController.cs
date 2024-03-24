@@ -42,7 +42,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin
+    /// API for Super Admin ***************************
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -60,14 +60,14 @@ public class DailyOrderController : BaseController
     /// <returns></returns>
     [Authorize]
     [HttpPut("/Completion/{id:guid}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> UpdateDailyOrder(Guid id)
+    public async Task<IActionResult> CompleteDailyOrder(Guid id)
     {
         var response = await _dailyOrderService.CompleteDailyOrder(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
     /// <summary>
-    /// API For Super Admin
+    /// API For Super Admin 
     /// </summary>
     /// <returns></returns>
     [Authorize]
@@ -104,7 +104,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Partner Admin
+    /// API For Partner Admin ***************************
     /// </summary>
     /// <returns></returns>
     [Authorize]
@@ -116,7 +116,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Delivery Admin
+    /// API For Delivery Admin ***************************
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>

@@ -542,15 +542,11 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-            var totalItemsCount = dailyOrderResponses
-                .SelectMany(dailyOrder => dailyOrder.Companies) 
-                .SelectMany(company => company.DailyOrders) 
-                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = dailyOrderResponses.Count,
                 Items = dailyOrderResponses
             };
         }
