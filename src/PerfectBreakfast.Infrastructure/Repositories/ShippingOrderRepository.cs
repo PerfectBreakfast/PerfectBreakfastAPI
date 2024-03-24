@@ -42,9 +42,10 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
         return shippingOrders;
     }
 
-    public async Task<ShippingOrder?> GetShippingOrderByShipperIdAndDailyOrderId(Guid shipperId, Guid dailyOrderId)
+    public async Task<ShippingOrder?> GetShippingOrderByDailyOrderId(Guid shipperId, Guid dailyOrderId)
     {
-        return await _dbSet.AsNoTracking().SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
+        return await _dbSet.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
     }
 
     public async Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId)

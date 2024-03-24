@@ -479,7 +479,7 @@ public class OrderService : IOrderService
             }
             
             // kiểm tra xem thg quét có được giao cho cái dailyOrder
-            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperIdAndDailyOrderId(userId,
+            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByDailyOrderId(userId,
                     order.DailyOrder!.Id);
             if (shippingOrder is null)
             {
