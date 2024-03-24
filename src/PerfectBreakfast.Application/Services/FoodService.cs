@@ -274,11 +274,9 @@ namespace PerfectBreakfast.Application.Services;
 
                 if (user.Delivery == null)
                 {
-                    result.AddError(ErrorCode.NotFound, "partner does not exist");
+                    result.AddError(ErrorCode.NotFound, "Delivery does not exist");
                     return result;
                 }
-                
-                var foodCounts = new Dictionary<(Food, string), int>();
                         
                 // Lấy daily order
                 var mealInclude = new IncludeInfo<DailyOrder>
@@ -329,6 +327,7 @@ namespace PerfectBreakfast.Application.Services;
                 var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
 
                 // Đếm số lượng từng loại food
+                var foodCounts = new Dictionary<(Guid, string), int>();
                 foreach (var orderDetail in orderDetails)
                 {
                     if (orderDetail.Combo != null)
@@ -338,7 +337,7 @@ namespace PerfectBreakfast.Application.Services;
                         {
                             var food = comboFood.Food;
                             // Tất cả Food trong Combo sẽ được xử lý như khẩu phần combo
-                            var key = (food, "khẩu phần combo");
+                            var key = (food.Id, $"{food.Name} - khẩu phần combo");
                             if (foodCounts.ContainsKey(key))
                             {
                                 foodCounts[key] += orderDetail.Quantity;
@@ -353,7 +352,7 @@ namespace PerfectBreakfast.Application.Services;
                     {
                         var food = orderDetail.Food;
                         // Food đơn lẻ với Status là Retail sẽ được xử lý như khẩu phần đơn lẻ
-                        var key = (food, "khẩu phần đơn lẻ");
+                        var key = (food.Id, $"{food.Name} - khẩu phần đơn lẻ");
                         if (foodCounts.ContainsKey(key))
                         {
                             foodCounts[key] += orderDetail.Quantity;
@@ -367,8 +366,8 @@ namespace PerfectBreakfast.Application.Services;
                 // Tạo danh sách totalFoodList từ foodCounts
                 var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
                 {
-                    Id = pair.Key.Item1.Id, // Truy cập Food thông qua Item1 của tuple
-                    Name = $"{pair.Key.Item1.Name} - {pair.Key.Item2}", // Kết hợp tên Food với loại
+                    Id = pair.Key.Item1, // Truy cập Food thông qua Item1 của tuple
+                    Name = $"{pair.Key.Item2}", // Kết hợp tên Food với loại
                     Quantity = pair.Value
                 }).ToList();
                 var totalFoodForPartner = new TotalFoodForPartnerResponse()
