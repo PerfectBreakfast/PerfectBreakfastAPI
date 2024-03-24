@@ -217,28 +217,17 @@ public class ShippingOrderService : IShippingOrderService
         var userId = _claimsService.GetCurrentUserId;
         try
         {
-            var shippingOrder = await _unitOfWork.ShippingOrderRepository
-                .GetShippingOrderByShipperIdAndDailyOrderId(userId, dailyOrderId);
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository
+                .GetShippingOrderByDailyOrder(dailyOrderId);
             // check đơn hàng có phải phân công đúng của shipper không ?
-            if (shippingOrder == null)
+            if (shippingOrders.Count == 0 && shippingOrders.All(order => order.ShipperId != userId))
             {
                 result.AddError(ErrorCode.BadRequest, "Đơn hàng này không phải phân công của bạn");
                 return result;
             }
-
-            switch (shippingOrder.Status)
-            {
-                case ShippingStatus.Confirm:
-                    result.AddError(ErrorCode.BadRequest,
-                        "Đơn hàng phân công của bạn đã được xác nhận và đang đi giao");
-                    return result;
-                case ShippingStatus.Complete:
-                    result.AddError(ErrorCode.BadRequest, "Đơn hàng phân công của bạn đã được hoàn thành");
-                    return result;
-            }
-
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
+            
             // check xem xem tổng đơn(dailyOrder) đã ở trạng thái sẵn sàng chờ đến lấy đi giao hay chưa ? 
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
             if (dailyOrder is not { Status: DailyOrderStatus.Waiting })
             {
                 switch (dailyOrder.Status)
@@ -267,8 +256,20 @@ public class ShippingOrderService : IShippingOrderService
                 }
             }
 
-            shippingOrder.Status = ShippingStatus.Confirm;
-            _unitOfWork.ShippingOrderRepository.Update(shippingOrder);
+            if (shippingOrders.All(s => s.Status == ShippingStatus.Pending))
+            {
+                foreach (var shippingOrder in shippingOrders)
+                {
+                    shippingOrder.Status = ShippingStatus.Confirm;
+                }
+            }
+            else
+            {
+                result.AddError(ErrorCode.ServerError, "Có 1 đơn vận chuyển không phải trong trạng thái chờ xác nhận");
+                return result;
+            }
+            
+            _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
             dailyOrder.Status = DailyOrderStatus.Delivering;
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
