@@ -268,10 +268,9 @@ public class ShippingOrderService : IShippingOrderService
                 result.AddError(ErrorCode.ServerError, "Có 1 đơn vận chuyển không phải trong trạng thái chờ xác nhận");
                 return result;
             }
-            
-            _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
             dailyOrder.Status = DailyOrderStatus.Delivering;
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
             {
