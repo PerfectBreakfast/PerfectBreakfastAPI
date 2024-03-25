@@ -73,120 +73,207 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<Pagination<DailyOrder>> ToPaginationForPartner(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
-            var items = await _dbSet
+            // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
+            var query = _dbSet.AsQueryable();
+
+            // Lọc dựa trên mealSubscriptionIds và điều kiện khác
+            query = query
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Processing)
+                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Processing);
+
+            // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
+            query = query.AsNoTracking();
+
+            // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
+            var totalItemsCount = await query.CountAsync();
+
+            // Bổ sung các thao tác Include sau khi đã lọc để tránh tải dữ liệu không cần thiết
+            query = query
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Company)
+                .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Meal)
+                .ThenInclude(ms => ms.Meal);
+
+            // Thêm sắp xếp, phân trang và chia tách truy vấn
+            var items = await query
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .ToListAsync();
-            
-            var result = new Pagination<DailyOrder>()
+
+            // Tạo và trả về kết quả phân trang
+            return new Pagination<DailyOrder>
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-            return result;
         }
 
         public async Task<Pagination<DailyOrder>> ToPaginationForDelivery(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
-            var items = await _dbSet
+            // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
+            var query = _dbSet.AsQueryable();
+
+            // Lọc dựa trên mealSubscriptionIds và điều kiện khác
+            query = query
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0 && d.Status != DailyOrderStatus.Initial && d.Status != DailyOrderStatus.Complete)
+                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Initial && d.Status != DailyOrderStatus.Complete);
+
+            // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
+            query = query.AsNoTracking();
+
+            // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
+            var totalItemsCount = await query.CountAsync();
+
+            // Bổ sung các thao tác Include sau khi đã lọc để tránh tải dữ liệu không cần thiết
+            query = query
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Company)
+                .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Meal)
+                .ThenInclude(ms => ms.Meal);
+
+            // Thêm sắp xếp, phân trang và chia tách truy vấn
+            var items = await query
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .ToListAsync();
-            
-            var result = new Pagination<DailyOrder>()
+
+            // Tạo và trả về kết quả phân trang
+            return new Pagination<DailyOrder>
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-            return result;
         }
 
         public async Task<Pagination<DailyOrder>> ToPaginationForComplete(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
-            var items = await _dbSet
+            // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
+            var query = _dbSet.AsQueryable();
+
+            // Lọc dựa trên mealSubscriptionIds và điều kiện khác
+            query = query
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Complete)
+                .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Complete);
+
+            // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
+            query = query.AsNoTracking();
+
+            // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
+            var totalItemsCount = await query.CountAsync();
+
+            // Bổ sung các thao tác Include sau khi đã lọc để tránh tải dữ liệu không cần thiết
+            query = query
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Company)
+                .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                .ThenInclude(ms => ms.Meal);
+
+            // Thêm sắp xếp, phân trang và chia tách truy vấn
+            var items = await query
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .ToListAsync();
-            
-            var result = new Pagination<DailyOrder>()
+
+            // Tạo và trả về kết quả phân trang
+            return new Pagination<DailyOrder>
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-            return result;
         }
 
         public async Task<Pagination<DailyOrder>> ToPaginationForAllStatus(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
-            var items = await _dbSet
+            // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
+            var query = _dbSet.AsQueryable();
+
+            // Lọc dựa trên mealSubscriptionIds và điều kiện khác
+            query = query
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0)
+                .Where(d => d.OrderQuantity > 0);
+
+            // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
+            query = query.AsNoTracking();
+
+            // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
+            var totalItemsCount = await query.CountAsync();
+
+            // Bổ sung các thao tác Include sau khi đã lọc để tránh tải dữ liệu không cần thiết
+            query = query
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Company)
+                .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Meal)
+                .ThenInclude(ms => ms.Meal);
+
+            // Thêm sắp xếp, phân trang và chia tách truy vấn
+            var items = await query
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .ToListAsync();
-            
-            var result = new Pagination<DailyOrder>()
+
+            // Tạo và trả về kết quả phân trang
+            return new Pagination<DailyOrder>
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-            return result;
         }
 
         public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
         {
-            var items = await _dbSet
+            // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
+            var query = _dbSet.AsQueryable();
+
+            // Lọc dựa trên mealSubscriptionIds và điều kiện khác
+            query = query
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0)
+                .Where(d => d.OrderQuantity > 0);
+
+            // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
+            query = query.AsNoTracking();
+
+            // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
+            var totalItemsCount = await query.CountAsync();
+
+            // Bổ sung các thao tác Include sau khi đã lọc để tránh tải dữ liệu không cần thiết
+            query = query
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Company)
+                .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
-                    .ThenInclude(ms => ms.Meal)
+                .ThenInclude(ms => ms.Meal);
+
+            // Thêm sắp xếp, phân trang và chia tách truy vấn
+            var items = await query
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
+                .AsSplitQuery()
                 .ToListAsync();
-            
-            var result = new Pagination<DailyOrder>()
+
+            // Tạo và trả về kết quả phân trang
+            return new Pagination<DailyOrder>
             {
                 PageIndex = pageNumber,
                 PageSize = pageSize,
-                TotalItemsCount = 0, // cho nay k tính số lượng item vì đang lấy theo số lượng dailyOrder 
+                TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-            return result;
         }
 
         public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds)

@@ -42,7 +42,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin ***************************
+    /// API for Super Admin 
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -104,7 +104,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Partner Admin ***************************
+    /// API For Partner Admin (Lấy ra danh sách các dailyOrder của partner đó)
     /// </summary>
     /// <returns></returns>
     [Authorize]
@@ -116,7 +116,7 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Delivery Admin ***************************
+    /// API For Delivery Admin (Lấy ra danh sách các dailyOrder của DeliveryAdmin đó)
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
