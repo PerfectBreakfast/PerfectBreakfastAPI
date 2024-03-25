@@ -61,6 +61,7 @@ namespace PerfectBreakfast.Application.Services;
             try
             {
                 var foods = await _unitOfWork.FoodRepository.GetAllAsync();
+                foods = foods.Where(s => s.IsDeleted == false).ToList();
                 result.Payload = _mapper.Map<List<FoodResponse>>(foods);
             }
             catch (Exception e)
