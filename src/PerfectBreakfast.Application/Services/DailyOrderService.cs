@@ -92,8 +92,8 @@ public class DailyOrderService : IDailyOrderService
                     dateGroup.Key.CreationDate,
                     dateGroup.Key.BookingDate, 
                     dateGroup
-                        .Select(d => d.MealSubscription.Company)
-                        .Distinct()
+                        .GroupBy(d => d.MealSubscription.CompanyId)
+                        .Select(g => g.First().MealSubscription.Company)
                         .Select(company => new CompanyForDailyOrderResponse(
                             company.Id,
                             company.Name,
@@ -164,8 +164,8 @@ public class DailyOrderService : IDailyOrderService
                     dateGroup.Key.CreationDate,
                     dateGroup.Key.BookingDate,
                     dateGroup
-                        .Select(d => d.MealSubscription.Company)
-                        .Distinct()
+                        .GroupBy(d => d.MealSubscription.CompanyId)
+                        .Select(g => g.First().MealSubscription.Company)
                         .Select(company => new CompanyForDailyOrderResponse(
                             company.Id,
                             company.Name,
@@ -234,8 +234,8 @@ public class DailyOrderService : IDailyOrderService
                 .Select(dateGroup => new DailyOrderForDeliveryResponse(
                     dateGroup.Key,
                     dateGroup
-                        .Select(d => d.MealSubscription.Company)
-                        .Distinct()
+                        .GroupBy(d => d.MealSubscription.CompanyId)
+                        .Select(g => g.First().MealSubscription.Company)
                         .Select(company => new CompanyForDailyOrderResponse(
                             company.Id,
                             company.Name,
@@ -302,8 +302,8 @@ public class DailyOrderService : IDailyOrderService
                 .Select(dateGroup => new DailyOrderForDeliveryResponse(
                     dateGroup.Key,
                     dateGroup
-                        .Select(d => d.MealSubscription.Company)
-                        .Distinct()
+                        .GroupBy(d => d.MealSubscription.CompanyId)
+                        .Select(g => g.First().MealSubscription.Company)
                         .Select(company => new CompanyForDailyOrderResponse(
                             company.Id,
                             company.Name,
@@ -510,8 +510,8 @@ public class DailyOrderService : IDailyOrderService
                 .Select(dateGroup => new DailyOrderForDeliveryResponse(
                     dateGroup.Key,
                     dateGroup
-                        .Select(d => d.MealSubscription.Company)
-                        .Distinct()
+                        .GroupBy(d => d.MealSubscription.CompanyId)
+                        .Select(g => g.First().MealSubscription.Company)
                         .Select(company => new CompanyForDailyOrderResponse(
                             company.Id,
                             company.Name,
