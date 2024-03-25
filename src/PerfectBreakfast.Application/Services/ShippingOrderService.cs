@@ -220,7 +220,7 @@ public class ShippingOrderService : IShippingOrderService
             var shippingOrders = await _unitOfWork.ShippingOrderRepository
                 .GetShippingOrderByDailyOrder(dailyOrderId);
             // check đơn hàng có phải phân công đúng của shipper không ?
-            if (shippingOrders.Count == 0 && shippingOrders.All(order => order.ShipperId != userId))
+            if (!shippingOrders.Any() || shippingOrders.All(order => order.ShipperId != userId))
             {
                 result.AddError(ErrorCode.BadRequest, "Đơn hàng này không phải phân công của bạn");
                 return result;
@@ -269,6 +269,7 @@ public class ShippingOrderService : IShippingOrderService
                 return result;
             }
             _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
+            dailyOrder.Status = DailyOrderStatus.Delivering;
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)

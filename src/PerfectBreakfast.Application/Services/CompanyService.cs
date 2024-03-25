@@ -215,7 +215,7 @@ public class CompanyService : ICompanyService
         }
         catch (NotFoundIdException)
         {
-            result.AddUnknownError("Id is not exsit");
+            result.AddError(ErrorCode.NotFound,"Id is not exits");
         }
         catch (Exception e)
         {
