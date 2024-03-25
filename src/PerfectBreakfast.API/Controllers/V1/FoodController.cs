@@ -131,10 +131,10 @@ public class FoodController : BaseController
     /// API For Super Admin - API lấy các món ăn cho NCC đăng kí
     /// </summary>
     /// <returns></returns>
-    [HttpGet ("supplier-id/{id:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetFoodForSupplier(Guid id)
+    [HttpGet ("supplier/{supplierId:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> GetFoodForSupplier(Guid supplierId)
     {
-        var response = await _foodService.GetFoodForSupplier(id);
+        var response = await _foodService.GetFoodForSupplier(supplierId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
