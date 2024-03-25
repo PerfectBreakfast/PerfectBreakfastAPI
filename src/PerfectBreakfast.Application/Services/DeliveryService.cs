@@ -28,6 +28,7 @@ public class DeliveryService : IDeliveryService
         try
         {
             var deliveries = await _unitOfWork.DeliveryRepository.GetAllAsync();
+            deliveries = deliveries.Where(d => !d.IsDeleted).ToList();
             result.Payload = _mapper.Map<List<DeliveryResponseModel>>(deliveries);
         }
         catch (Exception e)

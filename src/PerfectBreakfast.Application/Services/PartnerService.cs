@@ -28,8 +28,9 @@ public class PartnerService : IPartnerService
         var result = new OperationResult<List<PartnerResponseModel>>();
         try
         {
-            var managementUnits = await _unitOfWork.PartnerRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<PartnerResponseModel>>(managementUnits);
+            var partners = await _unitOfWork.PartnerRepository.GetAllAsync();
+            partners = partners.Where(p => !p.IsDeleted).ToList();
+            result.Payload = _mapper.Map<List<PartnerResponseModel>>(partners);
         }
         catch (Exception e)
         {
