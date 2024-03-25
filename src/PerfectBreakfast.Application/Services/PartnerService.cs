@@ -117,11 +117,11 @@ public class PartnerService : IPartnerService
             // find supplier by ID
             var managementUnit = await _unitOfWork.PartnerRepository.GetByIdAsync(managementUnitIdId);
             // Remove
-            var entity = _unitOfWork.PartnerRepository.Remove(managementUnit);
+            _unitOfWork.PartnerRepository.SoftRemove(managementUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
-            result.Payload = _mapper.Map<PartnerResponseModel>(entity);
+            result.Payload = _mapper.Map<PartnerResponseModel>(managementUnit);
         }
         catch (Exception e)
         {

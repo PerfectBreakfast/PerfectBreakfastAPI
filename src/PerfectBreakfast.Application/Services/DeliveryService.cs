@@ -90,11 +90,11 @@ public class DeliveryService : IDeliveryService
             // find supplier by ID
             var deliveryUnit = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId);
             // Remove
-            var entity = _unitOfWork.DeliveryRepository.Remove(deliveryUnit);
+            _unitOfWork.DeliveryRepository.SoftRemove(deliveryUnit);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
-            result.Payload = _mapper.Map<DeliveryResponseModel>(entity);
+            result.Payload = _mapper.Map<DeliveryResponseModel>(deliveryUnit);
         }
         catch (Exception e)
         {
