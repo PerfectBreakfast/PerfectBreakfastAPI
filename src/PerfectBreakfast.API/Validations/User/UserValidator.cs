@@ -11,7 +11,7 @@ public class UserValidator : AbstractValidator<CreateUserRequestModel>
             .Matches(@"^[a-z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").WithMessage("Invalid email format");
 
         RuleFor(p => p.Name).NotEmpty().WithMessage("fullname cannot be empty")
-            .MaximumLength(50)
+            .MaximumLength(70)
             .Matches(@"^[\p{L}\s]+$").WithMessage("Invalid Name format");
         
         RuleFor(p => p.PhoneNumber).NotEmpty().NotNull().WithMessage("Phone number not null")
