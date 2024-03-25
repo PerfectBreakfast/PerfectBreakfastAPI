@@ -13,7 +13,7 @@ namespace PerfectBreakfast.API.Validations.Company
 
             RuleFor(p => p.Name).NotEmpty().WithMessage("Name cannot be empty")
                 .NotNull().WithMessage("Name cannot be null")
-                .MaximumLength(100)
+                .MaximumLength(200)
                 .Matches(@"^[\p{L}\s]+$").WithMessage("Invalid Name format");
 
             RuleFor(p => p.Address).NotEmpty().WithMessage("Address cannot be empty")
