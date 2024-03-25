@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using Asp.Versioning;
 using FluentValidation;
@@ -66,7 +65,7 @@ public static class DependencyInjection
                 Contact = new OpenApiContact
                 {
                     Name = "PerfectBreakfast",
-                    Url = new Uri("https://example.com/contact")
+                    Url = new Uri("https://orderfoodpnb.com/")
                 }
             });
             
@@ -79,7 +78,7 @@ public static class DependencyInjection
                 Contact = new OpenApiContact
                 {
                     Name = "PerfectBreakfast",
-                    Url = new Uri("https://example.com/contact")
+                    Url = new Uri("https://orderfoodpnb.com/")
                 }
             });
             
@@ -142,10 +141,6 @@ public static class DependencyInjection
             option.ClientSecret = appConfiguration.Google.ClientSecret;
         });
         //==================================================================================================================================
-        /*services.AddIdentityApiEndpoints<User>()
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();*/
-        // 2 ways
         services.AddIdentityCore<User>(options =>
             {
                 // password configuration
@@ -192,13 +187,12 @@ public static class DependencyInjection
             opt.AddPolicy(ConstantRole.RequireSuperAdminRole, policy => policy.RequireRole(ConstantRole.SUPER_ADMIN));
             opt.AddPolicy(ConstantRole.RequireCustomerRole, policy => policy.RequireRole(ConstantRole.CUSTOMER));
             opt.AddPolicy(ConstantRole.RequireDeliveryStaffRole, policy => policy.RequireRole(ConstantRole.DELIVERY_STAFF));
-            //opt.AddPolicy("AdminOrUser", policy => policy.RequireRole("ADMIN", "USER"));
         });
         //==================================================================================================================================
         services.AddHealthChecks();
         services.AddSingleton<GlobalExceptionMiddleware>();
-        services.AddSingleton<PerformanceMiddleware>();
-        services.AddSingleton<Stopwatch>();
+        //services.AddSingleton<PerformanceMiddleware>();
+        //services.AddSingleton<Stopwatch>();
         services.AddScoped<IClaimsService, ClaimsService>();
         services.AddHttpContextAccessor();
         services.AddFluentValidationAutoValidation();

@@ -28,7 +28,7 @@ var app = builder.Build();
     });
 }
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseMiddleware<PerformanceMiddleware>();
+//app.UseMiddleware<PerformanceMiddleware>();
 
 // todo authentication
 app.UseAuthentication();
