@@ -9,7 +9,7 @@ public class PartnerValidator: AbstractValidator<CreatePartnerRequest>
     {
         RuleFor(p => p.Name).NotEmpty().WithMessage("Name cannot be empty")
             .NotNull().WithMessage("Name cannot be null")
-            .MaximumLength(50);
+            .MaximumLength(200);
 
         RuleFor(p => p.Address).NotEmpty().WithMessage("Address cannot be empty")
             .NotNull().WithMessage("Address cannot be null")
