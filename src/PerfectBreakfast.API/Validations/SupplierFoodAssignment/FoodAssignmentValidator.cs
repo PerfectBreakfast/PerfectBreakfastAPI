@@ -7,8 +7,8 @@ namespace PerfectBreakfast.API.Validations.SupplierFoodAssignment
     {
         public FoodAssignmentValidator()
         {
-            RuleFor(p => p.FoodId).NotEmpty().NotNull().WithMessage("FoodId  cannot be empty");
-            RuleFor(p => p.AmountCooked).NotEmpty().NotNull().WithMessage("Amount Cooked  cannot be empty");
+            RuleFor(p => p.FoodId).NotEmpty().NotNull().WithMessage("Món ăn  không được để trống");
+            RuleFor(p => p.AmountCooked).NotEmpty().NotNull().WithMessage("Số lượng  không được để trống");
         }
     }
 }

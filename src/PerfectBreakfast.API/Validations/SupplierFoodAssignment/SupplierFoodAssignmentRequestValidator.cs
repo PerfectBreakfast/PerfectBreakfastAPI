@@ -8,18 +8,17 @@ public class SupplierFoodAssignmentRequestValidator : AbstractValidator<Supplier
     public SupplierFoodAssignmentRequestValidator()
     {
         RuleFor(p => p.SupplierId)
-            .NotEmpty().WithMessage("Supplier ID cannot be empty")
-            .NotNull().WithMessage("Supplier ID cannot be null");
+            .NotEmpty().WithMessage(" Nhà cung cấp không được để trống")
+            .NotNull().WithMessage(" Nhà cung cấp không được để trống");
 
         RuleFor(p => p.FoodId)
-            .NotEmpty().WithMessage("Food ID cannot be empty")
-            .NotNull().WithMessage("Food ID cannot be null");
+            .NotEmpty().WithMessage(" Thực phẩm không được để trống")
+            .NotNull().WithMessage(" Thực phẩm không được để trống");
 
         RuleFor(p => p.AmountCooked)
-            .NotEmpty().WithMessage("Daily order amount cannot be empty")
-            .NotNull().WithMessage("Daily order amount cannot be null")
-            .GreaterThan(0).WithMessage("Daily order amount must be greater than 0")
-            .Must(x => x % 1 == 0).WithMessage("Daily order amount must be an integer");
-
+            .NotEmpty().WithMessage("Số lượng đặt hàng hàng ngày không được để trống")
+            .NotNull().WithMessage("Số lượng đặt hàng hàng ngày không được để trống")
+            .GreaterThan(0).WithMessage("Số lượng đặt hàng hàng ngày phải lớn hơn 0")
+            .Must(x => x % 1 == 0).WithMessage("Số lượng đặt hàng hàng ngày phải là số nguyên");
     }
 }

@@ -7,17 +7,18 @@ public class PartnerValidator: AbstractValidator<CreatePartnerRequest>
 {
     public PartnerValidator()
     {
-        RuleFor(p => p.Name).NotEmpty().WithMessage("Name cannot be empty")
-            .NotNull().WithMessage("Name cannot be null")
+        RuleFor(p => p.Name).NotEmpty().WithMessage("Tên không được để trống")
+            .NotNull().WithMessage("Tên không được để trống")
             .MaximumLength(200);
 
-        RuleFor(p => p.Address).NotEmpty().WithMessage("Address cannot be empty")
-            .NotNull().WithMessage("Address cannot be null")
+        RuleFor(p => p.Address).NotEmpty().WithMessage("Địa chỉ không được để trống")
+            .NotNull().WithMessage("Địa chỉ không được để trống")
             .MaximumLength(100);
-        RuleFor(p => p.PhoneNumber).NotEmpty().WithMessage("Phone cannot be empty")
-            .NotNull().WithMessage("Phone cannot be null")
+        RuleFor(p => p.PhoneNumber).NotEmpty().WithMessage("SĐT không được để trống")
+            .NotNull().WithMessage("SĐT không được để trống")
             .MaximumLength(10);
-        RuleFor((o => o.CommissionRate)).NotEmpty().WithMessage("Commission Rate cannot be empty").NotNull().WithMessage("Commission Rate cannot be null");
+        RuleFor((o => o.CommissionRate)).NotEmpty().WithMessage("Phần trăm không được để trống")
+            .NotNull().WithMessage("Phần trăm không được để trống");
     }
    
 }

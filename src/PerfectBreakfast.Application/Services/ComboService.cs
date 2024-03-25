@@ -136,7 +136,7 @@ public class ComboService : IComboService
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Combo, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
                 ? (x => !x.IsDeleted)
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted == false);
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
 
             // lấy page combo 
             var pagedCombos =

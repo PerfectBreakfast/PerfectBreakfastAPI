@@ -230,8 +230,9 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<List<CompanyResponse>>();
         try
         {
-            var com = await _unitOfWork.CompanyRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<CompanyResponse>>(com);
+            var companies = await _unitOfWork.CompanyRepository.GetAllAsync();
+            companies = companies.Where(c => c.IsDeleted == false).ToList();
+            result.Payload = _mapper.Map<List<CompanyResponse>>(companies);
         }
         catch (Exception e)
         {
