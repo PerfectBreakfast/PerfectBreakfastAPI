@@ -255,29 +255,27 @@ public class ShippingOrderService : IShippingOrderService
                         return result;
                 }
             }
-
+            
             if (shippingOrders.All(s => s.Status == ShippingStatus.Pending))
             {
                 foreach (var shippingOrder in shippingOrders)
                 {
                     shippingOrder.Status = ShippingStatus.Confirm;
-                }
+                } 
             }
             else
             {
                 result.AddError(ErrorCode.ServerError, "Có 1 đơn vận chuyển không phải trong trạng thái chờ xác nhận");
                 return result;
             }
-            dailyOrder.Status = DailyOrderStatus.Delivering;
-            _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
+            _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
             {
                 result.AddError(ErrorCode.ServerError, "lỗi trong quá trình lưu xuống db");
                 return result;
             }
-
             result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrder);
         }
         catch (Exception e)
