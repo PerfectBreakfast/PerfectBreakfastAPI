@@ -185,11 +185,11 @@ public class SupplierService : ISupplierService
             // find supplier by ID
             var supplier = await _unitOfWork.SupplierRepository.GetByIdAsync(supplierId);
             // Remove
-            var entity = _unitOfWork.SupplierRepository.Remove(supplier);
+            _unitOfWork.SupplierRepository.SoftRemove(supplier);
             // saveChange
             await _unitOfWork.SaveChangeAsync();
             // map entity to SupplierResponse
-            result.Payload = _mapper.Map<SupplierResponse>(entity);
+            result.Payload = _mapper.Map<SupplierResponse>(supplier);
         }
         catch (Exception e)
         {
