@@ -131,7 +131,7 @@ public class FoodController : BaseController
     /// API For Super Admin - API lấy các món ăn cho NCC đăng kí
     /// </summary>
     /// <returns></returns>
-    [HttpGet ("supplier-id"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    [HttpGet ("supplier-id/{id:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetFoodForSupplier(Guid id)
     {
         var response = await _foodService.GetFoodForSupplier(id);
