@@ -12,5 +12,5 @@ public interface IShippingOrderRepository : IGenericRepository<ShippingOrder>
     public Task<bool> ExistsWithDailyOrderAndShippers(Guid dailyOrderId, List<Guid?> shipperId);
     public Task<List<ShippingOrder>> GetAllWithDailyOrdersAsync();
     public Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId);
-    public Task<List<ShippingOrder>> GetShippingOrderByDailyOrderV2(Guid dailyOrderId,int pageNumber = 1, params IncludeInfo<ShippingOrder>[] includeProperties);
+    public Task<List<ShippingOrder>> GetShippingOrderByDailyOrderId(Guid dailyOrderId);  // Lấy ra các shippingOrder theo dailyOrderId 
 }

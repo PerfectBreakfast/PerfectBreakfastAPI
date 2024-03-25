@@ -15,7 +15,7 @@ public class UpdateCompanyValidator : AbstractValidator<UpdateCompanyRequest>
             .Matches(@"^[\p{L}\s]+$").WithMessage("Tên không hợp lệ");
 
         RuleFor(p => p.Address)
-            .MaximumLength(100);
+            .MaximumLength(250);
             
         RuleFor(p => p.PhoneNumber)
             .MaximumLength(10)
