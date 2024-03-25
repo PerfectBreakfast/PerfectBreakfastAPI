@@ -2,7 +2,7 @@
 
 namespace PerfectBreakfast.Application.Models.FoodModels.Response;
 
-public record FoodResponeCategory
+public record FoodResponseCategory
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

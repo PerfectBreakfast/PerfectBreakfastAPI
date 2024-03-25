@@ -2,7 +2,6 @@
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 using System.Linq.Expressions;
@@ -19,12 +18,14 @@ public class DailyOrderService : IDailyOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+    private readonly ICurrentTime _currentTime;
 
-    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+    public DailyOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<DailyOrderResponse>> CreateDailyOrder(DailyOrderRequest dailyOrderRequest)
@@ -68,7 +69,7 @@ public class DailyOrderService : IDailyOrderService
                 [
                     sp => ((Partner)sp).Companies,
                     sp => ((Company)sp).MealSubscriptions,
-                    sp => ((MealSubscription)sp).Meal!
+                    sp => ((MealSubscription)sp).Meal
                 ]
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
@@ -85,7 +86,7 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) ,  d.BookingDate} )
                 .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
                     dateGroup.Key.CreationDate,
@@ -97,8 +98,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -109,12 +108,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForPartnerResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count,
+                TotalItemsCount = totalItemsCount,
                 Items = dailyOrderResponses
             };
         }
@@ -160,7 +162,7 @@ public class DailyOrderService : IDailyOrderService
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
-                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) , BookingDate = d.BookingDate} )
+                .GroupBy(d => new { CreationDate = DateOnly.FromDateTime(d.CreationDate) ,  d.BookingDate} )
                 .OrderByDescending(group => group.Key.BookingDate)
                 .Select(dateGroup => new DailyOrderForPartnerResponse(
                     dateGroup.Key.CreationDate,
@@ -172,8 +174,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -184,12 +184,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForPartnerResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count,
+                TotalItemsCount = totalItemsCount,
                 Items = dailyOrderResponses
             };
         }
@@ -245,8 +248,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -257,12 +258,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
@@ -316,8 +320,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -328,12 +330,15 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
+            var totalItemsCount = dailyOrderResponses
+                .SelectMany(dailyOrder => dailyOrder.Companies) 
+                .SelectMany(company => company.DailyOrders) 
+                .Count();
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = totalItemsCount, // lấy cứ mỗi một ngày là 1 ItemCount 
                 Items = dailyOrderResponses
             };
         }
@@ -354,19 +359,27 @@ public class DailyOrderService : IDailyOrderService
         var result = new OperationResult<bool>();
         try
         {
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(id, d => d.Orders);
-            var allOrdersCompleted = dailyOrder.Orders.All(order => order!.OrderStatus == OrderStatus.Complete);
-            if (allOrdersCompleted)
+            var now = _currentTime.GetCurrentTime();
+            var mealInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.MealSubscription,
+            };
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAndIncludeAsync(id, mealInclude);
+            if(dailyOrder.MealSubscription?.EndTime > TimeOnly.FromTimeSpan(now.TimeOfDay))
+            {
+                result.AddError(ErrorCode.BadRequest, "Chưa tới giờ xác nhận đơn hàng");
+                return result;
+            }
+            if (dailyOrder.Status == DailyOrderStatus.Delivering)
             {
                 dailyOrder.Status = DailyOrderStatus.Complete;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
             else
             {
-                result.AddError(ErrorCode.BadRequest, "Vẫn chưa hoàn tất các đơn hàng");
+                result.AddError(ErrorCode.BadRequest, "Đơn hàng phải trong quá trình giao");
                 return result;
             }
-
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             result.Payload = isSuccess;
         }
@@ -394,8 +407,8 @@ public class DailyOrderService : IDailyOrderService
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Partner)sp).Companies,
-                    sp => ((Company)sp).MealSubscriptions,
-                    sp => ((MealSubscription)sp).Meal
+                        sp => ((Company)sp).MealSubscriptions,
+                            sp => ((MealSubscription)sp).Meal
                 }
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
@@ -519,8 +532,6 @@ public class DailyOrderService : IDailyOrderService
                             company.Id,
                             company.Name,
                             company.Address,
-                            company.Delivery?.Name,
-                            company.Partner?.Name,
                             dateGroup.Where(d => d.MealSubscription.CompanyId == company.Id)
                                 .Select(d => new DailyOrderModelResponse(
                                     d.Id,
@@ -531,12 +542,11 @@ public class DailyOrderService : IDailyOrderService
                                 )).ToList()
                         )).ToList()
                 )).ToList();
-
             result.Payload = new Pagination<DailyOrderForDeliveryResponse>
             {
                 PageIndex = dailyOrderPages.PageIndex,
                 PageSize = dailyOrderPages.PageSize,
-                TotalItemsCount = dailyOrderResponses.Count, // lấy cứ mỗi một ngày là 1 ItemCount 
+                TotalItemsCount = dailyOrderResponses.Count,
                 Items = dailyOrderResponses
             };
         }

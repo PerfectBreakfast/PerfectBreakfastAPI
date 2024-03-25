@@ -16,17 +16,18 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         //to do
 
-        public async Task<Menu> GetMenuFoodByIdAsync(Guid id)
+        public async Task<Menu?> GetMenuFoodByIdAsync(Guid id)
         {
-            var u = await _dbSet.Where(c => c.Id == id)
+            return await _dbSet.Where(c => c.Id == id)
                 .Include(c => c.MenuFoods)
                     .ThenInclude(mf => mf.Combo)
                         .ThenInclude(x => x.ComboFoods)
                             .ThenInclude(x => x.Food)
                 .Include(f => f.MenuFoods)
                     .ThenInclude(mf => mf.Food)
+                .AsNoTracking()
+                .AsSplitQuery()
                 .FirstOrDefaultAsync();
-            return u;
         }
 
         public async Task<Menu?> GetMenuFoodByStatusAsync()
@@ -38,8 +39,9 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                             .ThenInclude(x => x.Food)
                 .Include(f => f.MenuFoods)
                     .ThenInclude(mf => mf.Food)
+                .AsNoTracking()
+                .AsSplitQuery()
                 .SingleOrDefaultAsync();
-            
         }
     }
 }

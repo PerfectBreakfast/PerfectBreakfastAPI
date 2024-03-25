@@ -83,6 +83,18 @@ public class OrderController : BaseController
         var response = await _orderService.GetOrderHistory(pageNumber);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// Api for Delivery Staff (xem lịch sử các đơn hàng đã quét)
+    /// </summary>
+    /// <param name="pageNumber"></param>
+    /// <returns></returns>
+    [HttpGet("deliverystaff/history"), Authorize(policy: ConstantRole.RequireDeliveryStaffRole)]
+    public async Task<IActionResult> GetOrderHistoryByDeliveryStaff(int pageNumber = 1)
+    {
+        var response = await _orderService.GetOrderHistoryByDeliveryStaff(pageNumber);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     /// <summary>
     /// API for Super Admin, Customer
@@ -147,6 +159,18 @@ public class OrderController : BaseController
     public async Task<IActionResult> GetOrderPagination(DateOnly fromDate, DateOnly toDate)
     {
         var response = await _orderService.OrderStatistic(fromDate, toDate);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api For All login 
+    /// </summary>
+    /// <param name="dailyOrderId"></param>
+    /// <returns></returns>
+    [HttpGet("daily-order/{id:guid}"), Authorize]
+    public async Task<IActionResult> GetOrderByDailyOrder(Guid dailyOrderId)
+    {
+        var response = await _orderService.GetOrderByDailyOrder(dailyOrderId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

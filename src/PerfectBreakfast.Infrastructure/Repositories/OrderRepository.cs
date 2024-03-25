@@ -38,7 +38,25 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 }
                 itemsQuery = queryWithInclude;
             }
-            return await itemsQuery.AsNoTracking().ToListAsync();
+            return await itemsQuery.AsNoTracking().AsSplitQuery().ToListAsync();
+        }
+
+        public async Task<List<Order>> GetOrderHistoryByDeliveryStaff(Guid userId, int pageNumber, params IncludeInfo<Order>[] includeProperties)
+        {
+            var itemsQuery = _dbSet.Where(x => x.DeliveryStaffId == userId);
+            itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
+            itemsQuery = itemsQuery.Take(pageNumber);
+            // Xử lý các thuộc tính include và thenInclude
+            foreach (var includeProperty in includeProperties)
+            {
+                var queryWithInclude = itemsQuery.Include(includeProperty.NavigationProperty);
+                foreach (var thenInclude in includeProperty.ThenIncludes)
+                {
+                    queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
+                }
+                itemsQuery = queryWithInclude;
+            }
+            return await itemsQuery.AsNoTracking().AsSplitQuery().ToListAsync();
         }
 
         public async Task<List<Order>> GetOrderByDate(DateOnly fromDate, DateOnly toDate)

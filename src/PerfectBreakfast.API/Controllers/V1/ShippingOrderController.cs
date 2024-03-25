@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PerfectBreakfast.API.Controllers.Base;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
-using PerfectBreakfast.Application.Models.SupplierModels.Request;
-using PerfectBreakfast.Application.Services;
 using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.API.Controllers.V1;
@@ -44,13 +41,14 @@ public class ShippingOrderController : BaseController
     }
 
     /// <summary>
-    /// Api for Delivery Staff 
+    /// Api for delivery Staff (Lấy ra danh sách các nhiệm vụ của shipper theo ngày)
     /// </summary>
+    /// <param name="time"></param>
     /// <returns></returns>
     [HttpGet("delivery-staff"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> GetDailyOrderByDeliveryStaff()
+    public async Task<IActionResult> GetDailyOrderByDeliveryStaff(DateTime time)
     {
-        var response = await _shippingOrderService.GetShippingOrderByDeliveryStaff();
+        var response = await _shippingOrderService.GetShippingOrderTodayByDeliveryStaff(time);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -67,16 +65,13 @@ public class ShippingOrderController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
-    /// <summary>
-    /// Api for Delivery Staff-API lấy daily order cần giao 
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("daily-order/pending-status"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
+    
+    /*[HttpGet("daily-order/pending-status"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
     public async Task<IActionResult> GetDailyOrderPendingByDeliveryStaff()
     {
         var response = await _shippingOrderService.GetDailyOrderByShipper();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
+    }*/
     
     /// <summary>
     /// Api for Delivery Staff-API lấy lịch sử daily order

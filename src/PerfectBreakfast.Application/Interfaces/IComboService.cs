@@ -12,6 +12,5 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<ComboResponse>> DeleteCombo(Guid id);
         public Task<OperationResult<ComboResponse>> UpdateCombo(Guid id, UpdateComboRequest updateComboRequest);
         public Task<OperationResult<Pagination<ComboResponse>>> GetComboPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
-        public Task<OperationResult<ComboResponse>> Delete(Guid id);
     }
 }

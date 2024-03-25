@@ -78,6 +78,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(d => d.OrderQuantity > 0 && d.Status == DailyOrderStatus.Processing)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
@@ -100,6 +102,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(d => d.OrderQuantity > 0 && d.Status != DailyOrderStatus.Initial && d.Status != DailyOrderStatus.Complete)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
@@ -144,6 +148,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(d => d.OrderQuantity > 0)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
                 .OrderByDescending(d => d.BookingDate)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
@@ -163,6 +169,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             var items = await _dbSet
                 .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Where(d => d.OrderQuantity > 0)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
                 .Include(d => d.MealSubscription)
@@ -204,6 +211,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(d => d.MealSubscription)
                 .ThenInclude(ms => ms.Meal)
                 .OrderByDescending(d => d.BookingDate)
+                .AsSplitQuery()
                 .ToListAsync();
         }
     }

@@ -21,13 +21,31 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
                 .ThenInclude(x => x.MealSubscription)
                     .ThenInclude(x => x.Company)
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
         return shippingOrders;
     }
 
-    public async Task<ShippingOrder?> GetShippingOrderByShipperIdAndDailyOrderId(Guid shipperId, Guid dailyOrderId)
+    public async Task<List<ShippingOrder>> GetShippingOrderTodayByShipperIdAndDate(Guid shipperId, DateOnly date)
     {
-        return await _dbSet.AsNoTracking().SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
+        var shippingOrders = await _dbSet.Where(x => x.ShipperId == shipperId && x.DailyOrder.BookingDate == date)
+            .Include(x => x.DailyOrder)
+                .ThenInclude(x => x.MealSubscription)
+                    .ThenInclude(x => x.Company)
+                        .ThenInclude(c => c.Partner)
+            .Include(x => x.DailyOrder) // Repeating this Include to start a new chain
+                    .ThenInclude(x => x.MealSubscription)
+                        .ThenInclude(x => x.Meal)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+        return shippingOrders;
+    }
+
+    public async Task<ShippingOrder?> GetShippingOrderByDailyOrderId(Guid shipperId, Guid dailyOrderId)
+    {
+        return await _dbSet.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
     }
 
     public async Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId)
@@ -39,7 +57,7 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
     public async Task<bool> ExistsWithDailyOrderAndShippers(Guid dailyOrderId, List<Guid?> shipperId)
     {
         return await _dbSet
-            .AnyAsync(so => so.DailyOrderId == dailyOrderId && shipperId.Contains(so.ShipperId.Value));
+            .AnyAsync(so => so.DailyOrderId == dailyOrderId && shipperId.Contains(so.ShipperId));
     }
 
     public async Task<List<ShippingOrder>> GetAllWithDailyOrdersAsync()
@@ -57,6 +75,8 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .Include(s => s.Shipper)
             .Include(s => s.DailyOrder)
                 .ThenInclude(d => d.MealSubscription)
+            .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
     }
 

@@ -87,7 +87,7 @@ public class ManagementService : IManagementService
             var today = _currentTime.GetCurrentTime();
 
             // Kiểm tra xem đã có đơn hàng nào được tạo cho ngày hiện tại chưa
-            bool isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(today);
+            var isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(today);
 
             // Nếu đã có đơn hàng cho ngày hiện tại, thoát khỏi hàm
             if (isDailyOrderCreated)

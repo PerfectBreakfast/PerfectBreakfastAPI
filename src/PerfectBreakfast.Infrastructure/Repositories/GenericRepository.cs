@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using BenchmarkDotNet.Attributes;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -101,6 +100,7 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize)
                 .AsNoTracking()
+                .AsSplitQuery()
                 .ToListAsync();
             
             var result = new Pagination<TEntity>()
@@ -123,7 +123,7 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
                 queryWithInclude = includeProperty.ThenIncludes.Aggregate(queryWithInclude, (current, thenInclude) => current.ThenInclude(thenInclude));
                 query = queryWithInclude;
             }
-            return await query.SingleAsync();
+            return await query.AsSplitQuery().SingleAsync();
         }
 
         public override void UpdateRange(List<TEntity> entities)

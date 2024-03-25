@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text.Json;
 using Hangfire;
+using Hangfire.Server;
 using MapsterMapper;
 using Microsoft.Extensions.Caching.Distributed;
 using PerfectBreakfast.Application.Commons;
@@ -148,11 +149,11 @@ public class OrderService : IOrderService
             await _cache.SetAsync($"order-{entity.Id}", JsonSerializer.SerializeToUtf8Bytes(paymentResponse),
                 new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),  // set Thời gian cache tồn tại
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ConstantTime.ORDER_CACHE_DURATION_MINUTES),  // set Thời gian cache tồn tại
                 });
 
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order
-            var timeToCancel = DateTime.UtcNow.AddMinutes(15);
+            var timeToCancel = DateTime.UtcNow.AddMinutes(ConstantTime.JOB_DELAY_BEFORE_START_MINUTES);
             string id = BackgroundJob.Schedule<IManagementService>(
                 x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
@@ -244,18 +245,48 @@ public class OrderService : IOrderService
         var result = new OperationResult<OrderResponse>();
         try
         {
-            // get Order include OrderDetail , Worker
-            var order = await _unitOfWork.OrderRepository.FindSingleAsync(
-                o => o.Id == id,
-                or => or.OrderDetails,
-                x => x.Worker,
-                x => x.DailyOrder,
-                x => x.PaymentMethod);
-            if (order is null)
+            var userInclude = new IncludeInfo<Order>
             {
-                result.AddError(ErrorCode.NotFound, "Id is not exist");
-                return result;
-            }
+                NavigationProperty = c => c.Worker,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).Company
+                }
+            };
+            var dailyOrderInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.DailyOrder,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((DailyOrder)sp).MealSubscription,
+                        sp => ((MealSubscription)sp).Meal,
+                }
+            };
+            var paymentMethodInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.PaymentMethod
+            };
+            var comboInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Combo,
+                        sp => ((Combo)sp).ComboFoods,
+                            sp => ((ComboFood)sp).Food,
+                }
+            };
+            var foodInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = c => c.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Food
+                }
+            };
+            
+            var order = await _unitOfWork.OrderRepository.GetByIdAndIncludeAsync(id, userInclude, dailyOrderInclude,
+                paymentMethodInclude, comboInclude, foodInclude);
 
             // lấy thông tin công ty của worker
             var company = await _unitOfWork.CompanyRepository.GetByIdAsync(order.Worker.CompanyId.Value);
@@ -263,41 +294,38 @@ public class OrderService : IOrderService
             var orderDetails = new List<OrderDetailResponse>();
             foreach (var detail in order.OrderDetails)
             {
-                if (detail.ComboId != null)
+                if (detail.Combo != null)
                 {
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(detail.ComboId);
-                    var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
+                    var foodEntities = detail.Combo.ComboFoods.Select(cf => cf.Food).ToList();
                     var orderDetailResponse = new OrderDetailResponse
                     {
-                        ComboName = combo.Name,
+                        ComboName =  detail.Combo.Name,
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-                        Image = combo.Image,
+                        Image =  detail.Combo.Image,
                         Foods = $"{string.Join(", ", foodEntities.Select(food => food.Name))}"
                     };
                     orderDetails.Add(orderDetailResponse);
                 }
-                else if(detail.FoodId != null)
+                else if(detail.Food != null)
                 {
-                    var food = await _unitOfWork.FoodRepository.GetByIdAsync((Guid)detail.FoodId!);
                     var orderDetailResponse = new OrderDetailResponse
                     {
                         ComboName = "",
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-                        Image = food.Image,
-                        Foods = food.Name
+                        Image = detail.Food.Image,
+                        Foods = detail.Food.Name
                     };
                     orderDetails.Add(orderDetailResponse);
                 }
-
             }
 
             var or = _mapper.Map<OrderResponse>(order);
             or.PaymentMethod = order.PaymentMethod?.Name ?? null;
             or.BookingDate = order.DailyOrder!.BookingDate;
             or.Company = _mapper.Map<CompanyDto>(company);
-            or.orderDetails = orderDetails;
+            or.OrderDetails = orderDetails;
             or.User = _mapper.Map<UserResponse>(order.Worker);
             result.Payload = or;
         }
@@ -369,6 +397,49 @@ public class OrderService : IOrderService
         return result;
     }
 
+    public async Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistoryByDeliveryStaff(int pageNumber)
+    {
+        pageNumber *= 5;
+        var result = new OperationResult<List<OrderHistoryResponse>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var orderDetailInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.OrderDetails,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((OrderDetail)sp).Combo
+                }
+            };
+            var dailyOrderInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.DailyOrder,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((DailyOrder)sp).MealSubscription,
+                    sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var workerInclude = new IncludeInfo<Order>
+            {
+                NavigationProperty = x => x.Worker,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((User)sp).Company
+                }
+            };
+            var orders = await _unitOfWork.OrderRepository.GetOrderHistoryByDeliveryStaff(userId, pageNumber, orderDetailInclude, dailyOrderInclude, workerInclude);
+            result.Payload = _mapper.Map<List<OrderHistoryResponse>>(orders);
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
     public async Task<OperationResult<OrderResponse>> RemoveOrder(Guid id)
     {
         var result = new OperationResult<OrderResponse>();
@@ -408,7 +479,7 @@ public class OrderService : IOrderService
             }
             
             // kiểm tra xem thg quét có được giao cho cái dailyOrder
-            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperIdAndDailyOrderId(userId,
+            var shippingOrder = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByDailyOrderId(userId,
                     order.DailyOrder!.Id);
             if (shippingOrder is null)
             {
@@ -472,6 +543,57 @@ public class OrderService : IOrderService
             }
             var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, comboPopular);
             result.Payload = orderStatistic;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<List<OrderResponse>>> GetOrderByDailyOrder(Guid dailyOrderId)
+    {
+        var result = new OperationResult<List<OrderResponse>>();
+        try
+        {
+            var orderInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).PaymentMethod
+                }
+            };
+            var workerInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).Worker
+                }
+            };
+            var comboInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).OrderDetails,
+                        sp => ((OrderDetail)sp).Combo
+                }
+            };
+            var foodInclude = new IncludeInfo<DailyOrder>
+            {
+                NavigationProperty = x => x.Orders,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Order)sp).OrderDetails,
+                        sp => ((OrderDetail)sp).Food
+                }
+            };
+            var dailyOrder = await _unitOfWork.DailyOrderRepository
+                .GetByIdAndIncludeAsync(dailyOrderId, orderInclude, workerInclude, comboInclude, foodInclude);
+            result.Payload = _mapper.Map<List<OrderResponse>>(dailyOrder.Orders);
         }
         catch (Exception e)
         {

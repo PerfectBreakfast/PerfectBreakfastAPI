@@ -2,8 +2,8 @@
 
 namespace PerfectBreakfast.Application.Models.ShippingOrder.Response;
 
-public record ShippingOrderHistoryForShipperResponse(
+public record ShippingOrderForShipperResponse(
     Guid Id,
     string Status,
-    DailyOrderModelResponse DailyOrder
+    DailyOrderDto DailyOrder
 );

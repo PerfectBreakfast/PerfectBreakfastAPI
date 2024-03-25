@@ -25,13 +25,7 @@ public class CategoryService : ICategoryService
         var result = new OperationResult<CategoryDetailFood>();
         try
         {
-            //var category = await _unitOfWork.CategoryRepository.FindSingleAsync(o => o.Id == categoryId, o => o.Foods);
-            //var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId, x => x.Foods);
             var category = await _unitOfWork.CategoryRepository.GetCategoryDetail(categoryId, status);
-
-            /*var foodDtos = _mapper.Map<List<FoodResponse>>(category.Foods); // Assuming FoodResponse is your DTO
-            var categoryDetails = _mapper.Map<CategoryDetailFood>(category);
-            categoryDetails.FoodResponse = foodDtos; // Assuming CategoryDetailFood has a Foods property*/
             result.Payload = _mapper.Map<CategoryDetailFood>(category);
         }
         catch (NotFoundIdException)
