@@ -35,9 +35,9 @@ public static class DependencyInjection
                 var errors = context.ModelState
                     .Where(e => e.Value.Errors.Count > 0)
                     .Select(e => new ErrorValidator(e.Key, e.Value.Errors.First().ErrorMessage))
-                    .ToList();
+                    .First();
 
-                return new BadRequestObjectResult(new ErrorResponse(400, "Bad Request", errors));
+                return new BadRequestObjectResult(new ErrorResponse(400, "Bad Request", $"{errors.Description}"));
             };
         });
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareHandler>();
