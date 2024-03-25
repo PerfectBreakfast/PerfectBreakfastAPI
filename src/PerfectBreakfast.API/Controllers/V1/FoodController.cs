@@ -126,4 +126,15 @@ public class FoodController : BaseController
         var response = await _foodService.GetFoodsForDelivery(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Super Admin
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet ("supplier/{id:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> GetFoodForSupplier(Guid id)
+    {
+        var response = await _foodService.GetFoodForSupplier(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

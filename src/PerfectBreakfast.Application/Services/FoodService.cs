@@ -393,6 +393,22 @@ namespace PerfectBreakfast.Application.Services;
             return result;
         }
 
+        public async Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id)
+        {
+            var result = new OperationResult<List<FoodResponse>>();
+            try
+            {
+                var food = await _unitOfWork.FoodRepository.GetFoodForSupplier(id);
+                result.Payload = _mapper.Map<List<FoodResponse>>(food);
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+
+            return result;
+        }
+
         public async Task<OperationResult<FoodResponse>> RemoveFood(Guid foodId)
         {
             var result = new OperationResult<FoodResponse>();
