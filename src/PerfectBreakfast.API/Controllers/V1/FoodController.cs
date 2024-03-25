@@ -128,7 +128,7 @@ public class FoodController : BaseController
     }
     
     /// <summary>
-    /// API For Super Admin
+    /// API For Super Admin - API lấy các món ăn cho NCC đăng kí
     /// </summary>
     /// <returns></returns>
     [HttpGet ("supplier/{id:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
