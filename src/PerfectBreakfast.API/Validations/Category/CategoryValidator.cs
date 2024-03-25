@@ -8,7 +8,7 @@ namespace PerfectBreakfast.API.Validations.CategoryValidatior
     {
         public CategoryValidator()
         {
-            RuleFor(x => x.Name).NotNull().NotEmpty().WithMessage("Name can not null or empty");
+            RuleFor(x => x.Name).NotNull().NotEmpty().WithMessage("Tên không được để trống");
         }
     }
 }

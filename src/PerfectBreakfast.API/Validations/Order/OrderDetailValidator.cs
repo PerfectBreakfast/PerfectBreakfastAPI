@@ -8,9 +8,9 @@ namespace PerfectBreakfast.API.Validations.Order
         public OrderDetailValidator()
         {
             RuleFor(p => p.Quantity)
-                .GreaterThan(0).WithMessage("Quantity must be greater than 0")
-                .NotNull().WithMessage("Quantity cannot be null")
-                .NotEmpty().WithMessage("Quantity cannot be empty");
+                .GreaterThan(0).WithMessage("Số lượng phải lớn hơn 0")
+                .NotNull().WithMessage("Số lượng không được để trống")
+                .NotEmpty().WithMessage("Số lượng không được để trống");
         }
     }
 }
