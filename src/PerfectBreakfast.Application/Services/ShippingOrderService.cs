@@ -218,7 +218,7 @@ public class ShippingOrderService : IShippingOrderService
         try
         {
             var shippingOrders = await _unitOfWork.ShippingOrderRepository
-                .GetShippingOrderByDailyOrder(dailyOrderId);
+                .GetShippingOrderByDailyOrderId(dailyOrderId);
             // check đơn hàng có phải phân công đúng của shipper không ?
             if (!shippingOrders.Any() || shippingOrders.All(order => order.ShipperId != userId))
             {

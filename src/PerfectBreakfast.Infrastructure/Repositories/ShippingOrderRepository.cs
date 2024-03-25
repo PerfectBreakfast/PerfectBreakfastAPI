@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -71,31 +70,19 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
 
     public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId)
     {
-        return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId && s.Status == ShippingStatus.Pending)
+        return await _dbSet.AsNoTracking().Where(s => s.DailyOrderId == dailyOrderId && s.Status == ShippingStatus.Pending)
             .Include(s => s.Shipper)
             .Include(s => s.DailyOrder)
                 .ThenInclude(d => d.MealSubscription)
-            .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync();
     }
 
-    public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrderV2(Guid dailyOrderId, int pageNumber = 1, params IncludeInfo<ShippingOrder>[] includeProperties)
+    public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrderId(Guid dailyOrderId)
     {
-        var itemsQuery = _dbSet.Where(x => x.DailyOrder.Id == dailyOrderId);
-        itemsQuery = itemsQuery.OrderByDescending(x => x.DailyOrder.BookingDate);
-        itemsQuery = itemsQuery.Take(pageNumber);
-        
-        // Xử lý các thuộc tính include và thenInclude
-        foreach (var includeProperty in includeProperties)
-        {
-            var queryWithInclude = itemsQuery.Include(includeProperty.NavigationProperty);
-            foreach (var thenInclude in includeProperty.ThenIncludes)
-            {
-                queryWithInclude = queryWithInclude.ThenInclude(thenInclude);
-            }
-            itemsQuery = queryWithInclude;
-        }
-        return await itemsQuery.AsNoTracking().ToListAsync();
+        return await _dbSet.AsNoTracking()
+            .Where(s => s.DailyOrderId == dailyOrderId)
+            .ToListAsync();
     }
+    
 }
