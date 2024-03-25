@@ -18,7 +18,7 @@ namespace PerfectBreakfast.API.Validations.Company
 
             RuleFor(p => p.Address).NotEmpty().WithMessage("Address cannot be empty")
                 .NotNull().WithMessage("Address cannot be null")
-                .MaximumLength(100);
+                .MaximumLength(300);
             
             RuleFor(p => p.PhoneNumber).NotEmpty().WithMessage("Phone cannot be empty")
                 .NotNull().WithMessage("Phone cannot be null")

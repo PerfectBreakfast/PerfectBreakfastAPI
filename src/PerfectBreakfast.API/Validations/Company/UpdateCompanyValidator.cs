@@ -11,11 +11,11 @@ public class UpdateCompanyValidator : AbstractValidator<UpdateCompanyRequest>
             .Matches(@"^[a-z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").WithMessage("Invalid email format");
 
         RuleFor(p => p.Name)
-            .MaximumLength(100)
+            .MaximumLength(250)
             .Matches(@"^[\p{L}\s]+$").WithMessage("Invalid Name format");
 
         RuleFor(p => p.Address)
-            .MaximumLength(100);
+            .MaximumLength(250);
             
         RuleFor(p => p.PhoneNumber)
             .MaximumLength(10)
