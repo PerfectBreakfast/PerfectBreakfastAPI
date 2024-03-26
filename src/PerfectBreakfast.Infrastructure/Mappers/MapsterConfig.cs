@@ -36,14 +36,16 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.DeliveryDate, src => src.DailyOrder.BookingDate)
             .Map(dest => dest.Meal, src => src.DailyOrder.MealSubscription.Meal.MealType);
         config.NewConfig<Order, OrderResponse>()
+            .Map(dest => dest.TotalQuantity, src => src.OrderDetails.Sum(o => o.Quantity))
             .Map(dest => dest.PaymentMethod, src => src.PaymentMethod.Name)
             .Map(dest => dest.Meal, src => src.DailyOrder.MealSubscription.Meal.MealType)
+            .Map(dest => dest.User, src => src.Worker)
             .Map(dest => dest.OrderDetails, src => src.OrderDetails);
         
         // Order Detail
         config.NewConfig<OrderDetail, OrderDetailResponse>()
             .Map(dest => dest.ComboName, src => src.Combo.Name)
-            .Map(dest => dest.Image, src => src.Combo.Image)
+            .Map(dest => dest.Image, src => src.Combo != null ? src.Combo.Image : src.Food.Image)
             .Map(dest => dest.Foods, src => src.Food.Name);
         
         // Food 
