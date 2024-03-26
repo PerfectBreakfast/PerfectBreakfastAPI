@@ -19,7 +19,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         public async Task<List<Food>> GetFoodForSupplier(Guid id)
         {
             return await _dbSet
-                .Where(f => f.SupplierCommissionRates.Any(scr => scr.SupplierId != id) && !f.IsDeleted)
+                .Where(f => !f.SupplierCommissionRates.Any(scr => scr.SupplierId == id) && !f.IsDeleted)
                 .ToListAsync();
         }
     }
