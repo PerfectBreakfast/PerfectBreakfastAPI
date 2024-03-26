@@ -11,6 +11,7 @@ namespace PerfectBreakfast.Application.Models.OrderModel.Response
         public decimal TotalPrice { get; set; }
         public string OrderStatus { get; set; }
         public int OrderCode { get; set; }
+        public int TotalQuantity { get; set; }
         public DateTime CreationDate { get; set; }
         public string? PaymentMethod { get; set; }
         public DateOnly BookingDate { get; set; }
