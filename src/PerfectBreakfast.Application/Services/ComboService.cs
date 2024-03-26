@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -163,7 +164,7 @@ public class ComboService : IComboService
         var result = new OperationResult<List<ComboResponse>>();
         try
         {
-            var combos = await _unitOfWork.ComboRepository.GetAllCombo();
+            var combos = await _unitOfWork.ComboRepository.FindAll(c => !c.IsDeleted).ToListAsync();
             result.Payload = _mapper.Map<List<ComboResponse>>(combos);
         }
         catch (Exception e)

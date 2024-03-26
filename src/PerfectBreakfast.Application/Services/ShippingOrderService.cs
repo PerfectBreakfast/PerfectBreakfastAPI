@@ -59,7 +59,7 @@ public class ShippingOrderService : IShippingOrderService
         try
         {
             var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId);
-            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking)
+            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking && dailyOrder.Status !=DailyOrderStatus.Waiting)
             {
                 result.AddError(ErrorCode.BadRequest,
                     $"Trạng thái đơn hàng không đúng {dailyOrder.Status.ToString()}");
