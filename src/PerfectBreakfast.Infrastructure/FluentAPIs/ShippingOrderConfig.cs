@@ -19,5 +19,8 @@ public class ShippingOrderConfig : IEntityTypeConfiguration<ShippingOrder>
         builder.HasOne(x => x.Shipper)
             .WithMany(x => x.ShippingOrders)
             .HasForeignKey(fk => fk.ShipperId);
+        
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

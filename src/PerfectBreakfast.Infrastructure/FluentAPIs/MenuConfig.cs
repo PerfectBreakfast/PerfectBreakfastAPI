@@ -12,6 +12,9 @@ public class MenuConfig : IEntityTypeConfiguration<Menu>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(100);
+        
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
         builder.HasIndex(x => x.IsSelected);
     }
 }

@@ -20,5 +20,8 @@ public class ComboFoodConfig : IEntityTypeConfiguration<ComboFood>
         builder.HasOne(x => x.Food)
             .WithMany(x => x.ComboFoods)
             .HasForeignKey(fk => fk.FoodId);
+        
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

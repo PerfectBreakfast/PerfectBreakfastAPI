@@ -15,6 +15,9 @@ public class DeliveryConfig : IEntityTypeConfiguration<Delivery>
         builder.Property(x => x.Address).IsRequired().HasMaxLength(200);
         builder.Property(x => x.PhoneNumber).HasMaxLength(10);
         builder.Property(x => x.CommissionRate).HasColumnType("decimal(18,2)");
+        
+        // Create Index 
         builder.HasIndex(x => x.Name).IsUnique();
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

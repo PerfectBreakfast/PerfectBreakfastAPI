@@ -19,7 +19,7 @@ public class DailyOrderConfig : IEntityTypeConfiguration<DailyOrder>
             .WithMany(ur => ur.DailyOrders)
             .HasForeignKey(pk => pk.MealSubscriptionId);
         
-        // Thêm ràng buộc duy nhất cho CompanyId và BookingDate
-        //builder.HasIndex(x => new { x.CompanyId, x.BookingDate }).IsUnique();
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

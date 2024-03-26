@@ -24,5 +24,8 @@ public class CompanyConfig : IEntityTypeConfiguration<Company>
         builder.HasOne(x => x.Delivery)
             .WithMany(x => x.Companies)
             .HasForeignKey(fk => fk.DeliveryId);
+        
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }
