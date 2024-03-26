@@ -211,7 +211,6 @@ public class ComboService : IComboService
 
             _unitOfWork.ComboRepository.Update(comboEntity);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<ComboResponse>(comboEntity);
         }
         catch (NotFoundIdException)
         {
