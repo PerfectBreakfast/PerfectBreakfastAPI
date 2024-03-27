@@ -460,7 +460,7 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "Phần giao đã được xác nhận");
                     return result;
                 }
-                if (supplierFoodAssignment.Status == SupplierFoodAssignmentStatus.Completed)
+                if (supplierFoodAssignment.Status == SupplierFoodAssignmentStatus.Complete)
                 {
                     result.AddError(ErrorCode.BadRequest, "Phần giao đã được hoàn thành");
                     return result;
@@ -535,17 +535,17 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "Phần giao chưa được xử lí để hoàn thành");
                     return result;
                 }
-                if (supplierFoodAssignment.Status == SupplierFoodAssignmentStatus.Completed)
+                if (supplierFoodAssignment.Status == SupplierFoodAssignmentStatus.Complete)
                 {
                     result.AddError(ErrorCode.BadRequest, "Phần giao đã được hoàn thành");
                     return result;
                 }
-                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Completed;
+                supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Complete;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 var supplierFoodAssignments =
                     await _unitOfWork.SupplierFoodAssignmentRepository
                         .GetByDailyOrder((Guid)supplierFoodAssignment.DailyOrderId);
-                var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Completed);
+                var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Complete);
                 if (allConfirmed)
                 {
                     var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
