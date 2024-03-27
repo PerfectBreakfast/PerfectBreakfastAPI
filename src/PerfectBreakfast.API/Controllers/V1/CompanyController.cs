@@ -40,15 +40,15 @@ public class CompanyController : BaseController
     }
 
     /// <summary>
-    /// API for Super Admin, Partner Admin
+    /// API for Super Admin, Partner Admin  (lấy các User theo id Company)
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="companyId"></param>
     /// <returns></returns>
-    [HttpGet("{id}/users")]
+    [HttpGet("{companyId}/users")]
     [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN},{ConstantRole.PARTNER_ADMIN}")]
-    public async Task<IActionResult> GetUsersByCompany(Guid id)
+    public async Task<IActionResult> GetUsersByCompany(Guid companyId)
     {
-        var response = await _companyService.GetUsersByCompanyId(id);
+        var response = await _companyService.GetUsersByCompanyId(companyId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 

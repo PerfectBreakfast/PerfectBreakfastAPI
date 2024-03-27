@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using CompanyResponse = PerfectBreakfast.Application.Models.CompanyModels.Response.CompanyResponse;
@@ -72,8 +73,7 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<List<UserResponse>>();
         try
         {
-            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, c => c.Workers);
-            var users = company.Workers;
+            var users = await _unitOfWork.UserRepository.FindAll(x => x.CompanyId == id).ToListAsync();
             result.Payload = _mapper.Map<List<UserResponse>>(users);
         }
         catch (NotFoundIdException e)
