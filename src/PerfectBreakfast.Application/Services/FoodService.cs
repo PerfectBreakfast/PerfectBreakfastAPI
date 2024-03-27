@@ -266,18 +266,19 @@ namespace PerfectBreakfast.Application.Services;
             var result = new OperationResult<TotalFoodForPartnerResponse>();
             try
             {
-                var deliveryInclude = new IncludeInfo<User>
-                {
-                    NavigationProperty = x => x.Delivery,
-                    ThenIncludes = [sp => ((Delivery)sp).Companies]
-                };
-                var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
-
-                if (user.Delivery == null)
-                {
-                    result.AddError(ErrorCode.NotFound, "Delivery does not exist");
-                    return result;
-                }
+                // khỏi cần check cái này vì hàm này chỉ là hàm get lên thoi, chỉ cần account là role staff thì là đc đi 
+                // var deliveryInclude = new IncludeInfo<User>
+                // {
+                //     NavigationProperty = x => x.Delivery,
+                //     ThenIncludes = [sp => ((Delivery)sp).Companies]
+                // };
+                // var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
+                //
+                // if (user.Delivery == null)
+                // {
+                //     result.AddError(ErrorCode.NotFound, "Delivery does not exist");
+                //     return result;
+                // }
                         
                 // Lấy daily order
                 var mealInclude = new IncludeInfo<DailyOrder>
@@ -314,15 +315,16 @@ namespace PerfectBreakfast.Application.Services;
                 var dailyOrder = await _unitOfWork.DailyOrderRepository
                     .GetByIdAndIncludeAsync(dailyOrderId, mealInclude, companyInclude, comboInclude, foodInclude);
 
+                // (khỏi check cái này luôn)
                 // Kiểm tra xem công ty có trong danh sách đối tác không
-                var companyFound = user.Delivery.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
-
-                // Nếu công ty không được tìm thấy, thêm lỗi vào kết quả
-                if (!companyFound)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Company doesn't have this daily order");
-                    return result;
-                }
+                // var companyFound = user.Delivery.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
+                //
+                // // Nếu công ty không được tìm thấy, thêm lỗi vào kết quả
+                // if (!companyFound)
+                // {
+                //     result.AddError(ErrorCode.BadRequest, "Company doesn't have this daily order");
+                //     return result;
+                // }
                 
                 // Lấy chi tiết các order detail
                 var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
