@@ -12,7 +12,7 @@ public class SupplyAssigmentRepository : BaseRepository<SupplyAssignment>,ISuppl
     
     public async Task<bool> IsDuplicateAssignment(Guid partnerId, Guid supplierId)
     {
-        return await _dbSet
+        return await _dbSet.AsNoTracking()
             .AnyAsync(sa => sa.PartnerId == partnerId && sa.SupplierId == supplierId);
     }
     

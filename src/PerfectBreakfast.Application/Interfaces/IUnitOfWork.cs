@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
@@ -8,6 +9,7 @@ namespace PerfectBreakfast.Application.Interfaces;
 public interface IUnitOfWork : IDisposable
 {
     public Task<int> SaveChangeAsync();
+    IDbTransaction BeginTransaction();
     Task<IDbContextTransaction> BeginTransactionAsync();
     public UserManager<User> UserManager { get; }
     public SignInManager<User> SignInManager { get; }

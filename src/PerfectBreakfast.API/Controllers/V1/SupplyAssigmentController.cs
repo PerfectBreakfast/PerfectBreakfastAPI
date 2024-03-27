@@ -44,7 +44,7 @@ public class SupplyAssigmentController : BaseController
     /// <param name="supplierId"></param>
     /// <param name="partnerId"></param>
     /// <returns></returns>
-    [HttpDelete("supplier/{supplierId}/partner/{partnerId}")]
+    [HttpDelete("supplier/{supplierId}/partner/{partnerId}"),Authorize(policy: ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> Remove(Guid supplierId,Guid partnerId)
     {
         var response = await _supplyAssigmentService.RemoveSupplyAssigment(supplierId, partnerId);

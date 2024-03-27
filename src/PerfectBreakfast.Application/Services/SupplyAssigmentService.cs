@@ -43,7 +43,7 @@ public class SupplyAssigmentService : ISupplyAssigmentService
                     .IsDuplicateAssignment(requestModel.PartnerId.Value, requestModel.SupplierId.Value);
                 if (isDuplicate)
                 {
-                    result.AddError(ErrorCode.BadRequest, "A supply assignment with the same PartnerId and SupplierId already exists.");
+                    result.AddError(ErrorCode.BadRequest, "Đơn vị đã được gán quản lý này");
                     return result;
                 }
             }
