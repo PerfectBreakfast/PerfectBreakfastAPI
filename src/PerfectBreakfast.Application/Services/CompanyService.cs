@@ -343,6 +343,11 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
+            if (companyRequest.Meals.Any(meal => meal.StartTime > meal.EndTime))
+            {
+                result.AddError(ErrorCode.BadRequest, "Giờ bắt đầu phải trước giờ kết thúc");
+                return result;
+            }
             var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, m => m.MealSubscriptions);
             //_mapper.Map(companyRequest, company);
             company.Name = companyRequest.Name ?? company.Name;

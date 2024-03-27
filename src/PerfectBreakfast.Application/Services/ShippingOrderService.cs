@@ -67,7 +67,7 @@ public class ShippingOrderService : IShippingOrderService
             }
 
             // Check for duplicate shipping order
-            bool exists = await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShippers(
+            var exists = await _unitOfWork.ShippingOrderRepository.ExistsWithDailyOrderAndShippers(
                 requestModel.DailyOrderId, requestModel.ShipperIds);
             if (exists)
             {

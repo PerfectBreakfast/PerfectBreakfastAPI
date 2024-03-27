@@ -82,7 +82,7 @@ public class DailyOrderService : IDailyOrderService
                     .Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForPartner(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationProcessingForPartner(mealSubscriptionIds,pageIndex, pageSize);
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
@@ -154,7 +154,7 @@ public class DailyOrderService : IDailyOrderService
                     .Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForAllStatus(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForPartner(mealSubscriptionIds,pageIndex, pageSize);
             
             // Group DailyOrders by BookingDate and Company
             var dailyOrderResponses = dailyOrderPages.Items
@@ -226,7 +226,7 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForDeliveryDistribution(mealSubscriptionIds,pageIndex, pageSize);
             
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
@@ -294,7 +294,7 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions.Where(c => !c.IsDeleted).Select(x => x.Id)).ToList();
 
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPaginationForComplete(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPaginationForDelivery(mealSubscriptionIds,pageIndex, pageSize);
             
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))
