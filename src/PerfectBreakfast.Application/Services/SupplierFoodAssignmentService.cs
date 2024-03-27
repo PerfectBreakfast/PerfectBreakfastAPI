@@ -293,6 +293,7 @@ namespace PerfectBreakfast.Application.Services
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
+                                    FoodId = supplierFoodAssignment.FoodId,
                                     FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
@@ -412,6 +413,7 @@ namespace PerfectBreakfast.Application.Services
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
+                                    FoodId = supplierFoodAssignment.FoodId,
                                     FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
@@ -617,7 +619,6 @@ namespace PerfectBreakfast.Application.Services
                 supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 await _unitOfWork.SaveChangeAsync();
-                var foodAssignment = _mapper.Map<SupplierFoodAssignmentResponse>(supplierFoodAssignment);
                 
                 //Gửi mail thông báo đến các nhà cung cấp
                 var supplier =
@@ -652,7 +653,6 @@ namespace PerfectBreakfast.Application.Services
                     Console.WriteLine("Gửi mail thất bại");
                 }
                 
-                result.Payload = foodAssignment;
             }
             catch (NotFoundIdException)
             {
