@@ -53,7 +53,7 @@ public class UserController : BaseController
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    [HttpGet("pagination")]
+    [HttpGet("pagination"), Authorize(policy:  ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetUserPagination(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _userService.GetUserPaginationAsync(pageIndex,pageSize);

@@ -159,4 +159,44 @@ public class ManagementService : IManagementService
             throw;
         }
     }
+
+    public async Task CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(Guid dailyOrderId)
+    {
+        try
+        {
+            // check xem tất cả order của cái dailyOrder này đã complete hết chưa
+            var isAllOrderComplete = await _unitOfWork.OrderRepository.AreAllOrdersCompleteForDailyOrder(dailyOrderId);  
+            
+            // nếu order đã complete hết 
+            if (isAllOrderComplete)   
+            {
+                // lấy ra DailyOrder để chuẩn bị update 
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(dailyOrderId);
+                
+                // lấy ra shippingOrder
+                var shippingOrders = await _unitOfWork.ShippingOrderRepository
+                    .GetShippingOrderByDailyOrderId(dailyOrderId);
+                
+                // update status dailyOrder 
+                dailyOrder.Status = DailyOrderStatus.Complete;
+                _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+                
+                // update ShippingOrder 
+                foreach (var shippingOrder in shippingOrders)
+                {
+                    shippingOrder.Status = ShippingStatus.Complete;
+                }
+                _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
+
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            }
+            
+            
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

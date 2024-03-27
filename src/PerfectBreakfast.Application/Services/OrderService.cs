@@ -497,6 +497,11 @@ public class OrderService : IOrderService
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             // map
             result.Payload = isSuccess;
+            
+            // Chạy 1 job khi giao xong một đơn sẽ check xem là đã hết chưa hết thì sẽ tự complete DailyOrder và ShippingOrder
+            BackgroundJob.Enqueue<IManagementService>(d => 
+                d.CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(order.DailyOrderId!.Value));
+            
         }
         catch (Exception e)
         {

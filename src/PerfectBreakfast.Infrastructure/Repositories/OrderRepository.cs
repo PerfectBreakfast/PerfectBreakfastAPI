@@ -71,6 +71,18 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return orders;
         }
 
+        public async Task<bool> AreAllOrdersCompleteForDailyOrder(Guid dailyOrderId)
+        {
+            // Kiểm tra xem có bất kỳ Order nào liên kết với DailyOrder cụ thể này chưa hoàn thành
+            var incompleteOrders = await _dbSet
+                .Where(o => o.DailyOrderId == dailyOrderId && o.OrderStatus != OrderStatus.Complete)
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Nếu không có Order nào (tức là tất cả đều 'complete'), trả về true
+            return !incompleteOrders.Any();
+        }
+
         public async Task<Order> GetOrderByOrderCode(long orderCode)
         {
             var order = await _dbSet.AsNoTracking().SingleAsync(x => x.OrderCode == orderCode);

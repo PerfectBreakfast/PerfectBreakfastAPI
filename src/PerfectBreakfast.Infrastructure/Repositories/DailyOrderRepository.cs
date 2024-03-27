@@ -12,26 +12,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         public DailyOrderRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) : base(context, timeService, claimsService)
         {
         }
-
-        public async Task<DailyOrder?> FindAllDataByCompanyId(Guid? mealSubscriptionId)
-        {
-            var a = await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId)
-                .OrderByDescending(d => d.CreationDate)
-                .Include(d => d.Orders)
-                    .ThenInclude(o => o.OrderDetails)
-                        .ThenInclude(c => c.Combo)
-                            .ThenInclude(m => m.MenuFoods)
-                                .ThenInclude(f => f.Food)
-                .FirstOrDefaultAsync();
-            return a;
-        }
-
-        public async Task<DailyOrder?> FindByCompanyId(Guid? mealSubscriptionId)
-        {
-            return await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId && d.Status == DailyOrderStatus.Initial)
-                .OrderByDescending(d => d.CreationDate)
-                .FirstOrDefaultAsync();
-        }
+        
 
         public async Task<List<DailyOrder>> FindByBookingDate(DateTime dateTime)
         {
@@ -301,5 +282,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .AsSplitQuery()
                 .ToListAsync();
         }
+
+        
     }
 }
