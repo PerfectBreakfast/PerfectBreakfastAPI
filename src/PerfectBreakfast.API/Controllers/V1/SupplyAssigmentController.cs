@@ -37,4 +37,17 @@ public class SupplyAssigmentController : BaseController
         var response = await _supplyAssigmentService.CreateSupplyAssigment(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    /// <summary>
+    /// Api for Super Admin (xóa quan hệ gán giữa thằng ncc và đối tác)
+    /// </summary>
+    /// <param name="supplierId"></param>
+    /// <param name="partnerId"></param>
+    /// <returns></returns>
+    [HttpDelete("supplier/{supplierId}/partner/{partnerId}")]
+    public async Task<IActionResult> Remove(Guid supplierId,Guid partnerId)
+    {
+        var response = await _supplyAssigmentService.RemoveSupplyAssigment(supplierId, partnerId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }
