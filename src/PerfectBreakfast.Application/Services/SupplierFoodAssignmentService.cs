@@ -293,6 +293,7 @@ namespace PerfectBreakfast.Application.Services
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
+                                    FoodId = supplierFoodAssignment.FoodId,
                                     FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
@@ -412,6 +413,7 @@ namespace PerfectBreakfast.Application.Services
                                 return new FoodAssignmentResponse
                                 {
                                     Id = supplierFoodAssignment.Id,
+                                    FoodId = supplierFoodAssignment.FoodId,
                                     FoodName = foodName,
                                     AmountCooked = supplierFoodAssignment.AmountCooked,
                                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
