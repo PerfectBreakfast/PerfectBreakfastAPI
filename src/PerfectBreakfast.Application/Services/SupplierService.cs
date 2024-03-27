@@ -30,7 +30,7 @@ public class SupplierService : ISupplierService
         var result = new OperationResult<List<SupplierResponse>>();
         try
         {
-            var suppliers = await _unitOfWork.SupplierRepository.GetAllAsync();
+            var suppliers = await _unitOfWork.SupplierRepository.FindAll(s => !s.IsDeleted).ToListAsync();
             result.Payload = _mapper.Map<List<SupplierResponse>>(suppliers);
         }
         catch (Exception e)

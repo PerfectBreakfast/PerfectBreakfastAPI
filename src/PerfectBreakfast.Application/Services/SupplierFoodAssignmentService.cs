@@ -472,6 +472,35 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "Status must be 1 or 0");
                     return result;
                 }
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
+                if (dailyOrder is not { Status: DailyOrderStatus.Processing })
+                {
+                    switch (dailyOrder.Status)
+                    {
+                        case DailyOrderStatus.Complete:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
+                            return result;
+                        case DailyOrderStatus.Cooking:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                            return result;
+                        case DailyOrderStatus.Initial:
+                            result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
+                            return result;
+                        case DailyOrderStatus.Processing:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                            return result;
+                        case DailyOrderStatus.Waiting:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                            return result;
+                        case DailyOrderStatus.Delivering:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
+                            return result;
+                        default:
+                            result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
+                            return result;
+                    }
+                }
+                
                 supplierFoodAssignment.Status = status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 var supplierFoodAssignments =
@@ -480,34 +509,6 @@ namespace PerfectBreakfast.Application.Services
                 var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
                 if (allConfirmed)
                 {
-                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
-                    if (dailyOrder is not { Status: DailyOrderStatus.Processing })
-                    {
-                        switch (dailyOrder.Status)
-                        {
-                            case DailyOrderStatus.Complete:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
-                                return result;
-                            case DailyOrderStatus.Cooking:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
-                                return result;
-                            case DailyOrderStatus.Initial:
-                                result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
-                                return result;
-                            case DailyOrderStatus.Processing:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
-                                return result;
-                            case DailyOrderStatus.Waiting:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
-                                return result;
-                            case DailyOrderStatus.Delivering:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
-                                return result;
-                            default:
-                                result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
-                                return result;
-                        }
-                    }
                     dailyOrder.Status = DailyOrderStatus.Cooking;
                     _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                 }
@@ -532,6 +533,7 @@ namespace PerfectBreakfast.Application.Services
             try
             {
                 var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(id);
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
                 if (supplierFoodAssignment.Status == SupplierFoodAssignmentStatus.Pending)
                 {
                     result.AddError(ErrorCode.BadRequest, "Phần giao chưa được xử lí để hoàn thành");
@@ -542,6 +544,31 @@ namespace PerfectBreakfast.Application.Services
                     result.AddError(ErrorCode.BadRequest, "Phần giao đã được hoàn thành");
                     return result;
                 }
+                if (dailyOrder.Status != DailyOrderStatus.Cooking)
+                {
+                    switch (dailyOrder.Status)
+                    {
+                        case DailyOrderStatus.Complete:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
+                            return result;
+                        case DailyOrderStatus.Initial:
+                            result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
+                            return result;
+                        case DailyOrderStatus.Processing:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                            return result;
+                        case DailyOrderStatus.Waiting:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                            return result;
+                        case DailyOrderStatus.Delivering:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
+                            return result;
+                        default:
+                            result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
+                            return result;
+                    }
+                }
+                
                 supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Complete;
                 _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
                 var supplierFoodAssignments =
@@ -550,31 +577,6 @@ namespace PerfectBreakfast.Application.Services
                 var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Complete);
                 if (allConfirmed)
                 {
-                    var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.DailyOrderId);
-                    if (dailyOrder is not { Status: DailyOrderStatus.Cooking })
-                    {
-                        switch (dailyOrder.Status)
-                        {
-                            case DailyOrderStatus.Complete:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
-                                return result;
-                            case DailyOrderStatus.Initial:
-                                result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
-                                return result;
-                            case DailyOrderStatus.Processing:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
-                                return result;
-                            case DailyOrderStatus.Waiting:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
-                                return result;
-                            case DailyOrderStatus.Delivering:
-                                result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
-                                return result;
-                            default:
-                                result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
-                                return result;
-                        }
-                    }
                     dailyOrder.Status = DailyOrderStatus.Waiting;
                     _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                 }

@@ -8,7 +8,11 @@ namespace PerfectBreakfast.API.Validations.SupplierFoodAssignment
         public FoodAssignmentValidator()
         {
             RuleFor(p => p.FoodId).NotEmpty().NotNull().WithMessage("Món ăn  không được để trống");
-            RuleFor(p => p.AmountCooked).NotEmpty().NotNull().WithMessage("Số lượng  không được để trống");
+            RuleFor(p => p.AmountCooked)
+                .NotEmpty().WithMessage("Số lượng không được để trống")
+                .NotNull().WithMessage("Số lượng không được để trống")
+                .Must(x => x.GetType() == typeof(int)).WithMessage("Số lượng phải là kiểu số nguyên");
+            ;
         }
     }
 }

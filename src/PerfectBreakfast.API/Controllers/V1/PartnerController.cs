@@ -16,6 +16,7 @@ public class PartnerController : BaseController
     {
         _partnerService = partnerService;
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -26,6 +27,7 @@ public class PartnerController : BaseController
         var response = await _partnerService.GetPartners();
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -36,6 +38,7 @@ public class PartnerController : BaseController
         var response = await _partnerService.CreatePartner(requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -46,6 +49,7 @@ public class PartnerController : BaseController
         var response = await _partnerService.UpdatePartner(id, requestModel);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -56,6 +60,7 @@ public class PartnerController : BaseController
         var response = await _partnerService.RemovePartner(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -66,6 +71,7 @@ public class PartnerController : BaseController
         var response = await _partnerService.GetPartnerId(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
     /// <summary>
     /// API FOR SUPER ADMIN
     /// </summary>
@@ -74,6 +80,17 @@ public class PartnerController : BaseController
     public async Task<IActionResult> GetPartnerPagination(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
         var response = await _partnerService.GetPartnerPaginationAsync(searchTerm,pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API FOR SUPER ADMIN
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet ("supplier-assignment/{supplierId:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> GetPartnerToSupplierAssign(Guid supplierId)
+    {
+        var response = await _partnerService.AssignPartnerToSupplier(supplierId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
