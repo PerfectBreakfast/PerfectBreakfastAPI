@@ -417,11 +417,13 @@ namespace PerfectBreakfast.Application.Services;
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 // Remove
-                var entity = _unitOfWork.FoodRepository.Remove(food);
+                _unitOfWork.FoodRepository.SoftRemove(food);
                 // saveChange
-                await _unitOfWork.SaveChangeAsync();
-                // map entity to SupplierResponse
-                result.Payload = _mapper.Map<FoodResponse>(entity);
+                var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+                if (!isSuccess)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Xóa thất bại");
+                }
             }
             catch (Exception e)
             {
