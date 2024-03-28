@@ -483,7 +483,7 @@ public class OrderService : IOrderService
                     order.DailyOrder!.Id);
             if (shippingOrder is null)
             {
-                result.AddError(ErrorCode.BadRequest, "Bạn không được giao đơn hàng này!");
+                result.AddError(ErrorCode.BadRequest, "Bạn không được giao nhiệm vụ cho đơn hàng này!");
                 return result;
             }
             
@@ -497,6 +497,11 @@ public class OrderService : IOrderService
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             // map
             result.Payload = isSuccess;
+            
+            // Chạy 1 job khi giao xong một đơn sẽ check xem là đã hết chưa hết thì sẽ tự complete DailyOrder và ShippingOrder
+            BackgroundJob.Enqueue<IManagementService>(d => 
+                d.CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(order.DailyOrderId!.Value));
+            
         }
         catch (Exception e)
         {
@@ -575,7 +580,7 @@ public class OrderService : IOrderService
             };
             var comboInclude = new IncludeInfo<DailyOrder>
             {
-                NavigationProperty = x => x.Orders,
+                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Order)sp).OrderDetails,

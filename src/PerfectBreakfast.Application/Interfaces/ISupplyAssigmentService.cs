@@ -9,5 +9,6 @@ public interface ISupplyAssigmentService
     public Task<OperationResult<List<SupplyAssigmentResponse>>> GetSupplyAssigment();
     
     public Task<OperationResult<SupplyAssigmentResponse>> CreateSupplyAssigment(CreateSupplyAssigment requestModel);
+    public Task<OperationResult<bool>> RemoveSupplyAssigment(Guid supplierId,Guid partnerId);
     
 }

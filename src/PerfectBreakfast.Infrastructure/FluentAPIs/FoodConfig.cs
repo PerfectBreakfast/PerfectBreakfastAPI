@@ -18,5 +18,7 @@ public class FoodConfig : IEntityTypeConfiguration<Food>
             .WithMany(x => x.Foods)
             .HasForeignKey(fk => fk.CategoryId);
 
+        // Create Index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

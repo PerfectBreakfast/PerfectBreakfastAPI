@@ -9,5 +9,6 @@ public enum DailyOrderStatus
     Cooking,
     Waiting,
     Delivering,    
-    Complete 
+    Complete,
+    NoOrders    // trạng thái empty , là k có order nào đặt trong cái dailyOrder này 
 }

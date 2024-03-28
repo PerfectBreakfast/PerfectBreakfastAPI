@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.DeliveryUnitModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using CompanyResponse = PerfectBreakfast.Application.Models.CompanyModels.Response.CompanyResponse;
@@ -72,8 +73,7 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<List<UserResponse>>();
         try
         {
-            var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, c => c.Workers);
-            var users = company.Workers;
+            var users = await _unitOfWork.UserRepository.FindAll(x => x.CompanyId == id).ToListAsync();
             result.Payload = _mapper.Map<List<UserResponse>>(users);
         }
         catch (NotFoundIdException e)
@@ -230,8 +230,10 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<List<CompanyResponse>>();
         try
         {
-            var com = await _unitOfWork.CompanyRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<CompanyResponse>>(com);
+            var companies = await _unitOfWork.CompanyRepository
+                .FindAll(c => !c.IsDeleted)
+                .ToListAsync();
+            result.Payload = _mapper.Map<List<CompanyResponse>>(companies);
         }
         catch (Exception e)
         {
@@ -252,15 +254,12 @@ public class CompanyService : ICompanyService
                 result.AddError(ErrorCode.NotFound,"Id is not exist");
                 return result;
             }
-
-            //var meals = companyEntity.MealSubscriptions.Select(x => x.Meal).ToList();
+            
             var mealsSubscription = companyEntity.MealSubscriptions.ToList();
-            var partner = _mapper.Map<PartnerResponseModel>(companyEntity.Partner);
-            var delivery = _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery);
             var company = _mapper.Map<CompanyResponse>(companyEntity);
+            company.Partner = !companyEntity.Partner.IsDeleted ? _mapper.Map<PartnerResponseModel>(companyEntity.Partner) : null;
+            company.Delivery = !companyEntity.Delivery.IsDeleted ? _mapper.Map<DeliveryResponseModel>(companyEntity.Delivery) : null;
             company.MemberCount = companyEntity.Workers.Count;
-            company.Delivery = delivery;
-            company.Partner = partner;
             company.Meals = mealsSubscription
                 .Where(mealSubscription => !mealSubscription.IsDeleted)
                 .Select(mealsSubscription =>
@@ -291,11 +290,11 @@ public class CompanyService : ICompanyService
             {
                 NavigationProperty = c => c.Workers
             };
-            var managementUnitInclude = new IncludeInfo<Company>
+            var partnerInclude= new IncludeInfo<Company>
             {
                 NavigationProperty = c => c.Partner
             };
-            var deliveryUnitInclude = new IncludeInfo<Company>
+            var deliveryInclude = new IncludeInfo<Company>
             {
                 NavigationProperty = c => c.Delivery
             };
@@ -303,10 +302,10 @@ public class CompanyService : ICompanyService
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Company, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
                 ? (x => !x.IsDeleted)
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) );
 
             var companyPages = await _unitOfWork.CompanyRepository.ToPagination(pageIndex, pageSize, searchPredicate,
-                userInclude, managementUnitInclude, deliveryUnitInclude);
+                userInclude, partnerInclude, deliveryInclude);
             var companyResponses = companyPages.Items.Select(c =>
                 new CompanyResponsePaging
                 {
@@ -342,6 +341,11 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<CompanyResponse>();
         try
         {
+            if (companyRequest.Meals.Any(meal => meal.StartTime > meal.EndTime))
+            {
+                result.AddError(ErrorCode.BadRequest, "Giờ bắt đầu phải trước giờ kết thúc");
+                return result;
+            }
             var company = await _unitOfWork.CompanyRepository.GetByIdAsync(id, m => m.MealSubscriptions);
             //_mapper.Map(companyRequest, company);
             company.Name = companyRequest.Name ?? company.Name;

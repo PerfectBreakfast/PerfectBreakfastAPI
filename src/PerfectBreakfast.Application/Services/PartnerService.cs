@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -28,8 +29,8 @@ public class PartnerService : IPartnerService
         var result = new OperationResult<List<PartnerResponseModel>>();
         try
         {
-            var managementUnits = await _unitOfWork.PartnerRepository.GetAllAsync();
-            result.Payload = _mapper.Map<List<PartnerResponseModel>>(managementUnits);
+            var partners = await _unitOfWork.PartnerRepository.FindAll(p => !p.IsDeleted).ToListAsync();
+            result.Payload = _mapper.Map<List<PartnerResponseModel>>(partners);
         }
         catch (Exception e)
         {
@@ -50,6 +51,7 @@ public class PartnerService : IPartnerService
                 return result;
             }
             var mana = _mapper.Map<PartnerDetailResponse>(partner);
+            
             result.Payload = mana;
         }
         catch (NotFoundIdException e)
@@ -182,6 +184,23 @@ public class PartnerService : IPartnerService
                 TotalItemsCount = partnerPages.TotalItemsCount,
                 Items = managementUnitResponses
             };
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
+
+    public async Task<OperationResult<List<PartnerResponseModel>>> AssignPartnerToSupplier(Guid supplierId)
+    {
+        var result = new OperationResult<List<PartnerResponseModel>>();
+        try
+        {
+            var partners = await _unitOfWork.PartnerRepository
+                .FindAll(p => !p.IsDeleted && p.SupplyAssignments.All(s => s.SupplierId != supplierId))
+                .ToListAsync();
+            result.Payload = _mapper.Map<List<PartnerResponseModel>>(partners);
         }
         catch (Exception e)
         {

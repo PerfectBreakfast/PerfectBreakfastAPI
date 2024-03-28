@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
@@ -31,6 +32,11 @@ public class UnitOfWork : IUnitOfWork
     public async Task<int> SaveChangeAsync()
     {
         return await _dbContext.SaveChangesAsync();
+    }
+
+    public IDbTransaction BeginTransaction()
+    {
+        return _dbContext.Database.BeginTransaction().GetDbTransaction();
     }
 
     public async Task<IDbContextTransaction> BeginTransactionAsync()

@@ -7,7 +7,9 @@ public class SupplierValidator : AbstractValidator<CreateSupplierRequestModel>
 {
     public SupplierValidator()
     {
-        RuleFor(x => x.Address).NotEmpty().NotNull().WithMessage("Address can not null or empty");
-        RuleFor(x => x.Name).NotNull().NotEmpty().WithMessage("Name can not null or empty").MaximumLength(200);
+        RuleFor(x => x.Address).NotEmpty().NotNull()
+            .WithMessage("Địa chỉ không được để trống");
+        RuleFor(x => x.Name).NotNull().NotEmpty()
+            .WithMessage("Tên không được để trống").MaximumLength(200);
     }
 }

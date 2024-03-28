@@ -7,6 +7,7 @@ using PerfectBreakfast.Application.Models.ComboModels.Response;
 using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -136,7 +137,7 @@ public class ComboService : IComboService
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<Combo, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
                 ? (x => !x.IsDeleted)
-                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted == false);
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) && !x.IsDeleted);
 
             // lấy page combo 
             var pagedCombos =
@@ -163,7 +164,7 @@ public class ComboService : IComboService
         var result = new OperationResult<List<ComboResponse>>();
         try
         {
-            var combos = await _unitOfWork.ComboRepository.GetAllCombo();
+            var combos = await _unitOfWork.ComboRepository.FindAll(c => !c.IsDeleted).ToListAsync();
             result.Payload = _mapper.Map<List<ComboResponse>>(combos);
         }
         catch (Exception e)
@@ -211,7 +212,6 @@ public class ComboService : IComboService
 
             _unitOfWork.ComboRepository.Update(comboEntity);
             await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<ComboResponse>(comboEntity);
         }
         catch (NotFoundIdException)
         {

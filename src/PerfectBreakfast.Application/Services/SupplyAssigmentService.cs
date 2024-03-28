@@ -43,7 +43,7 @@ public class SupplyAssigmentService : ISupplyAssigmentService
                     .IsDuplicateAssignment(requestModel.PartnerId.Value, requestModel.SupplierId.Value);
                 if (isDuplicate)
                 {
-                    result.AddError(ErrorCode.BadRequest, "A supply assignment with the same PartnerId and SupplierId already exists.");
+                    result.AddError(ErrorCode.BadRequest, "Đơn vị đã được gán quản lý này");
                     return result;
                 }
             }
@@ -63,5 +63,27 @@ public class SupplyAssigmentService : ISupplyAssigmentService
         return result;
     }
 
-    
+    public async Task<OperationResult<bool>> RemoveSupplyAssigment(Guid supplierId, Guid partnerId)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var entity = await _unitOfWork.SupplyAssigmentRepository
+                .FindSingleAsync(x => x.SupplierId == supplierId && x.PartnerId == partnerId);
+            if (entity is null)
+            {
+                result.AddError(ErrorCode.NotFound,"Id not found!");
+                return result;
+            }
+
+            _unitOfWork.SupplyAssigmentRepository.Remove(entity);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+        return result;
+    }
 }

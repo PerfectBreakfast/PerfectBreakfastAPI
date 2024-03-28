@@ -12,5 +12,8 @@ public class ComboConfig : IEntityTypeConfiguration<Combo>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        
+        // create index 
+        builder.HasIndex(x => x.IsDeleted);
     }
 }

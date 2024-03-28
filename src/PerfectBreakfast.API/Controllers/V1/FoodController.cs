@@ -126,4 +126,15 @@ public class FoodController : BaseController
         var response = await _foodService.GetFoodsForDelivery(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Super Admin - API lấy các món ăn cho NCC đăng kí
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet ("supplier/{supplierId:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
+    public async Task<IActionResult> GetFoodForSupplier(Guid supplierId)
+    {
+        var response = await _foodService.GetFoodForSupplier(supplierId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 }

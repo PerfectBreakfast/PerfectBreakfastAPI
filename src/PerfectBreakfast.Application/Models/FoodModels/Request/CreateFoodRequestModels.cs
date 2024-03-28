@@ -12,6 +12,7 @@ namespace PerfectBreakfast.Application.Models.FoodModels.Request
     public record CreateFoodRequestModels
     {
         public string Name { get; set; } = string.Empty;
+        public string Description { get; set; }
         public decimal Price { get; set; }
         public IFormFile? Image { get; set; }
         public int? FoodStatus { get; set; }

@@ -8,17 +8,17 @@ public class SupplierCommissionRateValidator : AbstractValidator<CreateSupplierC
     public SupplierCommissionRateValidator()
     {
         RuleFor(p => p.FoodIds)
-            .NotEmpty().WithMessage("FoodIds cannot be empty")
-            .NotNull().WithMessage("FoodIds cannot be null");
+            .NotEmpty().WithMessage("Món ăn không được để trống")
+            .NotNull().WithMessage("Món ăn không được để trống");
 
         RuleFor(p => p.SupplierId)
-            .NotEmpty().WithMessage("SupplierId cannot be empty")
-            .NotNull().WithMessage("SupplierId cannot be null");
+            .NotEmpty().WithMessage("NCC không được để trống")
+            .NotNull().WithMessage("NCC không được để trống");
 
         RuleFor(p => p.CommissionRate)
-            .NotEmpty().WithMessage("Commission Rate cannot be empty")
-            .NotNull().WithMessage("Commission Rate cannot be null")
-            .GreaterThan(0).WithMessage("Commission Rate must be greater than 0")
-            .LessThanOrEqualTo(100).WithMessage("Commission Rate cannot exceed 100");
+            .NotEmpty().WithMessage("% không được để trống")
+            .NotNull().WithMessage("% không được để trốngl")
+            .GreaterThan(0).WithMessage("% phải lớn hơn 0")
+            .LessThanOrEqualTo(100).WithMessage("% không quá 100");
     }
 }

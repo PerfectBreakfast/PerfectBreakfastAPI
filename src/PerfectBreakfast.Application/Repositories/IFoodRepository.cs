@@ -11,6 +11,6 @@ namespace PerfectBreakfast.Application.Repositories
 {
     public interface IFoodRepository : IGenericRepository<Food>
     {
-       
+        Task<List<Food>> GetFoodForSupplier(Guid id);
     }
 }

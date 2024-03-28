@@ -16,10 +16,10 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     public async Task<Supplier?> GetSupplierDetail(Guid id)
     {
         var supplier = await _dbSet.Where(x => x.Id == id)
-            .Include(x => x.SupplyAssignments)
-            .ThenInclude(x => x.Partner)
-            .Include(x => x.SupplierCommissionRates)
-            .ThenInclude(x => x.Food)
+            .Include(x => x.SupplyAssignments.Where(c => !c.Partner.IsDeleted))
+                .ThenInclude(x => x.Partner)
+            .Include(x => x.SupplierCommissionRates.Where(c => !c.Food.IsDeleted))
+                .ThenInclude(x => x.Food)
             .SingleOrDefaultAsync();
         return supplier;
     }

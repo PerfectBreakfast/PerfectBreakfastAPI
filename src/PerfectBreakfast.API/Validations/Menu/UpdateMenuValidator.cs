@@ -7,7 +7,7 @@ namespace PerfectBreakfast.API.Validations.Menu
     {
         public UpdateMenuValidator()
         {
-            RuleFor(p => p.Name).NotNull().NotEmpty().WithMessage("Name cannot be null or empty")
+            RuleFor(p => p.Name).NotNull().NotEmpty().WithMessage("Tên không được để trống")
                 .MaximumLength(100);
         }
     }

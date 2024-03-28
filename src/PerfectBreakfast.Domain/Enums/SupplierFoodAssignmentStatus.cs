@@ -5,5 +5,5 @@ public enum SupplierFoodAssignmentStatus
     Pending,
     Confirmed,
     Declined,
-    Completed
+    Complete
 }

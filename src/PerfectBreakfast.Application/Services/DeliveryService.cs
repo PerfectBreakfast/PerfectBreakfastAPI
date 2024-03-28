@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -27,7 +28,7 @@ public class DeliveryService : IDeliveryService
         var result = new OperationResult<List<DeliveryResponseModel>>();
         try
         {
-            var deliveries = await _unitOfWork.DeliveryRepository.GetAllAsync();
+            var deliveries = await _unitOfWork.DeliveryRepository.FindAll(d => !d.IsDeleted).ToListAsync();
             result.Payload = _mapper.Map<List<DeliveryResponseModel>>(deliveries);
         }
         catch (Exception e)
@@ -108,7 +109,9 @@ public class DeliveryService : IDeliveryService
         var result = new OperationResult<DeliveryDetailResponse>();
             try
             {
-                var delivery = await _unitOfWork.DeliveryRepository.GetByIdAsync(deliveryId,x =>x.Companies,x => x.Users);
+                var delivery = await _unitOfWork.DeliveryRepository
+                    .GetByIdAsync(deliveryId,x => 
+                        x.Companies.Where(c => !c.IsDeleted) ,x => x.Users);
                 var adminUsers = await _unitOfWork.UserManager.GetUsersInRoleAsync("DELIVERY ADMIN");
                 var adminUserNames = delivery.Users
                     .Where(user => adminUsers.Any(adminUser => adminUser.Id == user.Id))
