@@ -441,6 +441,7 @@ namespace PerfectBreakfast.Application.Services;
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
                 food.Name = requestModel.Name ?? food.Name;
+                food.Description = requestModel.Description ?? food.Description;
                 food.Price = requestModel.Price ?? food.Price;
                 if (requestModel.Image is not null)
                 {
