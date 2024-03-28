@@ -17,6 +17,7 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
     {
         return await _dbSet.Include(c => c.MealSubscriptions)
                             .ThenInclude(c => c. DailyOrders)
+                            .AsNoTracking()
                             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -33,6 +34,6 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
     public async Task<List<Company>> SearchCompany(string searchTerm)
     {
         var lowerCaseSearchTerm = searchTerm.ToLower();
-        return await _dbSet.Where(c => c.Name.ToLower().Contains(lowerCaseSearchTerm)).Take(2).ToListAsync();
+        return await _dbSet.Where(c => c.Name.ToLower().Contains(lowerCaseSearchTerm)).Take(2).AsNoTracking().ToListAsync();
     }
 }

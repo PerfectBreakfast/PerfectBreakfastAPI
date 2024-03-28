@@ -73,13 +73,13 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<bool> AreAllOrdersCompleteForDailyOrder(Guid dailyOrderId)
         {
-            // Kiểm tra xem có bất kỳ Order nào liên kết với DailyOrder cụ thể này chưa hoàn thành
+            // Kiểm tra xem có bất kỳ Order nào liên kết với DailyOrder cụ thể này đang còn ở đã thanh toán
             var incompleteOrders = await _dbSet
-                .Where(o => o.DailyOrderId == dailyOrderId && o.OrderStatus != OrderStatus.Complete)
+                .Where(o => o.DailyOrderId == dailyOrderId && o.OrderStatus == OrderStatus.Paid)
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Nếu không có Order nào (tức là tất cả đều 'complete'), trả về true
+            // Nếu không có Order nào (tức là tất cả đều 'complete' hoặc có những cái bị cancel thì không tính), trả về true
             return !incompleteOrders.Any();
         }
 

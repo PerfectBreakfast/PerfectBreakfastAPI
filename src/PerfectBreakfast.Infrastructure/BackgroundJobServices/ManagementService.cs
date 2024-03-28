@@ -1,6 +1,6 @@
-﻿using PerfectBreakfast.Application.Interfaces;
+﻿using Hangfire;
+using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.MailModels;
-using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -25,21 +25,17 @@ public class ManagementService : IManagementService
     {
         try
         {
-            //Update daily order each day after 4PM
+            //Update daily order each day after 4PM or option time 
             var now = _currentTime.GetCurrentTime();
             
-            var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByBookingDate(now);
+            var dailyOrders = await _unitOfWork.DailyOrderRepository.FindByBookingDate(now); // lấy hết các daily đang trạng thái init hôm nay 
             if (dailyOrders.Count > 0)
             {
                 foreach (var dailyOrderEntity in dailyOrders)
                 {
-                    var orders = dailyOrderEntity.Orders;
-                    orders = orders.Where(o => o.OrderStatus == OrderStatus.Paid).ToList();
-                    var totalOrderPrice = orders.Sum(o => o.TotalPrice);
-                    var totalOrder = orders.Count();
-                    dailyOrderEntity.TotalPrice = totalOrderPrice;
-                    dailyOrderEntity.OrderQuantity = totalOrder;
-                    dailyOrderEntity.Status = DailyOrderStatus.Processing;
+                    // có đơn thì chuyển sang process , khong có thì chuyển sang NoOrder
+                    dailyOrderEntity.Status = dailyOrderEntity is { OrderQuantity: > 0, TotalPrice: > 0 } ? DailyOrderStatus.Processing : 
+                        DailyOrderStatus.NoOrders; 
                     _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
                 }
                 await _unitOfWork.SaveChangeAsync();
@@ -49,45 +45,13 @@ public class ManagementService : IManagementService
                 Console.WriteLine("Không có dailyOrders được tạo hôm nay.");
             }
             
-            //Send email to all partner
-            var users = _unitOfWork.PartnerRepository
-                .FindAll(p => p.Users)
-                .ToList()
-                .SelectMany(p => p.Users)
-                .ToList();
-            var filteredUsers  = new List<User>();
-            foreach (var user in users)
-            {
-                if(await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.PARTNER_ADMIN))
-                {
-                    filteredUsers.Add(user);
-                }
-            }
-            var emailList = filteredUsers.Select(user => user.Email).ToList();
+            // đoạn này gửi mail cho những thằng partner admin có OrderQuantity > 0
+            // Chạy 1 job riêng để gửi mail 
+            BackgroundJob.Enqueue<IManagementService>(d => d.AutoSendMailForAllPartnerAdminAndDeliveryAdminWhenDailyOrderProcessing(now));
             
-            // Tạo dữ liệu email, sử dụng token trong nội dung email
-            var mailData = new MailDataViewModel(
-                to: emailList,
-                subject: "Thông báo",
-                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác có thể thực hiện phân chia cho nhà cung cấp"
-            );
-            var ct = new CancellationToken();
-
-            // Gửi email và xử lý kết quả
-            var sendResult = await _mailService.SendAsync(mailData, ct);
-
-            if (sendResult == false)
-            {
-                Console.WriteLine("Gửi mail thất bại");
-            }
             
-            //Create daily order after update
-            var companies = await _unitOfWork.CompanyRepository.GetAllAsync();
-            var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
-            var today = _currentTime.GetCurrentTime();
-
             // Kiểm tra xem đã có đơn hàng nào được tạo cho ngày hiện tại chưa
-            var isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(today);
+            var isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(_currentTime.GetCurrentTime());
 
             // Nếu đã có đơn hàng cho ngày hiện tại, thoát khỏi hàm
             if (isDailyOrderCreated)
@@ -95,26 +59,25 @@ public class ManagementService : IManagementService
                 Console.WriteLine("Daily order is already created");
                 return;
             }
-
-            foreach (var co in companies)
+            
+            
+            // Tạo mới dailyOrder cho tất cả các bữa ăn của các công ty trong hệ thống
+            var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
+            
+            var mealSubscriptions = await _unitOfWork.MealSubscriptionRepository.GetAllAsync();
+            foreach (var mealSubscription in mealSubscriptions)
             {
-                var company = await _unitOfWork.CompanyRepository.GetCompanyById(co.Id);
-                var mealSubscriptions = company.MealSubscriptions.Where(ms => !ms.IsDeleted).ToList();
-                foreach (var meal in mealSubscriptions)
+                var dailyOrder = new DailyOrder()
                 {
-                    var dailyOrder = new DailyOrder()
-                    {
-                        BookingDate = bookingDate.AddDays(2),
-                        Status = DailyOrderStatus.Initial,
-                        OrderQuantity = 0,
-                        TotalPrice = 0,
-                        MealSubscription = meal
-                    };
-                    await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
-                }
-
-                await _unitOfWork.SaveChangeAsync();
+                    BookingDate = bookingDate.AddDays(2), // thời gian giao sẽ là 2 ngày sau từ khi mà cái dailyOrder này được khởi tạo
+                    Status = DailyOrderStatus.Initial,
+                    OrderQuantity = 0,
+                    TotalPrice = 0,
+                    MealSubscriptionId = mealSubscription.Id
+                };
+                await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
             }
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception e)
         {
@@ -192,6 +155,34 @@ public class ManagementService : IManagementService
             }
             
             
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task AutoSendMailForAllPartnerAdminAndDeliveryAdminWhenDailyOrderProcessing(DateTime time)
+    {
+        try
+        {
+            var emails =
+                await _unitOfWork.DailyOrderRepository.FindPartnerAdminEmailsByBookingDateAndStatusProcess(time);
+            
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: emails,
+                subject: "Thông báo",
+                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác có thể thực hiện phân chia cho nhà cung cấp"
+            );
+            
+            // Gửi email và xử lý kết quả
+            var sendResult = await _mailService.SendAsync(mailData, new CancellationToken());
+            if (sendResult == false)
+            {
+                Console.WriteLine("Gửi mail thất bại");
+            }
         }
         catch (Exception e)
         {

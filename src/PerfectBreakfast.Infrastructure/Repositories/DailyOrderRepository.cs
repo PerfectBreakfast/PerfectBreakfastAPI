@@ -2,6 +2,7 @@
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -21,6 +22,20 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                             d.Status == DailyOrderStatus.Initial)
                 .Include(d => d.Orders)
                 .Include(d => d.MealSubscription)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<List<string?>> FindPartnerAdminEmailsByBookingDateAndStatusProcess(DateTime dateTime)
+        {
+            return await _dbSet
+                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
+                            d.Status == DailyOrderStatus.Processing)
+                .SelectMany(d => d.MealSubscription!.Company!.Partner!.Users)
+                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN)) // Giả sử có trường `Name` trong `Role`
+                .Select(u => u.Email)
+                .AsNoTracking()
+                .Distinct() // Loại bỏ email trùng lặp nếu cần
                 .ToListAsync();
         }
 
@@ -28,6 +43,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             // Thực hiện truy vấn để kiểm tra xem đã có DailyOrder nào được tạo cho ngày đã cho hay không
             var existingDailyOrder = await _dbSet
+                .AsNoTracking()
                 .AnyAsync(d => 
                     d.Status == DailyOrderStatus.Initial && d.BookingDate == DateOnly.FromDateTime(date).AddDays(2) || d.CreationDate.AddDays(1) == date);
 

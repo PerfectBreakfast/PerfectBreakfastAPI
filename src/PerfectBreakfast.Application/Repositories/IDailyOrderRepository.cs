@@ -7,6 +7,7 @@ namespace PerfectBreakfast.Application.Repositories
     public interface IDailyOrderRepository : IGenericRepository<DailyOrder>
     {
         public Task<List<DailyOrder>> FindByBookingDate(DateTime dateTime);
+        public Task<List<string?>> FindPartnerAdminEmailsByBookingDateAndStatusProcess(DateTime dateTime);
         public Task<bool> IsDailyOrderCreated(DateTime date);
         public Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId);
         public Task<DailyOrder?> GetById(Guid id);

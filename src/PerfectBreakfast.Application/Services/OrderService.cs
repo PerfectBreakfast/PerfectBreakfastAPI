@@ -483,7 +483,7 @@ public class OrderService : IOrderService
                     order.DailyOrder!.Id);
             if (shippingOrder is null)
             {
-                result.AddError(ErrorCode.BadRequest, "Bạn không được giao đơn hàng này!");
+                result.AddError(ErrorCode.BadRequest, "Bạn không được giao nhiệm vụ cho đơn hàng này!");
                 return result;
             }
             

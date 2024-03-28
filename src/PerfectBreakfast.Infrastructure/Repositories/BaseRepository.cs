@@ -13,7 +13,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     {
         _dbSet = context.Set<TEntity>();
     }
-    public virtual Task<List<TEntity>> GetAllAsync() => _dbSet.ToListAsync();
+    public virtual Task<List<TEntity>> GetAllAsync() => _dbSet.AsNoTracking().ToListAsync();
 
     public virtual async Task<TEntity> GetByIdAsync(Guid id,params Expression<Func<TEntity, object>>[] includeProperties)
     {
