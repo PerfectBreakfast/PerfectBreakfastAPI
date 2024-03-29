@@ -17,11 +17,12 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         Expression<Func<User, bool>>? predicate = null,
         params IncludeInfo<User>[] includeProperties)
     {
-        IQueryable<User> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
+        IQueryable<User> itemsQuery = _dbSet.AsQueryable();
         if (predicate != null) 
         {
             itemsQuery = itemsQuery.Where(predicate); 
         }
+        itemsQuery.OrderByDescending(x => x.CreationDate);
         var itemCount = await itemsQuery.CountAsync();
         // Xử lý các thuộc tính include và thenInclude
         foreach (var includeProperty in includeProperties)
