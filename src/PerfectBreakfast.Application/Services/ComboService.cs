@@ -29,7 +29,7 @@ public class ComboService : IComboService
         var result = new OperationResult<ComboResponse>();
         try
         {
-            var combos = await _unitOfWork.ComboRepository.GetAllCombo();
+            var combos = await _unitOfWork.ComboRepository.GetAllComboNotDeleted();
             var combo = _mapper.Map<Combo>(createComboRequest);
             var comboFoods = createComboRequest.FoodId
                 .Select(foodId => new ComboFood { FoodId = foodId })
@@ -164,7 +164,7 @@ public class ComboService : IComboService
         var result = new OperationResult<List<ComboResponse>>();
         try
         {
-            var combos = await _unitOfWork.ComboRepository.FindAll(c => !c.IsDeleted).ToListAsync();
+            var combos = await _unitOfWork.ComboRepository.GetAllComboNotDeleted();
             result.Payload = _mapper.Map<List<ComboResponse>>(combos);
         }
         catch (Exception e)

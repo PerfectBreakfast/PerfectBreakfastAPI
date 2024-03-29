@@ -8,7 +8,7 @@ namespace PerfectBreakfast.Application.Repositories
     {
         Task<Combo> GetComboFoodByIdAsync(Guid? id);
         Task<Pagination<ComboResponse>> GetAllCombosWithPaginationAsync(int pageIndex, int pageSize, List<ComboResponse> combos = null);
-        Task<List<Combo>> GetAllCombo();
+        Task<List<Combo>> GetAllComboNotDeleted();
     }
 
 }

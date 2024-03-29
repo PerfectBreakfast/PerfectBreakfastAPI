@@ -33,7 +33,8 @@ namespace PerfectBreakfast.Application.Services;
             var result = new OperationResult<MenuResponse>();
             try
             {
-                var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+                //var menu = await _unitOfWork.MenuRepository.GetMenuFoodByStatusAsync();
+                var menu = await _unitOfWork.MenuRepository.FindSingleAsync(m => m.IsSelected == true);
 
                 // Kiểm tra nếu 'menu' là null
                 if (menu != null)
@@ -43,15 +44,14 @@ namespace PerfectBreakfast.Application.Services;
                     var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
                     menuEntity.IsSelected = true;
                     _unitOfWork.MenuRepository.Update(menuEntity);
-                    await _unitOfWork.SaveChangeAsync();
                 }
                 else
                 {
                     var menuEntity = await _unitOfWork.MenuRepository.GetByIdAsync(id);
                     menuEntity.IsSelected = true;
                     _unitOfWork.MenuRepository.Update(menuEntity);
-                    await _unitOfWork.SaveChangeAsync();
                 }
+                await _unitOfWork.SaveChangeAsync();
             }
             catch (NotFoundIdException)
             {
