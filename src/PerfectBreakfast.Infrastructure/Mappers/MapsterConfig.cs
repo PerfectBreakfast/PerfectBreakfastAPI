@@ -100,7 +100,7 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.comboPrice, src => src.ComboFoods.Sum(cf => cf.Food.Price));
         config.NewConfig<Combo, ComboResponse>()
             .Map(dest => dest.Foods, src => string.Join(", ", src.ComboFoods.Select(cf => cf.Food.Name)))
-            .Map(dest => dest.comboPrice, src => src.ComboFoods.Sum(cf => cf.Food.Price));        
+            .Map(dest => dest.ComboPrice, src => src.ComboFoods.Sum(cf => cf.Food.Price));        
         
         // Partner 
         config.NewConfig<Partner,PartnerDetailResponse>()
