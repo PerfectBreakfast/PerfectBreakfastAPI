@@ -381,6 +381,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<int?>("OrderQuantity")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("PackageId")
+                        .HasColumnType("char(36)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -819,6 +822,61 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.ToTable("OrderDetail", (string)null);
                 });
 
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Package", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DailyOrderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("DeleteBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("MissingQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ModificationBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("PartnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SuccessfulQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalFoodAssignQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DailyOrderId")
+                        .IsUnique();
+
+                    b.HasIndex("PartnerId");
+
+                    b.ToTable("Package", (string)null);
+                });
+
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Partner", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1215,16 +1273,13 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid?>("DailyOrderId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<TimeOnly>("Deadline")
-                        .HasColumnType("time(6)");
-
                     b.Property<Guid?>("DeleteBy")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DeliveryDeadline")
                         .HasColumnType("datetime(6)");
 
                     b.Property<Guid?>("FoodId")
@@ -1239,7 +1294,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid?>("PartnerId")
+                    b.Property<Guid?>("PackageId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal?>("ReceivedAmount")
@@ -1253,11 +1308,9 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DailyOrderId");
-
                     b.HasIndex("FoodId");
 
-                    b.HasIndex("PartnerId");
+                    b.HasIndex("PackageId");
 
                     b.HasIndex("SupplierCommissionRateId");
 
@@ -1591,6 +1644,21 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Package", b =>
+                {
+                    b.HasOne("PerfectBreakfast.Domain.Entities.DailyOrder", "DailyOrder")
+                        .WithOne("Package")
+                        .HasForeignKey("PerfectBreakfast.Domain.Entities.Package", "DailyOrderId");
+
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Partner", "Partner")
+                        .WithMany("Packages")
+                        .HasForeignKey("PartnerId");
+
+                    b.Navigation("DailyOrder");
+
+                    b.Navigation("Partner");
+                });
+
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.PartnerPayment", b =>
                 {
                     b.HasOne("PerfectBreakfast.Domain.Entities.DailyOrder", "DailyOrder")
@@ -1658,27 +1726,21 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.SupplierFoodAssignment", b =>
                 {
-                    b.HasOne("PerfectBreakfast.Domain.Entities.DailyOrder", "DailyOrder")
-                        .WithMany("SupplierFoodAssignments")
-                        .HasForeignKey("DailyOrderId");
-
                     b.HasOne("PerfectBreakfast.Domain.Entities.Food", "Food")
                         .WithMany("SupplierFoodAssignments")
                         .HasForeignKey("FoodId");
 
-                    b.HasOne("PerfectBreakfast.Domain.Entities.Partner", "Partner")
+                    b.HasOne("PerfectBreakfast.Domain.Entities.Package", "Package")
                         .WithMany("SupplierFoodAssignments")
-                        .HasForeignKey("PartnerId");
+                        .HasForeignKey("PackageId");
 
                     b.HasOne("PerfectBreakfast.Domain.Entities.SupplierCommissionRate", "SupplierCommissionRate")
                         .WithMany("SupplierFoodAssignments")
                         .HasForeignKey("SupplierCommissionRateId");
 
-                    b.Navigation("DailyOrder");
-
                     b.Navigation("Food");
 
-                    b.Navigation("Partner");
+                    b.Navigation("Package");
 
                     b.Navigation("SupplierCommissionRate");
                 });
@@ -1775,11 +1837,11 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.Navigation("Orders");
 
+                    b.Navigation("Package");
+
                     b.Navigation("PartnerPayments");
 
                     b.Navigation("ShippingOrders");
-
-                    b.Navigation("SupplierFoodAssignments");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Delivery", b =>
@@ -1826,13 +1888,18 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("OrderDetails");
                 });
 
+            modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Package", b =>
+                {
+                    b.Navigation("SupplierFoodAssignments");
+                });
+
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Partner", b =>
                 {
                     b.Navigation("Companies");
 
-                    b.Navigation("PartnerPayments");
+                    b.Navigation("Packages");
 
-                    b.Navigation("SupplierFoodAssignments");
+                    b.Navigation("PartnerPayments");
 
                     b.Navigation("SupplyAssignments");
 
