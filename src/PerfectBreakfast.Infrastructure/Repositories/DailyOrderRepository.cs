@@ -26,17 +26,30 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<string?>> FindPartnerAdminEmailsByBookingDateAndStatusProcess(DateTime dateTime)
+        public async Task<List<string?>> FindPartnerAndDeliveryAdminEmailsByBookingDateAndStatus(DateTime dateTime)
         {
-            return await _dbSet
+            // Lưu ý: Ta không thực hiện async/await ở đây vì chưa thực sự truy vấn database
+            var partnerEmailsQuery = _dbSet
                 .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
                             d.Status == DailyOrderStatus.Processing)
                 .SelectMany(d => d.MealSubscription!.Company!.Partner!.Users)
-                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN)) // Giả sử có trường `Name` trong `Role`
-                .Select(u => u.Email)
-                .AsNoTracking()
-                .Distinct() // Loại bỏ email trùng lặp nếu cần
-                .ToListAsync();
+                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN))
+                .Select(u => u.Email);
+
+            var deliveryEmailsQuery = _dbSet
+                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
+                            d.Status == DailyOrderStatus.Processing)
+                .SelectMany(d => d.MealSubscription!.Company!.Delivery!.Users)
+                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.DELIVERY_ADMIN))
+                .Select(u => u.Email);
+
+            // Kết hợp hai truy vấn và thực hiện một lần async/await với ToListAsync
+            var combinedEmails = partnerEmailsQuery.Concat(deliveryEmailsQuery)
+                .Distinct() // Loại bỏ email trùng lặp
+                .AsNoTracking();
+
+            // await chỉ áp dụng cho ToListAsync() - thực hiện truy vấn và trả về kết quả
+            return await combinedEmails.ToListAsync();
         }
 
         public async Task<bool> IsDailyOrderCreated(DateTime date)
@@ -49,23 +62,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
             // Trả về kết quả kiểm tra
             return existingDailyOrder;
-        }
-
-        public async Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId)
-        {
-            var a = await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId)
-                .OrderByDescending(d => d.CreationDate)
-                .Include(d => d.Orders)
-                .FirstOrDefaultAsync();
-            return a;
-        }
-
-        public async Task<DailyOrder?> GetById(Guid id)
-        {
-            return await _dbSet.AsNoTracking().Where(d => d.Id == id)
-                .Include(d => d.MealSubscription)
-                .FirstOrDefaultAsync();
-             
         }
 
         public async Task<Pagination<DailyOrder>> ToPaginationProcessingForPartner(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)

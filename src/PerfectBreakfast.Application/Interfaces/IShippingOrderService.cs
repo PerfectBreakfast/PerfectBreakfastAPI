@@ -15,7 +15,7 @@ public interface IShippingOrderService
     public Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderTodayByDeliveryStaff(DateTime time);
     //public Task<OperationResult<List<TotalComboForStaff>>> GetDailyOrderByShipper();
     public Task<OperationResult<DailyOrderResponse>> ConfirmShippingOrderByShipper(Guid dailyOrderId);
-    public Task<OperationResult<List<TotalFoodForCompanyResponse>>> GetHistoryDailyOrderByShipper();
+    //public Task<OperationResult<List<TotalFoodForCompanyResponse>>> GetHistoryDailyOrderByShipper();
     public Task<OperationResult<List<UserResponse>>> GetSDeliveryStaffByDailyOrder(Guid dailyOrderId);
 
 }

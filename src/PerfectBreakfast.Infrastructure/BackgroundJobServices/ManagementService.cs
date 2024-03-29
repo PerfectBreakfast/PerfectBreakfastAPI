@@ -134,7 +134,7 @@ public class ManagementService : IManagementService
             if (isAllOrderComplete)   
             {
                 // lấy ra DailyOrder để chuẩn bị update 
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(dailyOrderId);
+                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
                 
                 // lấy ra shippingOrder
                 var shippingOrders = await _unitOfWork.ShippingOrderRepository
@@ -168,13 +168,13 @@ public class ManagementService : IManagementService
         try
         {
             var emails =
-                await _unitOfWork.DailyOrderRepository.FindPartnerAdminEmailsByBookingDateAndStatusProcess(time);
+                await _unitOfWork.DailyOrderRepository.FindPartnerAndDeliveryAdminEmailsByBookingDateAndStatus(time);
             
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác có thể thực hiện phân chia cho nhà cung cấp"
+                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác và Đơn vị vận chuyển có thể thực hiện phân chia cho nhà cung cấp"
             );
             
             // Gửi email và xử lý kết quả

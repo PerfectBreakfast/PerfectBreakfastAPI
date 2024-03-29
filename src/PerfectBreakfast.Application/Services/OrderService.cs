@@ -47,13 +47,15 @@ public class OrderService : IOrderService
             
             // fix lại đoạn bốc DailyOrder này cho nó sờ mút ==================
             // ============================================================================
-            var mealSubscription = await _unitOfWork.MealSubscriptionRepository.FindByCompanyId((Guid)user.CompanyId, orderRequest.MealId);
+            var mealSubscription = await _unitOfWork.MealSubscriptionRepository.FindSingleAsync(x =>
+                x.CompanyId == user.CompanyId && x.MealId == orderRequest.MealId);
             if (mealSubscription == null)
             {
                 result.AddError(ErrorCode.BadRequest, "Company does not have this meal");
                 return result;
             }
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscription(mealSubscription.Id);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindSingleAsync(x =>
+                    x.MealSubscriptionId == mealSubscription.Id);
             if (dailyOrder is null)
             {
                 result.AddError(ErrorCode.NotFound, "Meal is not exist");

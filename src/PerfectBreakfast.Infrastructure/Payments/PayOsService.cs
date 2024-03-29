@@ -92,7 +92,7 @@ public class PayOsService : IPayOsService
             {
                 return new Response(0, "Ok", null);
             }
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId!.Value);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(order.DailyOrderId!.Value);
             if (data.amount != order.TotalPrice) return new Response(0, "Ok", null);
             order.OrderStatus = OrderStatus.Paid;
             dailyOrder.TotalPrice += order.TotalPrice;

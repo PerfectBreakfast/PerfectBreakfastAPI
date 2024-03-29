@@ -66,24 +66,6 @@ public class ShippingOrderController : BaseController
     }
     
     
-    /*[HttpGet("daily-order/pending-status"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> GetDailyOrderPendingByDeliveryStaff()
-    {
-        var response = await _shippingOrderService.GetDailyOrderByShipper();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }*/
-    
-    /// <summary>
-    /// Api for Delivery Staff-API lấy lịch sử daily order
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("delivery-staff/history-order"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> GetAllDailyOrderByDeliveryStaff()
-    {
-        var response = await _shippingOrderService.GetHistoryDailyOrderByShipper();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-    
     /// <summary>
     /// Api for Delivery Admin-API để lấy staff theo daily order
     /// </summary>
