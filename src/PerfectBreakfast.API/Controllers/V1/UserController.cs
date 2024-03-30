@@ -48,15 +48,16 @@ public class UserController : BaseController
     }
     
     /// <summary>
-    /// Api for All 
+    /// Api for Super Admin (get phân trang user)
     /// </summary>
+    /// <param name="searchTerm"></param>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
     [HttpGet("pagination"), Authorize(policy:  ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetUserPagination(int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetUserPagination(string? searchTerm,int pageIndex = 0, int pageSize = 10)
     {
-        var response = await _userService.GetUserPaginationAsync(pageIndex,pageSize);
+        var response = await _userService.GetUserPaginationAsync(searchTerm,pageIndex,pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 

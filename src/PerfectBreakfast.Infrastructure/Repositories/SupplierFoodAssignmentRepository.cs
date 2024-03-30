@@ -14,29 +14,32 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public async Task<List<SupplierFoodAssignment>> GetByDailyOrder(Guid dailyOrderId)
         {
-            return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId).ToListAsync();
+            //return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId).ToListAsync();
+            throw new NotImplementedException();
         }
 
         public async Task<List<SupplierFoodAssignment>> GetByBookingDateForSupplier()
         {
-            return await _dbSet.Where(s => s.Status == SupplierFoodAssignmentStatus.Confirmed)
-                .Include(s => s.Partner)
-                .Include(s => s.Food)
-                .Include(s => s.SupplierCommissionRate)
-                .Include(s => s.DailyOrder)
-                    .ThenInclude(s => s.MealSubscription)
-                .ToListAsync();
+            // return await _dbSet.Where(s => s.Status == SupplierFoodAssignmentStatus.Confirmed)
+            //     .Include(s => s.Partner)
+            //     .Include(s => s.Food)
+            //     .Include(s => s.SupplierCommissionRate)
+            //     .Include(s => s.DailyOrder)
+            //         .ThenInclude(s => s.MealSubscription)
+            //     .ToListAsync();
+            throw new NotImplementedException();
         }
 
         public async Task<List<SupplierFoodAssignment>> GetByForSuperAdmin()
         {
-            return await _dbSet.Where(s => s.Status != SupplierFoodAssignmentStatus.Pending)
-                .Include(s => s.Partner)
-                .Include(s => s.Food)
-                .Include(s => s.SupplierCommissionRate)
-                .Include(s => s.DailyOrder)
-                .ThenInclude(s => s.MealSubscription)
-                .ToListAsync();
+            // return await _dbSet.Where(s => s.Status != SupplierFoodAssignmentStatus.Pending)
+            //     .Include(s => s.Partner)
+            //     .Include(s => s.Food)
+            //     .Include(s => s.SupplierCommissionRate)
+            //     .Include(s => s.DailyOrder)
+            //     .ThenInclude(s => s.MealSubscription)
+            //     .ToListAsync();
+            throw new NotImplementedException();
         }
     }
 
