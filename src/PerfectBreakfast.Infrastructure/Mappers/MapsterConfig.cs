@@ -81,6 +81,9 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.MealId, src => src.MealId)
             .Map(dest => dest.StartTime, src => src.StartTime)
             .Map(dest => dest.EndTime, src => src.EndTime);
+
+        config.NewConfig<MealSubscription, MealSubscriptionResponse>()
+            .Map(dest => dest.MealType, src => src.Meal.MealType);
         
         // Menu 
         config.NewConfig<Menu,MenuResponse>()

@@ -40,48 +40,29 @@ public class OrderService : IOrderService
     {
         var userId = _claimsService.GetCurrentUserId;
         var paymentResponse = new PaymentResponse();
+        var bookingDate = DateOnly.FromDateTime(orderRequest.MenuDate);
         var result = new OperationResult<PaymentResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            
-            // fix lại đoạn bốc DailyOrder này cho nó sờ mút ==================
-            // ============================================================================
-            var mealSubscription = await _unitOfWork.MealSubscriptionRepository.FindSingleAsync(x =>
-                x.CompanyId == user.CompanyId && x.MealId == orderRequest.MealId);
-            if (mealSubscription == null)
-            {
-                result.AddError(ErrorCode.BadRequest, "Company does not have this meal");
-                return result;
-            }
+            //var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             var dailyOrder = await _unitOfWork.DailyOrderRepository.FindSingleAsync(x =>
-                    x.MealSubscriptionId == mealSubscription.Id);
+                    x.MealSubscriptionId == orderRequest.MealSubscriptionId && x.BookingDate == bookingDate,
+                x => x.MealSubscription!);
             if (dailyOrder is null)
             {
-                result.AddError(ErrorCode.NotFound, "Meal is not exist");
+                result.AddError(ErrorCode.NotFound, "Meal Subscription is not exist");
                 return result;
             }
             var order = _mapper.Map<Order>(orderRequest);
-            order.MealId = orderRequest.MealId;
+            order.MealId = dailyOrder.MealSubscription!.MealId;
             var orderDetails = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
             foreach (var od in orderDetails)
             {
                 if (od.ComboId != null)
                 {
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
-                    if (combo == null)
-                    {
-                        result.AddUnknownError($"Combo with Id {od.ComboId} not found.");
-                        return result;
-                    }
-                    var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                    if (foods == null)
-                    {
-                        result.AddError(ErrorCode.BadRequest, "Combo khong co thuc an");
-                        return result;
-                    }
+                    var foods = await _unitOfWork.ComboFoodRepository.GetFoodByComboId(od.ComboId.Value);
                     
-                    decimal totalFoodPrice = foods.Sum(food => food.Price);
+                    var totalFoodPrice = foods.Sum(food => food.Price);
                     od.UnitPrice = totalFoodPrice;
                 }
                 else
@@ -94,7 +75,6 @@ public class OrderService : IOrderService
                     }
                     od.UnitPrice = food.Price;
                 }
-                
             }
             // lấy phương thức thanh toán
             var paymentMethod = orderRequest.Payment.ToUpper();
@@ -104,10 +84,10 @@ public class OrderService : IOrderService
             order.OrderCode = orderCode;
             order.WorkerId = userId;
             order.OrderStatus = OrderStatus.Pending;
-            order.DailyOrder = dailyOrder;
+            order.DailyOrderId = dailyOrder.Id;
             order.TotalPrice = totalPrice;
             order.OrderDetails = orderDetails!;
-            order.PaymentMethodId = (await _unitOfWork.PaymentMethodRepository.FindSingleAsync(x => x.Name == paymentMethod)).Id;
+            order.PaymentMethodId = (await _unitOfWork.PaymentMethodRepository.FindSingleAsync(x => x.Name == paymentMethod))?.Id;
             var entity = await _unitOfWork.OrderRepository.AddAsync(order);
             
             switch (paymentMethod)
@@ -119,21 +99,10 @@ public class OrderService : IOrderService
                     {
                         result.Payload = paymentResponse;
                     }
-
-                    // không chơi tạo link thanh toán nữa test cho dễ
-                    /*result.Payload = new PaymentResponse
+                    else
                     {
-                        IsSuccess = true,
-                        DeepLink = null,
-                        PaymentUrl = "thành công rồi mà không trả link",
-                        QrCode = "QRcode"
-                    };
-                    entity.OrderStatus = OrderStatus.Paid;*/
-
-                     else
-                     {
-                         throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
-                     }
+                         throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng"); 
+                    }
                     break;
 
                 case ConstantPaymentMethod.MOMO:

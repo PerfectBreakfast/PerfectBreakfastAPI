@@ -36,33 +36,23 @@ public class MealService : IMealService
         return result;
     }
 
-    public async Task<OperationResult<List<MealResponse>>> GetMealByWorker()
+    public async Task<OperationResult<List<MealSubscriptionResponse>>> GetMealByWorker()
     {
-        var result = new OperationResult<List<MealResponse>>();
+        var result = new OperationResult<List<MealSubscriptionResponse>>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
             var companyInclude = new IncludeInfo<User>
             {
                 NavigationProperty = x => x.Company,
-                ThenIncludes = new List<Expression<Func<object, object>>>
-                {
+                ThenIncludes =
+                [
                     sp => ((Company)sp).MealSubscriptions,
                     sp => ((MealSubscription)sp).Meal
-                }
+                ]
             };
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, companyInclude);
-            var meals = user.Company.MealSubscriptions.Select(x => x.Meal).ToList();
-            var mealSubscriptions = user.Company.MealSubscriptions
-                .Select(x => new MealSubscription()
-                {
-                    MealId = x.Meal.Id,
-                    Meal = x.Meal,
-                    StartTime = x.StartTime,
-                    EndTime = x.EndTime
-                })
-                .ToList();
-            result.Payload = _mapper.Map<List<MealResponse>>(mealSubscriptions);
+            result.Payload = _mapper.Map<List<MealSubscriptionResponse>>(user.Company!.MealSubscriptions);
         }
         catch (Exception e)
         {
