@@ -4,5 +4,4 @@ namespace PerfectBreakfast.Application.Repositories;
 
 public interface IPackageRepository : IGenericRepository<Package>
 {
-    
 }
