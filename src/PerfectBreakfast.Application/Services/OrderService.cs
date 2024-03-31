@@ -46,15 +46,13 @@ public class OrderService : IOrderService
         {
             //var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             var dailyOrder = await _unitOfWork.DailyOrderRepository.FindSingleAsync(x =>
-                    x.MealSubscriptionId == orderRequest.MealSubscriptionId && x.BookingDate == bookingDate,
-                x => x.MealSubscription!);
+                    x.MealSubscriptionId == orderRequest.MealSubscriptionId && x.BookingDate == bookingDate);
             if (dailyOrder is null)
             {
                 result.AddError(ErrorCode.NotFound, "Meal Subscription is not exist");
                 return result;
             }
             var order = _mapper.Map<Order>(orderRequest);
-            order.MealId = dailyOrder.MealSubscription!.MealId;
             var orderDetails = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
             foreach (var od in orderDetails)
             {
@@ -125,10 +123,10 @@ public class OrderService : IOrderService
 
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order
             var timeToCancel = DateTime.UtcNow.AddMinutes(ConstantTime.JOB_DELAY_BEFORE_START_MINUTES);
-            string id = BackgroundJob.Schedule<IManagementService>(
+            var id = BackgroundJob.Schedule<IManagementService>(
                 x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
-        catch (NotFoundIdException e)
+        catch (NotFoundIdException)
         {
             result.AddError(ErrorCode.NotFound, "UserId is not exist");
         }

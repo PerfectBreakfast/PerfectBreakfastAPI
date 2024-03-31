@@ -724,9 +724,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid?>("MealId")
-                        .HasColumnType("char(36)");
-
                     b.Property<Guid?>("ModificationBy")
                         .HasColumnType("char(36)");
 
@@ -756,8 +753,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("DailyOrderId");
 
                     b.HasIndex("DeliveryStaffId");
-
-                    b.HasIndex("MealId");
 
                     b.HasIndex("OrderCode")
                         .IsUnique();
@@ -1599,10 +1594,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                         .WithMany("OrdersDeliveryStaff")
                         .HasForeignKey("DeliveryStaffId");
 
-                    b.HasOne("PerfectBreakfast.Domain.Entities.Meal", "Meal")
-                        .WithMany("Orders")
-                        .HasForeignKey("MealId");
-
                     b.HasOne("PerfectBreakfast.Domain.Entities.PaymentMethod", "PaymentMethod")
                         .WithMany("Orders")
                         .HasForeignKey("PaymentMethodId");
@@ -1614,8 +1605,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Navigation("DailyOrder");
 
                     b.Navigation("DeliveryStaff");
-
-                    b.Navigation("Meal");
 
                     b.Navigation("PaymentMethod");
 
@@ -1869,8 +1858,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.Meal", b =>
                 {
                     b.Navigation("MealSubscriptions");
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("PerfectBreakfast.Domain.Entities.MealSubscription", b =>

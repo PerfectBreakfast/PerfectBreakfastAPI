@@ -6,5 +6,5 @@ public class Meal : BaseEntity
     
     // Relationship 
     public ICollection<MealSubscription?> MealSubscriptions { get; set; }
-    public ICollection<Order?> Orders { get; set; }
+    
 }

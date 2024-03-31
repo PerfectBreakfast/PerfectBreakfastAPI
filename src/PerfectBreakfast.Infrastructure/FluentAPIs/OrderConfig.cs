@@ -30,15 +30,6 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.HasOne(r => r.PaymentMethod)
             .WithMany(ur => ur.Orders)
             .HasForeignKey(pk => pk.PaymentMethodId);
-        
-        builder.HasOne(r => r.Meal)
-            .WithMany(ur => ur.Orders)
-            .HasForeignKey(pk => pk.MealId);
     }
 }
 
-/*public Guid? WorkerId { get; set; }
-public Guid? ShipperId { get; set; }
-public Guid? DeliveryUnitId { get; set; }
-public Guid? ManagementUnitId { get; set; }
-public Guid? SupplierId { get; set; }*/
