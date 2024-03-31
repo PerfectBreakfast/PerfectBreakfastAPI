@@ -217,6 +217,7 @@ public class UserService : IUserService
             
             user.UserName = request.Email;
             user.EmailConfirmed = true;
+            user.LockoutEnabled = false;
             user.CreationDate = _currentTime.GetCurrentTime();
             var identityResult = await _unitOfWork.UserManager.CreateAsync(user, request.Password);
             if (!identityResult.Succeeded)
@@ -527,6 +528,7 @@ public class UserService : IUserService
             }
             user.UserName = requestModel.Email;
             user.EmailConfirmed = true;
+            user.LockoutEnabled = false;
             user.CreationDate = _currentTime.GetCurrentTime();
             var identityResult = await _unitOfWork.UserManager.CreateAsync(user, "123456");
             if (!identityResult.Succeeded)
@@ -589,6 +591,7 @@ public class UserService : IUserService
             //user.Name = requestModel.Name ?? user.Name;
             user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
             user.CompanyId = requestModel.CompanyId;
+            user.LockoutEnabled = false;
             user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(requestModel.CompanyId);
 
             _unitOfWork.UserRepository.Update(user);
