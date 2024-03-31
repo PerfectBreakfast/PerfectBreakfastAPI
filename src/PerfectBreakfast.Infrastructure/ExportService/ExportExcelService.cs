@@ -51,23 +51,16 @@ public class ExportExcelService : IExportExcelService
             // Ghi giá trị Date và các dữ liệu cụ thể
             worksheet.Cells[dataStartRow, 1].Value = supplierFood.Date;
 
-            foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
-            {
-                worksheet.Cells[dataStartRow, 2].Value = foodAssignmentGroup.PartnerName;
-
-                foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
-                {
-                    worksheet.Cells[dataStartRow, 3].Value = deliveryTimeResponse.DeliveryTime;
-
-                    foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
-                    {
-                        worksheet.Cells[dataStartRow, 4].Value = foodAssignmentResponse.FoodName;
-                        worksheet.Cells[dataStartRow, 5].Value = foodAssignmentResponse.AmountCooked;
-                        worksheet.Cells[dataStartRow, 6].Value = foodAssignmentResponse.Status;
-                        dataStartRow++;
-                    }
-                }
-            }
+            // foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
+            // {
+            //     worksheet.Cells[dataStartRow, 2].Value = foodAssignmentGroup.PartnerName;
+            //
+            //     foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
+            //     {
+            //         worksheet.Cells[dataStartRow, 3].Value = deliveryTimeResponse.DeliveryTime;
+            //         
+            //     }
+            // }
                 
             var dataRange = worksheet.Cells[2, 1, dataStartRow - 1, 5];
             var border = dataRange.Style.Border;
@@ -133,20 +126,11 @@ public class ExportExcelService : IExportExcelService
                 {
                     worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.PartnerName;
 
-                    foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
-                    {
-                        worksheet.Cells[dataStartRow, 4].Value = deliveryTimeResponse.DeliveryTime;
-
-                        foreach (var foodAssignmentResponse in deliveryTimeResponse.FoodAssignmentResponses)
-                        {
-                            worksheet.Cells[dataStartRow, 5].Value = foodAssignmentResponse.FoodName;
-                            worksheet.Cells[dataStartRow, 6].Value = foodAssignmentResponse.AmountCooked;
-                            worksheet.Cells[dataStartRow, 7].Value = foodAssignmentResponse.CommissionRate + "%";
-                            worksheet.Cells[dataStartRow, 8].Value = foodAssignmentResponse.ReceivedAmount;
-                            worksheet.Cells[dataStartRow, 9].Value = foodAssignmentResponse.Status;
-                            dataStartRow++;
-                        }
-                    }
+                    // foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
+                    // {
+                    //     worksheet.Cells[dataStartRow, 4].Value = deliveryTimeResponse.DeliveryTime;
+                    //     
+                    // }
                 }
             }
             

@@ -9,8 +9,10 @@ using PerfectBreakfast.Application.Models.MealModels.Request;
 using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
+using PerfectBreakfast.Application.Models.PackageModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
+using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
@@ -73,6 +75,14 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.ManagementUnitDtos, src => src.SupplyAssignments.Select(x => x.Partner))
             .Map(dest => dest.CommissionRates, src => src.SupplierCommissionRates);
         
+        // Supplier Food Assignment
+        config.NewConfig<SupplierFoodAssignment, FoodAssignmentResponse>()
+            .Map(dest => dest.FoodName, src => src.Food.Name)
+            .Map(dest => dest.CommissionRate, src => src.SupplierCommissionRate.CommissionRate);
+        config.NewConfig<SupplierFoodAssignment, FoodAssignmentForPackage>()
+            .Map(dest => dest.FoodName, src => src.Food.Name)
+            .Map(dest => dest.SupplierName, src => src.SupplierCommissionRate.Supplier.Name);
+        
         // Meal 
         config.NewConfig<MealSubscription, MealResponse>()
             .Map(dest => dest.Id, src => src.Meal.Id)
@@ -125,5 +135,9 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.HandoverTime,src => src.MealSubscription.StartTime)
             .Map(dest => dest.Company,src => src.MealSubscription.Company)
             .Map(dest => dest.Partner,src => src.MealSubscription.Company.Partner);
+        
+        // Package
+        config.NewConfig<Package, PackageForMeal>()
+            .Map(dest => dest.FoodAssignmentForPackages, src => src.SupplierFoodAssignments);
     }
 }

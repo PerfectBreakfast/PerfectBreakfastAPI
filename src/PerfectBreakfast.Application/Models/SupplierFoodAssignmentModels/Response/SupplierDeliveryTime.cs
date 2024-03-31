@@ -2,6 +2,6 @@
 
 public record SupplierDeliveryTime
 (
-    TimeOnly? DeliveryTime,
-    List<FoodAssignmentResponse> FoodAssignmentResponses
-    );
+    string? DeliveryTime,
+    List<FoodAssignmentGroupByPartner> FoodAssignmentGroupByPartners
+        );
