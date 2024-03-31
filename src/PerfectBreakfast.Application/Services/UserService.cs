@@ -453,18 +453,24 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<UserResponse>>> GetUserPaginationAsync(string? searchTerm,int pageIndex = 0,
+    public async Task<OperationResult<Pagination<UserModelResponse>>> GetUserPaginationAsync(string? searchTerm,int pageIndex = 0,
         int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<UserResponse>>();
+        var result = new OperationResult<Pagination<UserModelResponse>>();
         try
         {
+            var userInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.UserRoles,
+                ThenIncludes = [sp => ((UserRole)sp).Role]
+            };
+            
             // Tạo biểu thức tìm kiếm (predicate)
             Expression<Func<User, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
                 ? null
                 : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Email.ToLower().Contains(searchTerm.ToLower()));
-            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize,searchPredicate);
-            result.Payload = _mapper.Map<Pagination<UserResponse>>(users);
+            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude);
+            result.Payload = _mapper.Map<Pagination<UserModelResponse>>(users);
         }
         catch (Exception e)
         {

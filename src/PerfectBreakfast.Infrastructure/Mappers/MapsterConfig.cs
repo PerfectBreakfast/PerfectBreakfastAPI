@@ -29,6 +29,11 @@ public class MapsterConfig : IRegister
         config.NewConfig<Partner, PartnerResponseModel>();
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
 
+        // User
+        config.NewConfig<User, UserModelResponse>()
+            .Map(dest => dest.Roles, src => src.UserRoles.Select(x => x.Role.Name).ToList());
+        
+        
         // Order 
         config.NewConfig<Order, OrderHistoryResponse>()
             .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum())

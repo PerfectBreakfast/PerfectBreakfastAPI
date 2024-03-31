@@ -78,13 +78,13 @@ public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepos
             Expression<Func<TEntity, bool>>? predicate = null,
             params IncludeInfo<TEntity>[] includeProperties)
         {
-            IQueryable<TEntity> itemsQuery = null;
+            var itemsQuery = _dbSet.AsQueryable();
             if (predicate != null) 
             {
                 itemsQuery = _dbSet.Where(predicate); 
             }
-            itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
             var itemCount = await itemsQuery.CountAsync();
+            itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
             // Xử lý các thuộc tính include và thenInclude
             foreach (var includeProperty in includeProperties)
             {

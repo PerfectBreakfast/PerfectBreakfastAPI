@@ -22,8 +22,8 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         {
             itemsQuery = itemsQuery.Where(predicate); 
         }
-        itemsQuery.OrderByDescending(x => x.CreationDate);
         var itemCount = await itemsQuery.CountAsync();
+        itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
         // Xử lý các thuộc tính include và thenInclude
         foreach (var includeProperty in includeProperties)
         {
@@ -39,6 +39,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
             
         var result = new Pagination<User>()
@@ -50,14 +51,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         };
         return result;
     }
-
-    /*public async Task<SignInResult> CheckPasswordSignin(User user, string password, bool lockoutOnFailure)
-    {
-        var isSuccess = await _signInManager
-            .CheckPasswordSignInAsync(user, password, lockoutOnFailure);
-        return isSuccess;
-    }*/
-
+    
     public async Task<int> CalculateCompanyCode(Guid companyId)
     {
         var companyCode = await _dbSet.AsNoTracking()
@@ -133,13 +127,16 @@ public class UserRepository : BaseRepository<User>,IUserRepository
 
     public async Task<User?> GetInfoCurrentUserById(Guid id)
     {
-        return await _dbSet.Where(x => x.Id == id)
+        return await _dbSet
+            .AsNoTracking()
+            .Where(x => x.Id == id)
             .Include(x => x.Company)
             .Include(x => x.Delivery)
             .Include(x => x.Partner)
             .Include(x => x.Supplier)
             .Include(x => x.UserRoles)
                 .ThenInclude(x => x.Role)
+            .AsSplitQuery()
             .SingleOrDefaultAsync();
     }
 

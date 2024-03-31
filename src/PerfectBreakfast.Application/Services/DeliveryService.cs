@@ -112,7 +112,7 @@ public class DeliveryService : IDeliveryService
                 var delivery = await _unitOfWork.DeliveryRepository
                     .GetByIdAsync(deliveryId,x => 
                         x.Companies.Where(c => !c.IsDeleted) ,x => x.Users);
-                var adminUsers = await _unitOfWork.UserManager.GetUsersInRoleAsync("DELIVERY ADMIN");
+                var adminUsers = await _unitOfWork.UserManager.GetUsersInRoleAsync(ConstantRole.DELIVERY_ADMIN);
                 var adminUserNames = delivery.Users
                     .Where(user => adminUsers.Any(adminUser => adminUser.Id == user.Id))
                     .Select(user => user.Name)
