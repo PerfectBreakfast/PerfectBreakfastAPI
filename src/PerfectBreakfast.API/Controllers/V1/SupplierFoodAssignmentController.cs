@@ -45,6 +45,18 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
+    /// API For Partner Admin
+    /// </summary>
+    /// <param name="packageIds"></param>
+    /// <returns></returns>
+    [HttpGet("partner/packages"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailByPartner(List<Guid?> packageIds)
+    {
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentDetailByPartner(packageIds);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
     /// API For Supplier Admin
     /// </summary>
     /// <param name="pageIndex"></param>
@@ -55,6 +67,20 @@ public class SupplierFoodAssignmentController : BaseController
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Supplier Admin
+    /// </summary>
+    /// <param name="packageIds"></param>
+    /// <returns></returns>
+    [HttpGet("supplier/packages")]
+    [Authorize(Roles = "SUPPLIER ADMIN")]
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid?> packageIds)
+    {
+        var response = await _supplierFoodAssignmentService
+            .GetSupplierFoodAssignmentDetailBySupplier(packageIds);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     

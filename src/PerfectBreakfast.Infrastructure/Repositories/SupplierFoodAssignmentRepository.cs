@@ -12,10 +12,47 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetByDailyOrder(Guid dailyOrderId)
+        public async Task<List<SupplierFoodAssignment>> GetForSupplierByPackage(List<Guid?> packageIds, Guid supplierId)
         {
-            //return await _dbSet.Where(s => s.DailyOrderId == dailyOrderId).ToListAsync();
-            throw new NotImplementedException();
+            var supplierAssignments = await _dbSet
+                .Where(s => s.SupplierCommissionRate.SupplierId == supplierId)
+                .Include(s => s.Food)
+                .Include(s => s.SupplierCommissionRate)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.DailyOrder)
+                        .ThenInclude(s => s.MealSubscription)
+                            .ThenInclude(s => s.Company)
+                .ToListAsync();
+            
+            var filteredAssignments = supplierAssignments
+                .Where(s => packageIds.Contains(s.PackageId))
+                .ToList();
+
+            return filteredAssignments;
+        }
+
+        public async Task<List<SupplierFoodAssignment>> GetForPartnerByPackage(List<Guid?> packageIds, Guid partnerId)
+        {
+            var supplierAssignments = await _dbSet
+                .Where(s => s.Package.PartnerId == partnerId)
+                .Include(s => s.Food)
+                .Include(s => s.SupplierCommissionRate)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.DailyOrder)
+                        .ThenInclude(s => s.MealSubscription)
+                            .ThenInclude(s => s.Company)
+                .ToListAsync();
+            
+            var filteredAssignments = supplierAssignments
+                .Where(s => packageIds.Contains(s.PackageId))
+                .ToList();
+
+            return filteredAssignments;
+        }
+
+        public Task<List<SupplierFoodAssignment>> GetByPackage(Guid packageId)
+        {
+            return _dbSet.Where(s => s.PackageId == packageId).ToListAsync();
         }
 
         public async Task<List<SupplierFoodAssignment>> GetByBookingDateForSupplier()
