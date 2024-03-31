@@ -106,6 +106,17 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return null;
     }
 
+    public async Task<List<User>?> GetUserByCompanyId(Guid companyId)
+    {
+        return await _dbSet
+            .Where(x => x.CompanyId == companyId)
+            .Include(x => x.UserRoles)!
+                .ThenInclude(x => x.Role)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
     public async Task<User> GetUserByIdAsync(Guid id, params IncludeInfo<User>[]? includeProperties)
     {
         var query  = _dbSet.AsNoTracking().Where(x => x.Id == id);

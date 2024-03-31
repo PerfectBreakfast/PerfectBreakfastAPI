@@ -68,13 +68,13 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<List<UserResponse>>> GetUsersByCompanyId(Guid id)
+    public async Task<OperationResult<List<UserModelResponse>>> GetUsersByCompanyId(Guid id)
     {
-        var result = new OperationResult<List<UserResponse>>();
+        var result = new OperationResult<List<UserModelResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.FindAll(x => x.CompanyId == id).ToListAsync();
-            result.Payload = _mapper.Map<List<UserResponse>>(users);
+            var users = await _unitOfWork.UserRepository.GetUserByCompanyId(id);
+            result.Payload = _mapper.Map<List<UserModelResponse>>(users);
         }
         catch (NotFoundIdException e)
         {

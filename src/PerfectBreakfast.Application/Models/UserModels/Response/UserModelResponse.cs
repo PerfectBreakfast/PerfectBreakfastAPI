@@ -7,6 +7,7 @@ public record UserModelResponse(
     string? Image,
     string? Code,
     string? PhoneNumber,
+    DateTime CreationDate,
     bool LockoutEnabled,
     List<string> Roles
     );

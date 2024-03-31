@@ -589,6 +589,7 @@ public class UserService : IUserService
             //user.Name = requestModel.Name ?? user.Name;
             user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
             user.CompanyId = requestModel.CompanyId;
+            user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(requestModel.CompanyId);
 
             _unitOfWork.UserRepository.Update(user);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
