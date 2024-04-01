@@ -3,5 +3,6 @@
 public record FoodAssignmentGroupByPartner
 (
     string? PartnerName,
-    List<Guid?>? PackageIds
+    List<Guid?>? PackageIds,
+    List<FoodAssignmentResponse> FoodAssignmentResponses
     );

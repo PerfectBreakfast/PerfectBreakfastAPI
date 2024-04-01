@@ -230,30 +230,11 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, supplierInclude);
                 var supplierCommissionRateIds = user.Supplier.SupplierCommissionRates.Select(s => s.Id).ToList();
-                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => supplierCommissionRateIds.Contains(s.SupplierCommissionRateId.Value) && s.Status != SupplierFoodAssignmentStatus.Declined;
                 
                 // Get Paging
-                var partnerInclude = new IncludeInfo<SupplierFoodAssignment>
-                {
-                    NavigationProperty = x => x.Package,
-                    ThenIncludes = new List<Expression<Func<object, object >>>
-                    {
-                        sp => ((Package)sp).Partner
-                    }
-                };
-                var dailyOrderInclude = new IncludeInfo<SupplierFoodAssignment>
-                {
-                    NavigationProperty = x => x.Package,
-                    ThenIncludes = new List<Expression<Func<object, object >>>
-                    {
-                        sp => ((Package)sp).DailyOrder,
-                            sp => ((DailyOrder)sp).MealSubscription,
-                                sp => ((MealSubscription)sp).Meal,
-                    }
-                };
                 var supplierFoodAssignmentPages =
                     await _unitOfWork.SupplierFoodAssignmentRepository
-                        .ToPagination(pageIndex, pageSize, predicate, partnerInclude, dailyOrderInclude);
+                        .ToPaginationBySupplier(supplierCommissionRateIds, pageIndex, pageSize);
                 
                 var supplierFoodAssignmentByDateCooked = supplierFoodAssignmentPages.Items.GroupBy(x => x.Package.DailyOrder.BookingDate)
                     .ToDictionary(x => x.Key, g => g.ToList());
@@ -276,8 +257,9 @@ namespace PerfectBreakfast.Application.Services
                         var deliveryTimeResponse = foodAssignmentGroupByPartner.Select(x =>
                         {
                             var partnerName = x.Key;
-                            var packageIds = x.Value.Select(s => s.PackageId).Distinct().ToList();
-                            return new FoodAssignmentGroupByPartner(partnerName, packageIds);
+                            var packageIds = x.Value.Select(s => s.PackageId).ToList();
+                            var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
+                            return new FoodAssignmentGroupByPartner(partnerName, packageIds, foodAssignmentResponse);
                         }).ToList();
                         
                         return new SupplierDeliveryTime(mealTime, deliveryTimeResponse);
@@ -323,30 +305,10 @@ namespace PerfectBreakfast.Application.Services
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
                 var packageId = user.Partner.Packages.Select(s => s.Id).ToList();
-                Expression<Func<SupplierFoodAssignment, bool>> predicate = s => packageId.Contains((Guid)s.PackageId);
                 
                 // Get Paging
-                var supplierInclude = new IncludeInfo<SupplierFoodAssignment>
-                {
-                    NavigationProperty = x => x.SupplierCommissionRate,
-                    ThenIncludes = new List<Expression<Func<object, object>>>
-                    {
-                        sp => ((SupplierCommissionRate)sp).Supplier
-                    }
-                };
-                var dailyOrderInclude = new IncludeInfo<SupplierFoodAssignment>
-                {
-                    NavigationProperty = x => x.Package,
-                    ThenIncludes = new List<Expression<Func<object, object >>>
-                    {
-                        sp => ((Package)sp).DailyOrder,
-                            sp => ((DailyOrder)sp).MealSubscription,
-                                sp => ((MealSubscription)sp).Meal
-                    }
-                };
                 var supplierFoodAssignmentPages =
-                    await _unitOfWork.SupplierFoodAssignmentRepository.ToPagination(pageIndex, pageSize, predicate,
-                        supplierInclude, dailyOrderInclude);
+                    await _unitOfWork.SupplierFoodAssignmentRepository.ToPaginationByPartner(packageId, pageIndex, pageSize);
                 
                 var supplierFoodAssignmentByCreationDated = supplierFoodAssignmentPages.Items.GroupBy(x => x.Package.DailyOrder.BookingDate)
                     .ToDictionary(x => x.Key, g => g.ToList());
@@ -370,8 +332,9 @@ namespace PerfectBreakfast.Application.Services
                         {
                             var supplierId = x.Key.Id;
                             var supplierName = x.Key.Name;
-                            var packageIds = x.Value.Select(s => s.PackageId).Distinct().ToList();
-                            return new FoodAssignmentGroupBySupplier(supplierId, supplierName, packageIds);
+                            var packageIds = x.Value.Select(s => s.PackageId).ToList();
+                            var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
+                            return new FoodAssignmentGroupBySupplier(supplierId, supplierName, packageIds,foodAssignmentResponse);
                         }).ToList();
                         
                         return new PartnerFoodMealResponse(mealType, partnerMealResponse);
@@ -380,7 +343,7 @@ namespace PerfectBreakfast.Application.Services
                     // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
                     return new SupplierFoodAssignmentForPartner(bookingDate, partnerMealResponse);
                 }).ToList();
-                
+
                 result.Payload = new Pagination<SupplierFoodAssignmentForPartner>
                 {
                     PageIndex = supplierFoodAssignmentPages.PageIndex,
