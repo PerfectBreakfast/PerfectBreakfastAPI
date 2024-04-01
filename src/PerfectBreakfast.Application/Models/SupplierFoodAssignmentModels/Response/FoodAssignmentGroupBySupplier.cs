@@ -4,5 +4,6 @@ public record FoodAssignmentGroupBySupplier
 (
     Guid? SupplierId,
     string? SupplierName, 
-    List<Guid?> PackageIds
+    List<Guid?> PackageIds,
+    List<FoodAssignmentResponse> FoodAssignmentResponses
      );
