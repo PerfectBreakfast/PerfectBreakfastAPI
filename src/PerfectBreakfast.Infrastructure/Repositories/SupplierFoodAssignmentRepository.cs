@@ -31,10 +31,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return filteredAssignments;
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetForPartnerByPackage(List<Guid?> packageIds, Guid partnerId)
+        public async Task<List<SupplierFoodAssignment>> GetForPartnerByPackage(List<Guid?> packageIds, Guid partnerId, Guid supplierId)
         {
             var supplierAssignments = await _dbSet
-                .Where(s => s.Package.PartnerId == partnerId)
+                .Where(s => s.Package.PartnerId == partnerId && s.SupplierCommissionRate.SupplierId == supplierId)
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
                 .Include(s => s.Package)

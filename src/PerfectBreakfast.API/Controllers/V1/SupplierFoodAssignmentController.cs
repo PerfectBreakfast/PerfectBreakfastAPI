@@ -45,14 +45,14 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
-    /// API For Partner Admin
+    /// API For Partner Admin - (Lấy món được phân chia)
     /// </summary>
-    /// <param name="packageIds"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("partner/packages"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
-    public async Task<IActionResult> GetSupplierFoodAssignmentDetailByPartner(List<Guid?> packageIds)
+    [HttpPost("partner/packages"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailByPartner(FoodAssignmentByPartnerRequest request)
     {
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentDetailByPartner(packageIds);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentDetailByPartner(request);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -71,11 +71,11 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
-    /// API For Supplier Admin
+    /// API For Supplier Admin - (Lấy món được phân chia)
     /// </summary>
     /// <param name="packageIds"></param>
     /// <returns></returns>
-    [HttpGet("supplier/packages")]
+    [HttpPost("supplier/packages")]
     [Authorize(Roles = "SUPPLIER ADMIN")]
     public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid?> packageIds)
     {
