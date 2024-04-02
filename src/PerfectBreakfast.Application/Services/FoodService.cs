@@ -156,7 +156,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Select(o => o.OrderStatus == OrderStatus.Paid),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -292,7 +292,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Select(o => o.OrderStatus == OrderStatus.Paid),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
