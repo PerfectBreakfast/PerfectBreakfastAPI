@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace PerfectBreakfast.Domain.Enums;
+﻿namespace PerfectBreakfast.Domain.Enums;
 
 public enum DailyOrderStatus
 {

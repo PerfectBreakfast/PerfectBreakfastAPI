@@ -14,6 +14,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
         builder.HasIndex(x => x.OrderCode).IsUnique();
+        builder.HasIndex(x => x.OrderStatus);
         
         builder.HasOne(r => r.Worker)
             .WithMany(ur => ur.OrdersWorker)
