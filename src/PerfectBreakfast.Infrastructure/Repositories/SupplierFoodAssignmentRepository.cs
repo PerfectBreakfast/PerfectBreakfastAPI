@@ -18,7 +18,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         public async Task<List<SupplierFoodAssignment>> GetForSupplierByPackage(List<Guid?> packageIds, Guid supplierId)
         {
             var supplierAssignments = await _dbSet
-                .Where(s => s.SupplierCommissionRate.SupplierId == supplierId)
+                .Where(s => s.SupplierCommissionRate.SupplierId == supplierId && s.Status != SupplierFoodAssignmentStatus.Declined)
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
                 .Include(s => s.Package)
