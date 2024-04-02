@@ -156,7 +156,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders.Select(o => o.OrderStatus == OrderStatus.Paid),
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -165,7 +165,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var comboInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -176,7 +176,6 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAndIncludeAsync(dailyOrderId, mealInclude, foodInclude, companyInclude, comboInclude);
-                
                 // Kiểm tra xem công ty có trong danh sách đối tác không
                 var companyFound = user.Partner.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
 
@@ -292,7 +291,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders.Select(o => o.OrderStatus == OrderStatus.Paid),
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -301,7 +300,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var comboInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
