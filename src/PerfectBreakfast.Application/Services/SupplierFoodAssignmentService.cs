@@ -311,6 +311,7 @@ namespace PerfectBreakfast.Application.Services
                     await _unitOfWork.SupplierFoodAssignmentRepository.ToPaginationByPartner(packageId, pageIndex, pageSize);
                 
                 var supplierFoodAssignmentByCreationDated = supplierFoodAssignmentPages.Items.GroupBy(x => x.Package.DailyOrder.BookingDate)
+                    .OrderByDescending(g => g.Key)
                     .ToDictionary(x => x.Key, g => g.ToList());
                 
                 // custom output
@@ -535,37 +536,6 @@ namespace PerfectBreakfast.Application.Services
                 await _unitOfWork.SaveChangeAsync();
                 
                 //Gửi mail thông báo đến các nhà cung cấp
-                var supplier =
-                    await _unitOfWork.SupplierRepository.GetSupplierById((Guid)updateSupplierFoodAssignment.SupplierId, s=> s.Users);
-                if (supplier == null)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Nhà cung cấp không có admin");
-                    return result;
-                }
-                var filteredUsers  = new List<User>();
-                foreach (var user in supplier.Users)
-                {
-                    if(await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.SUPPLIER_ADMIN))
-                    {
-                        filteredUsers.Add(user);
-                    }
-                }
-                var emailList = filteredUsers.Select(user => user.Email).ToList();
-
-                // Tạo dữ liệu email, sử dụng token trong nội dung email
-                var mailData = new MailDataViewModel(
-                    to: emailList,
-                    subject: "Thông báo",
-                    body: $"Đơn hàng hôm nay đã được phân chia. Các nhà cung cấp có thể xác nhận món"
-                );
-                var ct = new CancellationToken();
-
-                // Gửi email và xử lý kết quả
-                var sendResult = await _mailService.SendAsync(mailData, ct);
-                if (sendResult == false)
-                {
-                    Console.WriteLine("Gửi mail thất bại");
-                }
                 
             }
             catch (NotFoundIdException)
