@@ -8,5 +8,6 @@ public enum DailyOrderStatus
     Waiting,
     Delivering,    
     Complete,
-    NoOrders    // trạng thái empty , là k có order nào đặt trong cái dailyOrder này 
+    NoOrders,// trạng thái empty , là k có order nào đặt trong cái dailyOrder này 
+    Cancel // trạng thái xảy ra khi daily order quá ngày giao mà không đổi trạng thái
 }

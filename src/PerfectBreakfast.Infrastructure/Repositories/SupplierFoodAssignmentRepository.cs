@@ -62,7 +62,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             var representativeIds = await _dbSet
                 .Where(d => packageId.Contains(d.PackageId.Value))
-                .GroupBy(d => d.PackageId.Value)
+                .GroupBy(x => new { x.PackageId.Value, x.SupplierCommissionRate.SupplierId })
                 .Select(g => g.FirstOrDefault().Id) // Lấy ID của mục đầu tiên trong mỗi nhóm
                 .ToListAsync();
             // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
