@@ -4,6 +4,7 @@ public enum DailyOrderStatus
 {
     Initial,
     Processing,
+    Divided,
     Cooking,
     Waiting,
     Delivering,    
