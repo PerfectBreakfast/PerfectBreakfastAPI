@@ -17,5 +17,7 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForPartner(Guid dailyOrderId);
         public Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForDelivery(Guid dailyOrderId);
         public Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id);
+        public Task<OperationResult<TotalFoodForPartnerResponse>> GetComboAndFoodsForPartner(Guid dailyOrderId);
+        public Task<OperationResult<TotalFoodForPartnerResponse>> GetComboAndFoodsForDelivery(Guid dailyOrderId);
     }
 }
