@@ -111,7 +111,7 @@ public class FoodController : BaseController
     [HttpGet("{id}/dailyorderid/partner"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
     public async Task<IActionResult> GetFoodForPartner(Guid id)
     {
-        var response = await _foodService.GetFoodsForPartner(id);
+        var response = await _foodService.GetComboAndFoodsForPartner(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
@@ -123,7 +123,7 @@ public class FoodController : BaseController
     [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> GetFoodForDelivery(Guid id)
     {
-        var response = await _foodService.GetFoodsForDelivery(id);
+        var response = await _foodService.GetComboAndFoodsForDelivery(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
