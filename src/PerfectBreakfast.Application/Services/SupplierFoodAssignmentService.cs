@@ -98,7 +98,6 @@ namespace PerfectBreakfast.Application.Services
                 }
                 filteredSuppliers = filteredSuppliers.Distinct().ToList();
                 
-                
                 foreach (var supplier in filteredSuppliers)
                 {
                     // Gom các Nhà cung cấp và Món ăn giống nhau lại
@@ -163,6 +162,7 @@ namespace PerfectBreakfast.Application.Services
                 await _unitOfWork.PackageRepository.AddAsync(package);
                 
                 dailyOrder.PackageId= package.Id;
+                dailyOrder.Status = DailyOrderStatus.Divided;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
                 
                 // Check xem số lượng nhập vào có đủ hay không
@@ -388,7 +388,7 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync((Guid)supplierFoodAssignment.Package.DailyOrderId);
-                if (dailyOrder is not { Status: DailyOrderStatus.Processing })
+                if (dailyOrder is not { Status: DailyOrderStatus.Divided })
                 {
                     switch (dailyOrder.Status)
                     {
@@ -471,6 +471,9 @@ namespace PerfectBreakfast.Application.Services
                             return result;
                         case DailyOrderStatus.Processing:
                             result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                            return result;
+                        case DailyOrderStatus.Divided:
+                            result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình chờ xác nhận");
                             return result;
                         case DailyOrderStatus.Waiting:
                             result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
