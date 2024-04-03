@@ -32,7 +32,7 @@ public class ShippingOrderService : IShippingOrderService
         try
         {
             var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId);
-            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking && dailyOrder.Status !=DailyOrderStatus.Waiting)
+            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking && dailyOrder.Status !=DailyOrderStatus.Waiting && dailyOrder.Status !=DailyOrderStatus.Divided)
             {
                 result.AddError(ErrorCode.BadRequest,
                     $"Trạng thái đơn hàng không đúng {dailyOrder.Status.ToString()}");
@@ -120,6 +120,9 @@ public class ShippingOrderService : IShippingOrderService
                         result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
                         return result;
                     case DailyOrderStatus.Processing:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                        return result;
+                    case DailyOrderStatus.Divided:
                         result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
                         return result;
                     case DailyOrderStatus.NoOrders:
