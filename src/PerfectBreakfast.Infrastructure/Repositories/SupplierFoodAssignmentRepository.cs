@@ -69,7 +69,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             var query = _dbSet.AsQueryable();
             
             // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
-            query = query.AsNoTracking();
+            //query = query.AsNoTracking();
 
             // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
             var totalItemsCount = representativeIds.Count;
@@ -80,7 +80,9 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(d => d.Package)
                     .ThenInclude(s => s.DailyOrder)
                         .ThenInclude(s => s.MealSubscription)
-                            .ThenInclude(s => s.Meal);
+                            .ThenInclude(s => s.Meal)
+                .Include(d => d.Package)
+                    .ThenInclude(s => s.SupplierFoodAssignments);
             
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query
@@ -112,7 +114,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             var query = _dbSet.AsQueryable();
             
             // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
-            query = query.AsNoTracking();
+            //query = query.AsNoTracking();
 
             // Đếm tổng số phần tử thỏa mãn điều kiện trước khi phân trang
             var totalItemsCount = representativeIds.Count;

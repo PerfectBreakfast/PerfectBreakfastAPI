@@ -4,5 +4,6 @@ public record FoodAssignmentGroupByPartner
 (
     string? PartnerName,
     List<Guid?>? PackageIds,
+    int? Status,
     List<FoodAssignmentResponse> FoodAssignmentResponses
     );
