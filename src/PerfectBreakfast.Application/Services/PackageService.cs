@@ -30,6 +30,7 @@ public class PackageService : IPackageService
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
             var packages = await _unitOfWork.PackageRepository.GetByPartner(user.PartnerId);
             var packageGroup =  packages.GroupBy(p => p.DailyOrder.BookingDate)
+                .OrderByDescending(x => x.Key)
                 .ToDictionary(x => x.Key, g => g.ToList());;
             var packageResponse = packageGroup.Select(x =>
             {

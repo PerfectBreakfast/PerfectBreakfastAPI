@@ -331,7 +331,6 @@ namespace PerfectBreakfast.Application.Services
                     await _unitOfWork.SupplierFoodAssignmentRepository.ToPaginationByPartner(packageId, pageIndex, pageSize);
                 
                 var supplierFoodAssignmentByCreationDated = supplierFoodAssignmentPages.Items.GroupBy(x => x.Package.DailyOrder.BookingDate)
-                    .OrderByDescending(g => g.Key)
                     .ToDictionary(x => x.Key, g => g.ToList());
                 
                 // custom output
