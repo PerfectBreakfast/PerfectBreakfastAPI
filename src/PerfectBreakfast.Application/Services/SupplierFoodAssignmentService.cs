@@ -25,6 +25,12 @@ namespace PerfectBreakfast.Application.Services
         private readonly IFoodService _foodService;
         private readonly IClaimsService _claimsService;
         private readonly IMailService _mailService;
+        
+        //Constant
+        private const int Pending = 0;
+        private const int Declined = 1;
+        private const int Confirm = 2;
+        private const int Complete = 3;
 
         public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime, IFoodService foodService, IClaimsService claimsService, IMailService mailService)
         {
@@ -259,7 +265,21 @@ namespace PerfectBreakfast.Application.Services
                             var partnerName = x.Key;
                             var packageIds = x.Value.Select(s => s.PackageId).ToList();
                             var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
-                            return new FoodAssignmentGroupByPartner(partnerName, packageIds, foodAssignmentResponse);
+                            var packages = x.Value.Select(s => s.Package).ToList();
+                            var hasDeclined = packages.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
+                            );
+                            var hasConfirm = packages.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
+                            );
+                            var allComplete = packages.Any(package => 
+                                package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
+                            );
+                            var statusConstant = hasDeclined ? Declined :
+                                hasConfirm ? Confirm :
+                                allComplete ? Complete :
+                                Pending;
+                            return new FoodAssignmentGroupByPartner(partnerName, packageIds, statusConstant, foodAssignmentResponse);
                         }).ToList();
                         
                         return new SupplierDeliveryTime(mealTime, deliveryTimeResponse);
@@ -334,8 +354,22 @@ namespace PerfectBreakfast.Application.Services
                             var supplierId = x.Key.Id;
                             var supplierName = x.Key.Name;
                             var packageIds = x.Value.Select(s => s.PackageId).ToList();
+                            var packages = x.Value.Select(s => s.Package).ToList();
+                            var hasDeclined = packages.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
+                            );
+                            var hasConfirm = packages.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
+                            );
+                            var allComplete = packages.Any(package => 
+                                package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
+                            );
+                            var statusConstant = hasDeclined ? Declined :
+                                hasConfirm ? Confirm :
+                                allComplete ? Complete :
+                                Pending;
                             var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
-                            return new FoodAssignmentGroupBySupplier(supplierId, supplierName, packageIds,foodAssignmentResponse);
+                            return new FoodAssignmentGroupBySupplier(supplierId, supplierName, packageIds, statusConstant, foodAssignmentResponse);
                         }).ToList();
                         
                         return new PartnerFoodMealResponse(mealType, partnerMealResponse);
