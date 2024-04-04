@@ -82,7 +82,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                         .ThenInclude(s => s.MealSubscription)
                             .ThenInclude(s => s.Meal)
                 .Include(d => d.Package)
-                    .ThenInclude(s => s.SupplierFoodAssignments);
+                    .ThenInclude(s => s.SupplierFoodAssignments)
+                        .ThenInclude(s => s.SupplierCommissionRate);
             
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query
@@ -126,7 +127,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(d => d.Package)
                     .ThenInclude(s => s.DailyOrder)
                         .ThenInclude(s => s.MealSubscription)
-                            .ThenInclude(s => s.Meal);
+                            .ThenInclude(s => s.Meal)
+                .Include(d => d.Package)
+                    .ThenInclude(s => s.SupplierFoodAssignments)
+                        .ThenInclude(s => s.SupplierCommissionRate);
             
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query

@@ -266,13 +266,18 @@ namespace PerfectBreakfast.Application.Services
                             var packageIds = x.Value.Select(s => s.PackageId).ToList();
                             var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
                             var packages = x.Value.Select(s => s.Package).ToList();
-                            var hasDeclined = packages.Any(package => 
+                            var packagesToCheck = packages.Select(package => package.SupplierFoodAssignments
+                                    .Where(sfa => sfa.SupplierCommissionRate.SupplierId == user.SupplierId)
+                                    .ToList())
+                                .Select(filteredAssignments => new Package { SupplierFoodAssignments = filteredAssignments })
+                                .ToList();
+                            var hasDeclined = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
                             );
-                            var hasConfirm = packages.Any(package => 
+                            var hasConfirm = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
                             );
-                            var allComplete = packages.Any(package => 
+                            var allComplete = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
                             );
                             var statusConstant = hasDeclined ? Declined :
@@ -354,13 +359,19 @@ namespace PerfectBreakfast.Application.Services
                             var supplierName = x.Key.Name;
                             var packageIds = x.Value.Select(s => s.PackageId).ToList();
                             var packages = x.Value.Select(s => s.Package).ToList();
-                            var hasDeclined = packages.Any(package => 
+                            var packagesToCheck = packages.Select(package => package.SupplierFoodAssignments
+                                    .Where(sfa => sfa.SupplierCommissionRate.SupplierId == supplierId)
+                                    .ToList())
+                                .Select(filteredAssignments => new Package { SupplierFoodAssignments = filteredAssignments })
+                                .ToList();
+
+                            var hasDeclined = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
                             );
-                            var hasConfirm = packages.Any(package => 
+                            var hasConfirm = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
                             );
-                            var allComplete = packages.Any(package => 
+                            var allComplete = packagesToCheck.All(package => 
                                 package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
                             );
                             var statusConstant = hasDeclined ? Declined :
