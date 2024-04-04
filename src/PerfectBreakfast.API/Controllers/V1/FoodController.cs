@@ -114,6 +114,17 @@ public class FoodController : BaseController
         var response = await _foodService.GetComboAndFoodsForPartner(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
+    /// <summary>
+    /// API For Partner Admin-API lấy danh sách món theo daily order
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("daily-order-id/partner/total-food/{id:guid}"), Authorize(Policy = ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetTotalFoodForPartner(Guid id)
+    {
+        var response = await _foodService.GetFoodsForPartner(id);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
     /// <summary>
     /// API For Delivery Admin, Delivery Staff-API lấy danh sách món theo daily order

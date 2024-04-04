@@ -120,18 +120,18 @@ public class SupplierFoodAssignmentController : BaseController
         var response = await _supplierFoodAssignmentService.UpdateSupplierFoodAssignment(updateSupplierFoodAssignment);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-    
+
     /// <summary>
     /// API For Supplier Admin - Supplier download
     /// </summary>
-    /// <param name="bookingDate"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [HttpGet("download-excel")]
     [Authorize(Roles = "SUPPLIER ADMIN")]
-    public async Task<IActionResult> DownloadSupplierFoodAssignment(DateOnly bookingDate)
+    public async Task<IActionResult> DownloadSupplierFoodAssignment(DownloadSupplierFoodAssignmentRequest request)
     {
         
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsByBookingDate(bookingDate);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSupplierDownload(request.PackageIds);
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
@@ -143,7 +143,7 @@ public class SupplierFoodAssignmentController : BaseController
         }
         else
         {
-            var fileName = $"Món ăn phân chia cho ngày {bookingDate.ToString("dd/mmm/yyyy")}.xlsx";
+            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate.ToString("dd/mmm/yyyy")}.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }

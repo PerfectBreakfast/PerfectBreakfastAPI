@@ -15,7 +15,7 @@ public class ExportExcelService : IExportExcelService
         
     }
     
-    public byte[] DownloadSupplierFoodAssignmentForSupplier(SupplierFoodAssignmentForSupplier supplierFood)
+    public byte[] DownloadSupplierFoodAssignmentForSupplier(FoodAssignmentDownloadForSupplier supplierFood)
     {
         try
         {
@@ -33,8 +33,8 @@ public class ExportExcelService : IExportExcelService
             worksheet.Cells["A1:E1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
             worksheet.Row(1).Height = 20;
                 
-            worksheet.Cells["A2"].Value = "Ngày Giao";
-            worksheet.Cells["B2"].Value = "Tên Đối Tác";
+            worksheet.Cells["A2"].Value = "Tên Đối Tác";
+            worksheet.Cells["B2"].Value = "Tên Doanh Nghiệp";
             worksheet.Cells["C2"].Value = "Thời Gian bàn giao";
             worksheet.Cells["D2"].Value = "Tên Món Ăn/đồ uống";
             worksheet.Cells["E2"].Value = "Số Lượng thực nhận";
@@ -49,18 +49,16 @@ public class ExportExcelService : IExportExcelService
             var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
 
             // Ghi giá trị Date và các dữ liệu cụ thể
-            worksheet.Cells[dataStartRow, 1].Value = supplierFood.Date;
+            worksheet.Cells[dataStartRow, 1].Value = supplierFood.PartnerName;
+            worksheet.Cells[dataStartRow, 2].Value = supplierFood.CompanyName;
 
-            // foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupByPartners)
-            // {
-            //     worksheet.Cells[dataStartRow, 2].Value = foodAssignmentGroup.PartnerName;
-            //
-            //     foreach (var deliveryTimeResponse in foodAssignmentGroup.SupplierDeliveryTimes)
-            //     {
-            //         worksheet.Cells[dataStartRow, 3].Value = deliveryTimeResponse.DeliveryTime;
-            //         
-            //     }
-            // }
+            foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentResponses)
+            {
+                worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline;
+                worksheet.Cells[dataStartRow, 4].Value = foodAssignmentGroup.FoodName;
+                worksheet.Cells[dataStartRow, 5].Value = foodAssignmentGroup.AmountCooked;
+                worksheet.Cells[dataStartRow, 6].Value = foodAssignmentGroup.Status;
+            }
                 
             var dataRange = worksheet.Cells[2, 1, dataStartRow - 1, 5];
             var border = dataRange.Style.Border;
