@@ -126,7 +126,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("download-excel")]
+    [HttpPost("download-excel")]
     [Authorize(Roles = "SUPPLIER ADMIN")]
     public async Task<IActionResult> DownloadSupplierFoodAssignment(DownloadSupplierFoodAssignmentRequest request)
     {

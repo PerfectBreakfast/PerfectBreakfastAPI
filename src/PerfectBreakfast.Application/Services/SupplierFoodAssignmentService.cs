@@ -274,16 +274,16 @@ namespace PerfectBreakfast.Application.Services
                             var hasDeclined = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
                             );
+                            var hasPending = packagesToCheck.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Pending)
+                            );
                             var hasConfirm = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
                             );
-                            var allComplete = packagesToCheck.Any(package => 
-                                package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
-                            );
                             var statusConstant = hasDeclined ? Declined :
+                                hasPending ? Pending :
                                 hasConfirm ? Confirm :
-                                allComplete ? Complete :
-                                Pending;
+                                Complete;
                             return new FoodAssignmentGroupByPartner(partnerName, packageIds, statusConstant, foodAssignmentResponse);
                         }).ToList();
                         
@@ -368,16 +368,16 @@ namespace PerfectBreakfast.Application.Services
                             var hasDeclined = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Declined)
                             );
+                            var hasPending = packagesToCheck.Any(package => 
+                                package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Pending)
+                            );
                             var hasConfirm = packagesToCheck.Any(package => 
                                 package.SupplierFoodAssignments.Any(sfa => sfa.Status == SupplierFoodAssignmentStatus.Confirmed)
                             );
-                            var allComplete = packagesToCheck.All(package => 
-                                package.SupplierFoodAssignments.All(sfa => sfa.Status == SupplierFoodAssignmentStatus.Complete)
-                            );
                             var statusConstant = hasDeclined ? Declined :
+                                hasPending ? Pending :
                                 hasConfirm ? Confirm :
-                                allComplete ? Complete :
-                                Pending;
+                                Complete;
                             var foodAssignmentResponse = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
                             return new FoodAssignmentGroupBySupplier(supplierId, supplierName, packageIds, statusConstant, foodAssignmentResponse);
                         }).ToList();
