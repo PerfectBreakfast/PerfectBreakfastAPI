@@ -25,6 +25,8 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                     .ThenInclude(s => s.DailyOrder)
                         .ThenInclude(s => s.MealSubscription)
                             .ThenInclude(s => s.Company)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.Partner)
                 .ToListAsync();
             
             var filteredAssignments = supplierAssignments
