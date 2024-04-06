@@ -136,14 +136,14 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return HandleErrorResponse(response.Errors);
         }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSupplier(response.Payload[0]);
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSupplier(response.Payload);
         if (content == null)
         {
             return NotFound("Some thing wrong");
         }
         else
         {
-            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate.ToString("dd/mmm/yyyy")}.xlsx";
+            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }

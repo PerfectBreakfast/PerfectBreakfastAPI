@@ -15,7 +15,7 @@ public class ExportExcelService : IExportExcelService
         
     }
     
-    public byte[] DownloadSupplierFoodAssignmentForSupplier(FoodAssignmentDownloadForSupplier supplierFood)
+    public byte[] DownloadSupplierFoodAssignmentForSupplier(List<FoodAssignmentDownloadForSupplier> supplierFoodList)
     {
         try
         {
@@ -47,22 +47,23 @@ public class ExportExcelService : IExportExcelService
             }
 
             var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
-
+            
+            
             // Ghi giá trị Date và các dữ liệu cụ thể
-            worksheet.Cells[dataStartRow, 1].Value = supplierFood.PartnerName;
-            worksheet.Cells[dataStartRow, 2].Value = supplierFood.CompanyName;
-
-            foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentResponses)
+            foreach (var supplierFood in supplierFoodList)
             {
-                worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline;
-                worksheet.Cells[dataStartRow, 4].Value = foodAssignmentGroup.FoodName;
-                worksheet.Cells[dataStartRow, 5].Value = foodAssignmentGroup.AmountCooked;
-                worksheet.Cells[dataStartRow, 6].Value = foodAssignmentGroup.Status;
+                worksheet.Cells[dataStartRow, 1].Value = supplierFood.PartnerName;
+                worksheet.Cells[dataStartRow, 2].Value = supplierFood.CompanyName;
+                foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentResponses)
+                {
+                    worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline.ToString();
+                    worksheet.Cells[dataStartRow, 4].Value = foodAssignmentGroup.FoodName;
+                    worksheet.Cells[dataStartRow, 5].Value = foodAssignmentGroup.AmountCooked;
+                    worksheet.Cells[dataStartRow, 6].Value = foodAssignmentGroup.Status;
+                    dataStartRow++; 
+                }
             }
-                
-            var dataRange = worksheet.Cells[2, 1, dataStartRow - 1, 5];
-            var border = dataRange.Style.Border;
-            border.Top.Style = border.Left.Style = border.Bottom.Style = border.Right.Style = ExcelBorderStyle.Thin;
+            
 
             // Auto-fit columns
             for (var i = 1; i <= 20; i++)
