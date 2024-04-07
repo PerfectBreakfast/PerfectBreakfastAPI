@@ -2,6 +2,6 @@
 
 public record FoodAssignmentByPartnerRequest
     (
-        Guid? SupplierId,
-        List<Guid?> PackageIds
+        Guid SupplierId,
+        List<Guid> PackageIds
         );

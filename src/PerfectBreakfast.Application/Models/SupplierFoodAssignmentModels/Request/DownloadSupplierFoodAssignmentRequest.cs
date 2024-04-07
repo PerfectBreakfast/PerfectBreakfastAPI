@@ -3,5 +3,5 @@
 public record DownloadSupplierFoodAssignmentRequest
     (
         DateOnly BookingDate, 
-        List<Guid?> PackageIds
+        List<Guid> PackageIds
         );

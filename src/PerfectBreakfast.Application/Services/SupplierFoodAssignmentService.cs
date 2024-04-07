@@ -177,12 +177,12 @@ namespace PerfectBreakfast.Application.Services
                         var foodName = foodResponse.Name;
                         var requiredQuantity = foodResponse.Quantity;
                         // Kiểm tra xem totalFoodReceive có chứa tên thức ăn này không và số lượng có đủ không
-                        if (totalFoodReceive.ContainsKey(foodName))
+                        if (totalFoodReceive.TryGetValue(foodName, out var value))
                         {
-                            if (totalFoodReceive[foodName] != requiredQuantity)
+                            if (value != requiredQuantity)
                             {
                                 // Nếu số lượng thực tế không bằng với số lượng yêu cầu
-                                result.AddError(ErrorCode.BadRequest, $"Số lượng của {foodName} không đủ yêu cầu: Yêu cầu {requiredQuantity}, thực tế {totalFoodReceive[foodName]}.");
+                                result.AddError(ErrorCode.BadRequest, $"Số lượng của {foodName} không đủ yêu cầu: Yêu cầu {requiredQuantity}, thực tế {value}.");
                                 return result;
                             }
                         }
@@ -227,10 +227,7 @@ namespace PerfectBreakfast.Application.Services
                 var supplierInclude = new IncludeInfo<User>
                 {
                     NavigationProperty = x => x.Supplier,
-                    ThenIncludes = new List<Expression<Func<object, object>>>
-                    {
-                        sp => ((Supplier)sp).SupplierCommissionRates
-                    }
+                    ThenIncludes = [sp => ((Supplier)sp).SupplierCommissionRates]
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, supplierInclude);
                 var supplierCommissionRateIds = user.Supplier.SupplierCommissionRates.Select(s => s.Id).ToList();
@@ -321,13 +318,10 @@ namespace PerfectBreakfast.Application.Services
                 var partnerInclude = new IncludeInfo<User>
                 {
                     NavigationProperty = x => x.Partner,
-                    ThenIncludes = new List<Expression<Func<object, object>>>
-                    {
-                        sp => ((Partner)sp).Packages
-                    }
+                    ThenIncludes = [sp => ((Partner)sp).Packages]
                 };
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
-                var packageId = user.Partner.Packages.Select(s => s.Id).ToList();
+                var packageId = user.Partner!.Packages.Select(s => s.Id).ToList();
                 
                 // Get Paging
                 var supplierFoodAssignmentPages =
@@ -558,7 +552,7 @@ namespace PerfectBreakfast.Application.Services
             var result = new OperationResult<SupplierFoodAssignmentResponse>();
             try
             {
-                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync((Guid)updateSupplierFoodAssignment.SupplierFoodAssignmentId);
+                var supplierFoodAssignment = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(updateSupplierFoodAssignment.SupplierFoodAssignmentId);
                 if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
                 {
                     result.AddError(ErrorCode.BadRequest, "Đơn hàng này phải bị từ chối");
@@ -568,7 +562,7 @@ namespace PerfectBreakfast.Application.Services
                 //Đổi nhà cung cấp khác
                 var supplierCommissionRates =
                     await _unitOfWork.SupplierCommissionRateRepository
-                        .GetBySupplierId((Guid)updateSupplierFoodAssignment.SupplierId);
+                        .GetBySupplierId(updateSupplierFoodAssignment.SupplierId);
                 var supplierCommissionRate = supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
                 if (supplierCommissionRate == null)
                 {
@@ -594,7 +588,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
         
-        public async Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForSupplierDownload(List<Guid?> packageIds)
+        public async Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForSupplierDownload(List<Guid> packageIds)
         {
             var result = new OperationResult<List<FoodAssignmentDownloadForSupplier>>();
             var userId = _claimsService.GetCurrentUserId;
@@ -602,7 +596,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
                 var supplierAssignment =
-                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds, (Guid)user.SupplierId);
+                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds, user.SupplierId!.Value);
                 var foodAssignmentForCompany = supplierAssignment
                     .GroupBy(x => (x.Package.DailyOrder.MealSubscription.Company.Name , x.Package.Partner.Name))
                     .ToDictionary(x => x.Key, g => g.ToList());;
@@ -704,7 +698,7 @@ namespace PerfectBreakfast.Application.Services
             return result;
         }
 
-        public async Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailBySupplier(List<Guid?> packageIds)
+        public async Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds)
         {
             var result = new OperationResult<List<FoodAssignmentGroupByCompany>>();
             var userId = _claimsService.GetCurrentUserId;
@@ -712,7 +706,7 @@ namespace PerfectBreakfast.Application.Services
             {
                 var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
                 var supplierAssignment =
-                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds, (Guid)user.SupplierId);
+                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds, user.SupplierId!.Value);
                 var foodAssignmentForCompany = supplierAssignment
                     .GroupBy(x => x.Package.DailyOrder.MealSubscription.Company.Name)
                     .ToDictionary(x => x.Key, g => g.ToList());;
@@ -745,7 +739,7 @@ namespace PerfectBreakfast.Application.Services
                     return result;
                 }
                 var supplierAssignment =
-                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(request.PackageIds, (Guid)user.PartnerId, (Guid)request.SupplierId);
+                    await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(request.PackageIds, user.PartnerId!.Value, request.SupplierId);
                 var foodAssignmentForCompany = supplierAssignment
                     .GroupBy(x => x.Package.DailyOrder.MealSubscription.Company.Name)
                     .ToDictionary(x => x.Key, g => g.ToList());;

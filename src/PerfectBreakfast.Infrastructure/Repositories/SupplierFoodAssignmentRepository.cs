@@ -15,7 +15,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetForSupplierByPackage(List<Guid?> packageIds, Guid supplierId)
+        public async Task<List<SupplierFoodAssignment>> GetForSupplierByPackage(List<Guid> packageIds, Guid supplierId)
         {
             var supplierAssignments = await _dbSet
                 .Where(s => s.SupplierCommissionRate.SupplierId == supplierId && s.Status != SupplierFoodAssignmentStatus.Declined)
@@ -30,13 +30,13 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
             
             var filteredAssignments = supplierAssignments
-                .Where(s => packageIds.Contains(s.PackageId))
+                .Where(s => packageIds.Contains(s.PackageId!.Value))
                 .ToList();
 
             return filteredAssignments;
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetForPartnerByPackage(List<Guid?> packageIds, Guid partnerId, Guid supplierId)
+        public async Task<List<SupplierFoodAssignment>> GetForPartnerByPackage(List<Guid> packageIds, Guid partnerId, Guid supplierId)
         {
             var supplierAssignments = await _dbSet
                 .Where(s => s.Package.PartnerId == partnerId && s.SupplierCommissionRate.SupplierId == supplierId)
@@ -49,7 +49,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
             
             var filteredAssignments = supplierAssignments
-                .Where(s => packageIds.Contains(s.PackageId))
+                .Where(s => packageIds.Contains(s.PackageId!.Value))
                 .ToList();
 
             return filteredAssignments;

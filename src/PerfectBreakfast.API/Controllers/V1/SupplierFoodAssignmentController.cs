@@ -77,7 +77,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <returns></returns>
     [HttpPost("supplier/packages")]
     [Authorize(Roles = "SUPPLIER ADMIN")]
-    public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid?> packageIds)
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds)
     {
         var response = await _supplierFoodAssignmentService
             .GetSupplierFoodAssignmentDetailBySupplier(packageIds);
