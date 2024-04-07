@@ -180,7 +180,7 @@ public class ShippingOrderService : IShippingOrderService
     public async Task<OperationResult<bool>> EndShippingOrderByShipper(Guid dailyOrderId)
     {
         var result = new OperationResult<bool>();
-        var userId = _claimsService.GetCurrentUserId;
+        //var userId = _claimsService.GetCurrentUserId;
         try
         {
             var shippingOrders = await _unitOfWork.ShippingOrderRepository

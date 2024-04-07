@@ -64,7 +64,7 @@ public class ShippingOrderController : BaseController
     [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> EndShippingOrder(Guid dailyOrderId)
     {
-        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
+        var response = await _shippingOrderService.EndShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
