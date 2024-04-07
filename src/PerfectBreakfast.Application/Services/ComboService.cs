@@ -61,8 +61,6 @@ public class ComboService : IComboService
                 result.AddError(ErrorCode.ServerError, "Food is not exist");
                 return result;
             }
-
-            result.Payload = _mapper.Map<ComboResponse>(combo);
         }
         catch (Exception e)
         {
