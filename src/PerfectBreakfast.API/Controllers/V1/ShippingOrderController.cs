@@ -56,6 +56,19 @@ public class ShippingOrderController : BaseController
     }
     
     /// <summary>
+    /// Api for Delivery Staff Or Delivery Admin- (API đóng ca giao hàng , khi mà hết giờ giao mà vẫn còn đơn chưa có ai lấy)
+    /// </summary>
+    /// <param name="dailyOrderId"></param>
+    /// <returns></returns>
+    [HttpPut("end/{dailyOrderId:guid}")]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
+    public async Task<IActionResult> EndShippingOrder(Guid dailyOrderId)
+    {
+        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
     /// Api for Delivery Admin- (API để lấy staff theo daily order Id)
     /// </summary>
     /// <param name="dailyOrderId"></param>

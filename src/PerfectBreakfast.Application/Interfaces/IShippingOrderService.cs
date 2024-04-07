@@ -11,6 +11,7 @@ public interface IShippingOrderService
     public Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel);
     public Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderTodayByDeliveryStaff(DateTime time);
     public Task<OperationResult<bool>> ConfirmShippingOrderByShipper(Guid dailyOrderId);
+    public Task<OperationResult<bool>> EndShippingOrderByShipper(Guid dailyOrderId);
     public Task<OperationResult<List<UserResponse>>> GetSDeliveryStaffByDailyOrder(Guid dailyOrderId);
 
 }
