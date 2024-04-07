@@ -1,5 +1,3 @@
-using PerfectBreakfast.Domain.Enums;
-
 namespace PerfectBreakfast.Domain.Entities;
 
 public class Package : BaseEntity

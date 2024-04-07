@@ -757,6 +757,8 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.HasIndex("OrderCode")
                         .IsUnique();
 
+                    b.HasIndex("OrderStatus");
+
                     b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("WorkerId");
@@ -852,9 +854,6 @@ namespace PerfectBreakfast.Infrastructure.Migrations
 
                     b.Property<Guid?>("PartnerId")
                         .HasColumnType("char(36)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<int>("SuccessfulQuantity")
                         .HasColumnType("int");
