@@ -63,7 +63,7 @@ namespace PerfectBreakfast.Application.Services
                 
                 
                 // Lấy supplier từ partner
-                var suppliers = user.Partner.SupplyAssignments.Select(s => s.Supplier).ToList();
+                var suppliers = user.Partner!.SupplyAssignments.Select(s => s.Supplier).ToList();
                 if (suppliers.Count == 0)
                 {
                     result.AddError(ErrorCode.BadRequest, "Đối tác chưa có nhà cung cấp");
@@ -73,7 +73,7 @@ namespace PerfectBreakfast.Application.Services
                 //Kiểm tra các nhà cung cấp nhập vào có thuộc đối tác
                 var supplierIds = suppliers.Select(s => s.Id).ToList();
                 var isSuppliersExist = request.SupplierFoodAssignmentRequest
-                    .Any(s => supplierIds.Contains((Guid)s.SupplierId));
+                    .Any(s => supplierIds.Contains(s.SupplierId));
                 if (!isSuppliersExist)
                 {
                     result.AddError(ErrorCode.BadRequest, "Có nhà cung cấp không thuộc đối tác này");
@@ -83,8 +83,7 @@ namespace PerfectBreakfast.Application.Services
                 //Kiểm tra xem đã phân chia món chưa
                 var dailyOrder =
                     await _unitOfWork.DailyOrderRepository
-                        .GetByIdAsync((Guid)request.DailyOrderId!, d => d.Package, d=> d.MealSubscription);
-                
+                        .GetByIdAsync(request.DailyOrderId, d=> d.MealSubscription!);
                 if (dailyOrder.Package != null)
                 {
                     result.AddError(ErrorCode.BadRequest, "Đơn hàng đã được phân chia");
@@ -92,7 +91,7 @@ namespace PerfectBreakfast.Application.Services
                 }
                 
                 // Tổng số lượng food cần phân chia
-                var totalFoodCountOperationResult = await _foodService.GetFoodsForPartner((Guid)request.DailyOrderId);
+                var totalFoodCountOperationResult = await _foodService.GetFoodsForPartner(request.DailyOrderId);
                 var totalFoodCounts = totalFoodCountOperationResult.Payload;
                 var totalFoodReceive = new Dictionary<string, int>();
                 
@@ -157,7 +156,6 @@ namespace PerfectBreakfast.Application.Services
                 //Lưu xuống DB
                 var package = new Package()
                 {
-                    Status = PackageStatus.Pending,
                     TotalFoodAssignQuantity = foodAssignmentsResult.Count,
                     MissingQuantity = foodAssignmentsResult.Count,
                     SuccessfulQuantity = 0,

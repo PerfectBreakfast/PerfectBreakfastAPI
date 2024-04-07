@@ -7,7 +7,6 @@ public class Package : BaseEntity
     public int TotalFoodAssignQuantity { get; set; }
     public int MissingQuantity { get; set; }
     public int SuccessfulQuantity { get; set; }
-    public PackageStatus Status { get; set; }
     
     // relationship 
     
