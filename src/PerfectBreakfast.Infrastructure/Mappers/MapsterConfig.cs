@@ -18,7 +18,7 @@ using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
 
-namespace PerfectBreakfast.Infrastructure.Mappers;
+namespace PerffectBreakfast.Infrastructure.Mappers;
 
 public class MapsterConfig : IRegister
 {
@@ -131,7 +131,7 @@ public class MapsterConfig : IRegister
         // DailyOrder 
         config.NewConfig<DailyOrder, DailyOrderDto>()
             .Map(dest => dest.Meal, src => src.MealSubscription.Meal.MealType)
-            .Map(dest => dest.PickupTime,src => src.MealSubscription.StartTime)
+            .Map(dest => dest.PickupTime, src => src.MealSubscription.StartTime.ToTimeSpan() - TimeSpan.FromHours(1))
             .Map(dest => dest.HandoverTime,src => src.MealSubscription.StartTime)
             .Map(dest => dest.Company,src => src.MealSubscription.Company)
             .Map(dest => dest.Partner,src => src.MealSubscription.Company.Partner);

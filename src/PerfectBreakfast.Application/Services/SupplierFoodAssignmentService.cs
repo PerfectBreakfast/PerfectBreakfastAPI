@@ -1,17 +1,9 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.Linq.Expressions;
-using Hangfire;
-using MapsterMapper;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
+﻿using MapsterMapper;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
-using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -141,7 +133,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                     supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
                     supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
                     var bookingDateTime = dailyOrder.BookingDate.ToDateTime(new TimeOnly(0, 0));
-                    var startTimeAdjusted = dailyOrder.MealSubscription.StartTime.Value.AddHours(-1).ToTimeSpan();
+                    var startTimeAdjusted = dailyOrder.MealSubscription!.StartTime.AddHours(-1).ToTimeSpan();
                     var deliveryDeadline = bookingDateTime.Add(startTimeAdjusted);
                     supplierFoodAssignment.DeliveryDeadline = deliveryDeadline;
 

@@ -33,7 +33,7 @@ public class ShippingOrderService : IShippingOrderService
         var list = new List<ShippingOrder>();
         try
         {
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId, x => x.MealSubscription!);
             if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking &&
                 dailyOrder.Status != DailyOrderStatus.Waiting && dailyOrder.Status != DailyOrderStatus.Divided)
             {
@@ -83,8 +83,7 @@ public class ShippingOrderService : IShippingOrderService
         {
             // Hàm này còn đang sửa tiêp cho nagyf mai 
             var date = DateOnly.FromDateTime(time);
-            var shippingOrders =
-                await _unitOfWork.ShippingOrderRepository.GetShippingOrderTodayByShipperIdAndDate(userId, date);
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderTodayByShipperIdAndDate(userId, date);
 
             result.Payload = _mapper.Map<List<ShippingOrderForShipperResponse>>(shippingOrders);
         }
@@ -192,7 +191,7 @@ public class ShippingOrderService : IShippingOrderService
                 .GetByIdAsync(dailyOrderId, x => x.MealSubscription!);
             
             // lấy ra thời gian có thể Đóng ca
-            var timeEnd = dailyOrder.BookingDate.ToDateTime(dailyOrder.MealSubscription!.EndTime!.Value); 
+            var timeEnd = dailyOrder.BookingDate.ToDateTime(dailyOrder.MealSubscription!.EndTime); 
 
             // nếu thời gian hiện tại < thời gian có thể đóng ca 
             if (_currentTime.GetCurrentTime() < timeEnd)

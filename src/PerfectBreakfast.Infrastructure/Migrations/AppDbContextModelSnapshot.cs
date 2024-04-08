@@ -577,7 +577,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<TimeOnly?>("EndTime")
+                    b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time(6)");
 
                     b.Property<bool>("IsDeleted")
@@ -592,7 +592,7 @@ namespace PerfectBreakfast.Infrastructure.Migrations
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<TimeOnly?>("StartTime")
+                    b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time(6)");
 
                     b.HasKey("Id");
