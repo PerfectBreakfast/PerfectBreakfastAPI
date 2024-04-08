@@ -19,4 +19,10 @@ public class ComboFoodRepository : GenericRepository<ComboFood>,IComboFoodReposi
             .Select(x => x.Food)
             .ToListAsync();
     }
+
+    public async Task<bool> IsFoodExistInCombo(Guid foodId)
+    {
+        return _dbSet.AsNoTracking()
+            .Any(x => x.FoodId == foodId);
+    }
 }
