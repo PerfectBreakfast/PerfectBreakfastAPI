@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -15,17 +16,18 @@ public class ShippingOrderService : IShippingOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+    private readonly ICurrentTime _currentTime;
 
-
-    public ShippingOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+    public ShippingOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
+        _currentTime = currentTime;
     }
 
-    public async Task<OperationResult<bool>> CreateShippingOrder(
-        CreateShippingOrderRequest requestModel)
+    public async Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
     {
         var result = new OperationResult<bool>();
         var list = new List<ShippingOrder>();
@@ -180,68 +182,65 @@ public class ShippingOrderService : IShippingOrderService
     public async Task<OperationResult<bool>> EndShippingOrderByShipper(Guid dailyOrderId)
     {
         var result = new OperationResult<bool>();
-        //var userId = _claimsService.GetCurrentUserId;
         try
         {
             var shippingOrders = await _unitOfWork.ShippingOrderRepository
                 .GetShippingOrderByDailyOrderId(dailyOrderId);
 
             // check xem xem tổng đơn(dailyOrder) đã ở trạng thái sẵn sàng chờ đến lấy đi giao hay chưa ? 
-            var dailyOrder =
-                await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
-            if (dailyOrder.Status != DailyOrderStatus.Delivering) // phải check tiếp nữa là cái này nó có đóng ca sau cái thời gian ăn của bữa theo công ty đos không ? 
+            var dailyOrder = await _unitOfWork.DailyOrderRepository
+                .GetByIdAsync(dailyOrderId, x => x.MealSubscription!);
+            
+            // lấy ra thời gian có thể Đóng ca
+            var timeEnd = dailyOrder.BookingDate.ToDateTime(dailyOrder.MealSubscription!.EndTime!.Value); 
+
+            // nếu thời gian hiện tại < thời gian có thể đóng ca 
+            if (_currentTime.GetCurrentTime() < timeEnd)
             {
-                switch (dailyOrder.Status)
-                {
-                    case DailyOrderStatus.Complete:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
-                        return result;
-                    case DailyOrderStatus.Cooking:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
-                        return result;
-                    case DailyOrderStatus.Initial:
-                        result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
-                        return result;
-                    case DailyOrderStatus.Processing:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
-                        return result;
-                    case DailyOrderStatus.Divided:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
-                        return result;
-                    case DailyOrderStatus.NoOrders:
-                        result.AddError(ErrorCode.BadRequest, "Đơn này không có");
-                        return result;
-                    case DailyOrderStatus.Delivering:
-                        break;
-                    case DailyOrderStatus.Waiting:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình cho");
-                        return result;
-                    default:
-                        result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
-                        return result;
-                }
+                result.AddError(ErrorCode.BadRequest, $"Thời gian đóng ca là: {timeEnd}");
+                return result;
             }
 
+            // phải check tiếp nữa là cái này nó có đóng ca sau cái thời gian ăn của bữa theo công ty đos không ? 
+            if (dailyOrder.Status != DailyOrderStatus.Delivering) 
+            {
+                result.AddError(ErrorCode.BadRequest, "Không thể đóng ca");
+                return result;
+            }
+
+            // chuyển dailyOrder sang trạng thái complete 
+            dailyOrder.Status = DailyOrderStatus.Complete;
+
+            // lấy ra các order đang ở trạng thái đã thanh toán 
+            var orders = await _unitOfWork.OrderRepository.FindAll(x =>
+                x.DailyOrderId == dailyOrderId && x.OrderStatus == OrderStatus.Paid).ToListAsync();
+
+            // chuyển tất cả order đã thanh toán sang đã hủy vì quá thời gian giao hàng 
+            orders.ForEach(x => x.OrderStatus = OrderStatus.CancelledForOverdue);
+
+            // chuyển các nhiệm vụ theo dailyOrder sang trạng thái complete 
             foreach (var shippingOrder in shippingOrders)
             {
                 shippingOrder.Status = ShippingStatus.Complete;
             }
 
             _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
-            dailyOrder.Status = DailyOrderStatus.Complete;
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            _unitOfWork.OrderRepository.UpdateRange(orders);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             if (!isSuccess)
             {
                 result.AddError(ErrorCode.ServerError, "lỗi trong quá trình lưu xuống db");
                 return result;
             }
+
             result.Payload = isSuccess;
         }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
