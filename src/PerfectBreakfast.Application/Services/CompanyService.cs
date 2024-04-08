@@ -20,12 +20,14 @@ public class CompanyService : ICompanyService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+    private readonly ICurrentTime _currentTime;
 
-    public CompanyService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+    public CompanyService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<CompanyResponse>> CreateCompany(CompanyRequest companyRequest)
@@ -189,7 +191,8 @@ public class CompanyService : ICompanyService
         var result = new OperationResult<List<CompanyResponse>>();
         try
         {
-            var companies = await _unitOfWork.CompanyRepository.SearchCompany(searchTerm);
+            var now = _currentTime.GetCurrentTime();
+            var companies = await _unitOfWork.CompanyRepository.SearchCompany(searchTerm, now);
             if (companies == null)
             {
                 result.AddError(ErrorCode.BadRequest, "Không có công ty hợp lệ");

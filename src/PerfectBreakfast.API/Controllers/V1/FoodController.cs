@@ -143,9 +143,9 @@ public class FoodController : BaseController
     /// </summary>
     /// <returns></returns>
     [HttpGet ("supplier/{supplierId:guid}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetFoodForSupplier(Guid supplierId)
+    public async Task<IActionResult> GetFoodForSupplier(Guid supplierId, string? searchTerm)
     {
-        var response = await _foodService.GetFoodForSupplier(supplierId);
+        var response = await _foodService.GetFoodForSupplier(supplierId, searchTerm);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
