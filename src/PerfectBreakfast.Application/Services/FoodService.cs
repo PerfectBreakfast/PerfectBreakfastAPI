@@ -610,6 +610,18 @@ namespace PerfectBreakfast.Application.Services;
             {
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+                var isFoodInCombo = await _unitOfWork.ComboFoodRepository.IsFoodExistInCombo(foodId);
+                var isFoodInMenu = await _unitOfWork.MenuFoodRepository.IsFoodExistInMenu(foodId);
+                if (isFoodInCombo)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Món ăn đang thuộc combo");
+                    return result;
+                }
+                if (isFoodInMenu)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Món ăn đang thuộc menu");
+                    return result;
+                }
                 // Remove
                 _unitOfWork.FoodRepository.SoftRemove(food);
                 // saveChange

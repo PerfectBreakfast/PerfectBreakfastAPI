@@ -116,7 +116,6 @@ namespace PerfectBreakfast.Application.Services;
                     result.AddError(ErrorCode.BadRequest, "Menu is currently selected");
                     return result;
                 }
-
                 _unitOfWork.MenuRepository.SoftRemove(menu);
                 await _unitOfWork.SaveChangeAsync();
             }

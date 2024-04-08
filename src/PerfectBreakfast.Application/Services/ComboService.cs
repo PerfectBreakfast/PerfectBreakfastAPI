@@ -76,6 +76,12 @@ public class ComboService : IComboService
         try
         {
             var combo = await _unitOfWork.ComboRepository.GetByIdAsync(id);
+            var isComboInMenu = await _unitOfWork.MenuFoodRepository.IsComboExistInMenu(id);
+            if (isComboInMenu)
+            {
+                result.AddError(ErrorCode.BadRequest, "Combo đang tồn tại trong menu");
+                return result;
+            }
             _unitOfWork.ComboRepository.SoftRemove(combo);
             await _unitOfWork.SaveChangeAsync();
         }
