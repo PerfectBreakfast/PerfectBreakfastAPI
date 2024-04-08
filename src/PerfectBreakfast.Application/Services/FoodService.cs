@@ -369,12 +369,13 @@ namespace PerfectBreakfast.Application.Services;
             return result;
         }
 
-        public async Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id)
+        public async Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id, string? searchTerm)
         {
             var result = new OperationResult<List<FoodResponse>>();
             try
             {
-                var food = await _unitOfWork.FoodRepository.GetFoodForSupplier(id);
+                searchTerm ??= "";
+                var food = await _unitOfWork.FoodRepository.GetFoodForSupplier(id, searchTerm);
                 result.Payload = _mapper.Map<List<FoodResponse>>(food);
             }
             catch (Exception e)
