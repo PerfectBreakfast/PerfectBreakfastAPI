@@ -24,7 +24,7 @@ public class HangFireSettingService : IHangfireSettingService
         try
         {
             var setting = await _unitOfWork.SettingRepository.GetByIdAsync(id);
-            TimeOnly adjustedTime = request.Time.AddHours(-7); // Giả sử bạn cần điều chỉnh thời gian
+            var adjustedTime = request.Time.AddHours(-7); // Giả sử bạn cần điều chỉnh thời gian
             // Tạo cron schedule
             var cronSchedule =
                 $"{adjustedTime.Minute} {adjustedTime.Hour} * * *"; // Chạy hàng ngày vào thời gian cụ thể
@@ -35,7 +35,7 @@ public class HangFireSettingService : IHangfireSettingService
             await _unitOfWork.SaveChangeAsync();
             result.Payload = request.Time;
         }
-        catch (NotFoundIdException e)
+        catch (NotFoundIdException)
         {
             result.AddError(ErrorCode.NotFound,"Không tìm thấy ID");
         }

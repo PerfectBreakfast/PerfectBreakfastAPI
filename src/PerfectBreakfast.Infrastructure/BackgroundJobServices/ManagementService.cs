@@ -12,12 +12,15 @@ public class ManagementService : IManagementService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentTime _currentTime;
     private readonly IMailService _mailService;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
-    public ManagementService(IUnitOfWork unitOfWork, ICurrentTime currentTime, IMailService mailService)
+    public ManagementService(IUnitOfWork unitOfWork, ICurrentTime currentTime,
+        IMailService mailService,IBackgroundJobClient backgroundJobClient)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _mailService = mailService;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     // Có nghĩa là cứ khi nào hàm này được gọi nó sẽ chuyển status và create DailyOrder mới
@@ -45,13 +48,9 @@ public class ManagementService : IManagementService
                 Console.WriteLine("Không có dailyOrders được tạo hôm nay.");
             }
             
-            // đoạn này gửi mail cho những thằng partner admin có OrderQuantity > 0
-            // Chạy 1 job riêng để gửi mail 
-            BackgroundJob.Enqueue<IManagementService>(d => d.AutoSendMailForAllPartnerAdminAndDeliveryAdminWhenDailyOrderProcessing(now));
-            
             
             // Kiểm tra xem đã có đơn hàng nào được tạo cho ngày hiện tại chưa
-            var isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(_currentTime.GetCurrentTime());
+            var isDailyOrderCreated = await _unitOfWork.DailyOrderRepository.IsDailyOrderCreated(now);
 
             // Nếu đã có đơn hàng cho ngày hiện tại, thoát khỏi hàm
             if (isDailyOrderCreated)
@@ -60,14 +59,13 @@ public class ManagementService : IManagementService
                 return;
             }
             
-            
             // Tạo mới dailyOrder cho tất cả các bữa ăn của các công ty trong hệ thống
-            var bookingDate = DateOnly.FromDateTime(_currentTime.GetCurrentTime());
+            var bookingDate = DateOnly.FromDateTime(now);
             
             var mealSubscriptions = await _unitOfWork.MealSubscriptionRepository.GetAllAsync();
             foreach (var mealSubscription in mealSubscriptions)
             {
-                var dailyOrder = new DailyOrder()
+                var dailyOrder = new DailyOrder
                 {
                     BookingDate = bookingDate.AddDays(2), // thời gian giao sẽ là 2 ngày sau từ khi mà cái dailyOrder này được khởi tạo
                     Status = DailyOrderStatus.Initial,
@@ -77,7 +75,13 @@ public class ManagementService : IManagementService
                 };
                 await _unitOfWork.DailyOrderRepository.AddAsync(dailyOrder);
             }
-            await _unitOfWork.SaveChangeAsync();
+            
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (isSuccess)
+            {
+                // Chạy 1 job riêng để gửi mail 
+                _backgroundJobClient.Enqueue<IManagementService>(d => d.AutoSendMailForAllPartnerAdminAndDeliveryAdminWhenDailyOrderProcessing(now));
+            }
         }
         catch (Exception e)
         {

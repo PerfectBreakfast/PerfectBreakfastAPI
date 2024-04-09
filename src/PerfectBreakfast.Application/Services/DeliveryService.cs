@@ -204,10 +204,4 @@ public class DeliveryService : IDeliveryService
         }
         return result;
     }
-    
-    private async Task<bool> CheckIfUserIsAdmin(User user)
-    {
-        var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-        return roles.Contains(ConstantRole.DELIVERY_ADMIN);
-    }
 }

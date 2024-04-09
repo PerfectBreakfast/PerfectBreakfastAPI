@@ -25,15 +25,17 @@ public class OrderService : IOrderService
     private readonly IClaimsService _claimsService;
     private readonly IPayOsService _payOsService;
     private readonly IDistributedCache _cache;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
-        IPayOsService payOsService,IDistributedCache cache)
+        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
         _payOsService = payOsService;
         _cache = cache;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
@@ -123,7 +125,7 @@ public class OrderService : IOrderService
 
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order
             var timeToCancel = DateTime.UtcNow.AddMinutes(ConstantTime.JOB_DELAY_BEFORE_START_MINUTES);
-            var id = BackgroundJob.Schedule<IManagementService>(
+            var id = _backgroundJobClient.Schedule<IManagementService>(
                 x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
         catch (NotFoundIdException)
@@ -468,7 +470,7 @@ public class OrderService : IOrderService
             result.Payload = isSuccess;
             
             // Chạy 1 job khi giao xong một đơn sẽ check xem là đã hết chưa hết thì sẽ tự complete DailyOrder và ShippingOrder
-            BackgroundJob.Enqueue<IManagementService>(d => 
+            _backgroundJobClient.Enqueue<IManagementService>(d => 
                 d.CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(order.DailyOrderId!.Value));
             
         }
