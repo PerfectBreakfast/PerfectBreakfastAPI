@@ -675,7 +675,6 @@ public class UserService : IUserService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
