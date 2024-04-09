@@ -69,7 +69,7 @@ public class ShippingOrderController : BaseController
     }
     
     /// <summary>
-    /// Api for Delivery Admin- (API để lấy staff theo daily order Id)
+    /// Api for Delivery Admin,Staff,Super Admin- (API để lấy staff theo daily order Id)
     /// </summary>
     /// <param name="dailyOrderId"></param>
     /// <returns></returns>
