@@ -243,7 +243,7 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<UserResponse>>> GetSDeliveryStaffByDailyOrder(Guid dailyOrderId)
+    public async Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDailyOrder(Guid dailyOrderId)
     {
         var result = new OperationResult<List<UserResponse>>();
         try

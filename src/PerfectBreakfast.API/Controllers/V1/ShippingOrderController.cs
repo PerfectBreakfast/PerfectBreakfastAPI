@@ -73,10 +73,10 @@ public class ShippingOrderController : BaseController
     /// </summary>
     /// <param name="dailyOrderId"></param>
     /// <returns></returns>
-    [HttpGet("delivery-staff/daily-order/{dailyOrderId:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    [HttpGet("delivery-staff/daily-order/{dailyOrderId:guid}"), Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
     public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid dailyOrderId)
     {
-        var response = await _shippingOrderService.GetSDeliveryStaffByDailyOrder(dailyOrderId);
+        var response = await _shippingOrderService.GetDeliveryStaffByDailyOrder(dailyOrderId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }
