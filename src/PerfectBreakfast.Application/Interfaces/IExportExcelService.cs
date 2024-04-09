@@ -7,7 +7,6 @@ namespace PerfectBreakfast.Application.Interfaces;
 public interface IExportExcelService
 {
     public byte[] DownloadSupplierFoodAssignmentForSupplier(List<FoodAssignmentDownloadForSupplier> supplierFood);
-    public byte[] DownloadOrderStatisticExcel(OrderStatisticResponse response);
     public byte[] DownloadSupplierFoodAssignmentForSuperAdmin(List<SupplierFoodAssignmentForSuperAdmin> supplierFoods);
     public byte[] DownloadDailyOrderStatistic(List<DailyOrderStatisticResponse> response);
 }

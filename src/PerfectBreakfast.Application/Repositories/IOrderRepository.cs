@@ -9,7 +9,9 @@ namespace PerfectBreakfast.Application.Repositories
         public Task<List<Order>> GetOrderByDailyOrderId(Guid dailyOrderId);
         public Task<List<Order>> GetOrderHistory(Guid userId,int pageNumber, params IncludeInfo<Order>[] includeProperties);
         public Task<List<Order>> GetOrderHistoryByDeliveryStaff(Guid userId,int pageNumber, params IncludeInfo<Order>[] includeProperties);
-        public Task<List<Order>> GetOrderByDate(DateOnly fromDate, DateOnly toDate);
+        public Task<List<Order>> GetOrderByDate(DateOnly? fromDate, DateOnly? toDate);
+        public Task<List<Order>> GetOrderByDateForCompany(DateOnly? fromDate, DateOnly? toDate);
+        public Task<List<Order>> GetOrderByDateForComboAndFood(DateOnly? fromDate, DateOnly? toDate);
         public Task<bool> AreAllOrdersCompleteForDailyOrder(Guid dailyOrderId);
     }
 }
