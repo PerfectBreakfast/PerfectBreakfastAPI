@@ -26,9 +26,11 @@ public class OrderService : IOrderService
     private readonly IPayOsService _payOsService;
     private readonly IDistributedCache _cache;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly ICurrentTime _currentTime;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
-        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient)
+        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -36,6 +38,7 @@ public class OrderService : IOrderService
         _payOsService = payOsService;
         _cache = cache;
         _backgroundJobClient = backgroundJobClient;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
@@ -482,43 +485,60 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly fromDate, DateOnly toDate)
+    public async Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly? fromDate, DateOnly? toDate)
     {
         var result = new OperationResult<OrderStatisticResponse>();
         try
         {
-            if (fromDate >= toDate || toDate.AddDays(-2) <= fromDate)
+            var today = _currentTime.GetCurrentTime();
+            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
+            toDate ??= DateOnly.FromDateTime(today);
+            
+            if (fromDate >= toDate)
             {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn ít nhất 2 ngày so với 'đến ngày'");
+                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
             }
+            
             var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
             var completeOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.Complete).ToList();
-
-            // Tính toán số lần xuất hiện của mỗi ComboId trong tất cả các OrderDetail
-            var comboIdOccurrences = completeOrders
-                .SelectMany(order => order.OrderDetails) // Lấy tất cả các OrderDetail từ mỗi CompleteOrder
-                .GroupBy(detail => detail.ComboId) // Nhóm theo ComboId
-                .Select(group => new
-                {
-                    ComboId = group.Key,
-                    Count = group.Count() // Đếm số lần xuất hiện của mỗi ComboId
-                })
-                .OrderByDescending(combo => combo.Count) // Sắp xếp giảm dần theo số lần xuất hiện
-                .FirstOrDefault(); // Lấy ComboId xuất hiện nhiều nhất
-
-            // Trả về ComboId phổ biến nhất, hoặc null nếu không tìm thấy
-            var comboPopularId = comboIdOccurrences?.ComboId;
-
-            //Lấy food name trong combo
-            var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(comboPopularId);
-            var comboPopular = "Không có món hoàn thành";
-            if (combo != null)
-            {
-                var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                comboPopular = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-            }
-            var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, comboPopular);
+            var cancelledForOverdueOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.CancelledForOverdue).ToList();
+            var completePercent = ((double)completeOrders.Count / totalOrders.Count) * 100;
+            var cancelledForOverduePercent = ((double)cancelledForOverdueOrders.Count / totalOrders.Count) * 100;
+            var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, Math.Round(completePercent, 2), cancelledForOverdueOrders.Count, Math.Round(cancelledForOverduePercent, 2));
             result.Payload = orderStatistic;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<List<OrderByDateStatistic>>> OrderAmountByDateStatistic(DateOnly? fromDate, DateOnly? toDate)
+    {
+        var result = new OperationResult<List<OrderByDateStatistic>>();
+        try
+        {
+            var today = _currentTime.GetCurrentTime();
+            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
+            toDate ??= DateOnly.FromDateTime(today);
+            
+            if (fromDate >= toDate)
+            {
+                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
+            }
+            
+            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
+            var totalQuantityByDate = totalOrders
+                .GroupBy(order => order.CreationDate.Date) // Nhóm theo ngày tạo.
+                .Select(group => new OrderByDateStatistic
+                (
+                    Date: DateOnly.FromDateTime(group.Key),
+                    OrderAmount: group.Count() 
+                ))
+                .ToList();
+            result.Payload = totalQuantityByDate;
         }
         catch (Exception e)
         {

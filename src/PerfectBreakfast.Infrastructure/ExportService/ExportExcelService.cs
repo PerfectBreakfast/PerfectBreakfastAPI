@@ -226,47 +226,5 @@ public class ExportExcelService : IExportExcelService
             throw new Exception(e.Message);
         }
     }
-
-    public byte[] DownloadOrderStatisticExcel(OrderStatisticResponse response)
-    {
-        try
-        {
-            using var excelPackage = new ExcelPackage();
-            var worksheet = excelPackage.Workbook.Worksheets.Add($"Thống kê đơn hàng từ ngày {response.FromDate.ToString("dd/MM/yyyy")} đến ngày {response.ToDate.ToString("dd/MM/yyyy")}");
-            
-            // Tạo tiêu đề động
-            worksheet.Cells["A1:E1"].Merge = true;
-            worksheet.Cells["A1"].Value = "Perfect Breakfast";
-            worksheet.Cells["A1"].Style.Font.Size = 20;
-            worksheet.Cells["A1:E1"].Style.Font.Bold = true;
-            worksheet.Cells["A1:E1"].Style.Font.Size = 14;
-            worksheet.Cells["A1:E1"].Style.Font.Color.SetColor(Color.Green);
-            worksheet.Cells["A1:E1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            worksheet.Cells["A1:E1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            worksheet.Row(1).Height = 20;
-            
-            worksheet.Cells["A2"].Value = "Từ ngày";
-            worksheet.Cells["B2"].Value = "Tới ngày";
-            worksheet.Cells["C2"].Value = "Tổng số lượng đơn";
-            worksheet.Cells["D2"].Value = "Số lượng đơn hoàn thành";
-            worksheet.Cells["E2"].Value = "Combo phổ biến nhất";
-            
-            for (var i = 1; i <= 5; i++)
-            {
-                worksheet.Cells[2, i].Style.Font.Color.SetColor(Color.FromArgb(5, 75, 252)); // Dark Cornflower Blue
-                worksheet.Cells[2, i].Style.Font.Bold = true;
-            }
-            
-            var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
-            
-            
-            
-            
-            return excelPackage.GetAsByteArray();
-        }
-        catch (Exception e)
-        {
-            throw new Exception(e.Message);
-        }
-    }
+    
 }
