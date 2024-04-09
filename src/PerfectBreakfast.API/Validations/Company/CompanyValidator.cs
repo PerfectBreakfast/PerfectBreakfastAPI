@@ -13,8 +13,7 @@ namespace PerfectBreakfast.API.Validations.Company
 
             RuleFor(p => p.Name).NotEmpty().WithMessage("Tên không được để trống")
                 .NotNull().WithMessage("Tên không được để trống")
-                .MaximumLength(200)
-                .Matches(@"^[\p{L}\s]+$").WithMessage("Tên không lệ");
+                .MaximumLength(200);
 
             RuleFor(p => p.Address).NotEmpty().WithMessage("Địa chỉ không được để trống")
                 .NotNull().WithMessage("Địa chỉ không được để trống")
