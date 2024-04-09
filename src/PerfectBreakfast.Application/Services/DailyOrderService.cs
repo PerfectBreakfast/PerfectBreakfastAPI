@@ -492,7 +492,7 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(DailyOrderStatus? status = null,
         int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
@@ -502,7 +502,7 @@ public class DailyOrderService : IDailyOrderService
             var mealSubscription =  _unitOfWork.MealSubscriptionRepository.FindAll(m => m.Company, m => m.Meal);
             var mealSubscriptionIds = mealSubscription.Where(m => !m.IsDeleted).Select(m => m.Id).ToList();
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPagination(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPagination(mealSubscriptionIds,status,pageIndex, pageSize);
 
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))

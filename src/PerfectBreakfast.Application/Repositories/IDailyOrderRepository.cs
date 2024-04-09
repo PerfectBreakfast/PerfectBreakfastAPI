@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 
 namespace PerfectBreakfast.Application.Repositories
 {
@@ -13,7 +14,7 @@ namespace PerfectBreakfast.Application.Repositories
         Task<Pagination<DailyOrder>> ToPaginationForDeliveryDistribution(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
         Task<Pagination<DailyOrder>> ToPaginationForDelivery(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
         Task<Pagination<DailyOrder>> ToPaginationForPartner(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
-        Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
+        Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds ,DailyOrderStatus? status = null,int pageNumber = 0, int pageSize = 10);
         public Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds);
         public Task<List<DailyOrder>> GetForStatistic();
     }
