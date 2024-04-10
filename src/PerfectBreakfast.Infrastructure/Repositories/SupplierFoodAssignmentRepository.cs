@@ -22,10 +22,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
                 .Include(s => s.Package)
-                    .ThenInclude(s => s.DailyOrder)
-                        .ThenInclude(s => s.MealSubscription)
-                            .ThenInclude(s => s.Company)
-                .Include(s => s.Package)
                     .ThenInclude(s => s.Partner)
                 .ToListAsync();
             

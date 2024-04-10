@@ -15,7 +15,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
         public Task<List<Order>> GetOrderByDailyOrderId(Guid dailyOrderId)
         {
-            return _dbSet.Where(o => o.DailyOrderId == dailyOrderId && o.OrderStatus == OrderStatus.Paid)
+            return _dbSet.Where(o => o.DailyOrderId == dailyOrderId 
+                                     && o.OrderStatus != OrderStatus.Pending 
+                                     &&  o.OrderStatus != OrderStatus.Cancel 
+                                     && o.OrderStatus != OrderStatus.Paid)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Combo)
                 .Include(o => o.OrderDetails)

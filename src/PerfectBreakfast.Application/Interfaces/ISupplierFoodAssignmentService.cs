@@ -13,6 +13,7 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<FoodAssignmentResponse>> CompleteFoodAssignment(Guid id);
         public Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment);
         public Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForSupplierDownload(List<Guid> packageIds);
+        public Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForPartnerDownload(List<Guid> packageIds, Guid supplierId);
         public Task<OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>> GetSupplierFoodAssignmentsForSuperAdmin(DateOnly fromDate, DateOnly toDate);
         public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds);
         public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailByPartner(FoodAssignmentByPartnerRequest request);

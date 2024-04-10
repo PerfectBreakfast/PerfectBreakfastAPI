@@ -97,7 +97,7 @@ public class ComboController : BaseController
     /// <param name="fromDate"></param>
     /// <param name="toDate"></param>
     /// <returns></returns>
-    [HttpGet("from-date-to-date")]
+    [HttpGet("from-date-to-date"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> TopComboAndFood(DateOnly? fromDate, DateOnly? toDate)
     {
         var response = await _comboService.GetTopComboAndFood(fromDate, toDate);
