@@ -528,11 +528,7 @@ public class DailyOrderService : IDailyOrderService
         }
         return result;
     }
-
-    public Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDeliveryDownload(DateOnly fromDate, DateOnly toDate)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(DailyOrderStatus? status = null,
         int pageIndex = 0, int pageSize = 10)

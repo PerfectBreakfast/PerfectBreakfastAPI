@@ -19,7 +19,5 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<bool>> CompleteDailyOrder(Guid id);
         public Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDownload(DateOnly? fromDate,
             DateOnly? toDate);
-        public Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDeliveryDownload(DateOnly fromDate,
-            DateOnly toDate);
     }
 }
