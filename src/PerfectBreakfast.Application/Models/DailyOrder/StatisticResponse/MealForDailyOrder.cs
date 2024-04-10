@@ -3,6 +3,10 @@
 public record MealForDailyOrder
 (
     string? Meal,
-    TimeOnly TimeHandover,
+    string? Time,
+    int TotalOrderQuantity,
+    int CompleteQuantity,
+    int CancelQuantity,
+    decimal? TotalPrice,
     List<FoodForDailyOrder?> FoodForDailyOrders
         );

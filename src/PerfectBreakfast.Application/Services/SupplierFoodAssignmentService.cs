@@ -642,15 +642,55 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds,
                     user.SupplierId!.Value);
             var foodAssignmentForCompany = supplierAssignment
-                .GroupBy(x => (x.Package.DailyOrder.MealSubscription.Company.Name, x.Package.Partner.Name))
+                .GroupBy(x => (x.Package.Id, x.Package.Partner.Name))
                 .ToDictionary(x => x.Key, g => g.ToList());
             ;
             var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
             {
-                var companyName = x.Key.Item1;
+                const string companyName = "";
+                var id = x.Key.Item1;
                 var partnerName = x.Key.Item2;
                 var supplierFoodAssignments = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
-                return new FoodAssignmentDownloadForSupplier(partnerName, companyName, supplierFoodAssignments);
+                return new FoodAssignmentDownloadForSupplier(id, partnerName, companyName, supplierFoodAssignments);
+            }).ToList();
+            result.Payload = foodAssignmentForCompanyResponse;
+        }
+        catch (Exception e)
+        {
+            result.AddUnknownError(e.Message);
+        }
+
+        return result;
+    }
+
+    public async Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForPartnerDownload(List<Guid> packageIds, Guid supplierId)
+    {
+        var result = new OperationResult<List<FoodAssignmentDownloadForSupplier>>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            var supplier = await _unitOfWork.SupplierRepository.GetSupplierById(supplierId);
+            if (supplier is null)
+            {
+                result.AddError(ErrorCode.BadRequest, "Nhà cung cấp không tồn tại");
+                return result;
+            }
+
+            var supplierAssignment =
+                await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(packageIds,
+                    user.PartnerId!.Value, supplierId);
+            var foodAssignmentForCompany = supplierAssignment
+                .GroupBy(x => (x.Package.Id, x.Package.DailyOrder.MealSubscription.Company.Name))
+                .ToDictionary(x => x.Key, g => g.ToList()); ;
+            
+            var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
+            {
+                var id = x.Key.Id;
+                var companyName = x.Key.Name;
+                const string partnerName = "";
+                var supplierFoodAssignments = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
+                return new FoodAssignmentDownloadForSupplier(id, partnerName, companyName, supplierFoodAssignments);
             }).ToList();
             result.Payload = foodAssignmentForCompanyResponse;
         }
@@ -758,14 +798,15 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetForSupplierByPackage(packageIds,
                     user.SupplierId!.Value);
             var foodAssignmentForCompany = supplierAssignment
-                .GroupBy(x => x.Package.DailyOrder.MealSubscription.Company.Name)
+                .GroupBy(x => x.Package.Id)
                 .ToDictionary(x => x.Key, g => g.ToList());
             ;
             var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
             {
-                var companyName = x.Key;
+                var id = x.Key;
+                const string companyName = "";
                 var supplierFoodAssignments = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
-                return new FoodAssignmentGroupByCompany(companyName, supplierFoodAssignments);
+                return new FoodAssignmentGroupByCompany(id, companyName, supplierFoodAssignments);
             }).ToList();
             result.Payload = foodAssignmentForCompanyResponse;
         }
@@ -796,14 +837,15 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(request.PackageIds,
                     user.PartnerId!.Value, request.SupplierId);
             var foodAssignmentForCompany = supplierAssignment
-                .GroupBy(x => x.Package.DailyOrder.MealSubscription.Company.Name)
+                .GroupBy(x => (x.Package.DailyOrder.MealSubscription.Company.Name, x.Package.Id))
                 .ToDictionary(x => x.Key, g => g.ToList());
             ;
             var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
             {
-                var companyName = x.Key;
+                var id = x.Key.Id;
+                var companyName = x.Key.Name;
                 var supplierFoodAssignments = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
-                return new FoodAssignmentGroupByCompany(companyName, supplierFoodAssignments);
+                return new FoodAssignmentGroupByCompany(id, companyName, supplierFoodAssignments);
             }).ToList();
             result.Payload = foodAssignmentForCompanyResponse;
         }

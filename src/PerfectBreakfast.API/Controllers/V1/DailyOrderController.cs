@@ -134,13 +134,14 @@ public class DailyOrderController : BaseController
     }
     
     /// <summary>
-    /// API For Super Admin
+    /// API For Super Admin - Partner Admin - Delivery Admin (Tải thống kê số lượng đơn hàng và các combo/food thuộc các doanh nghiệp theo ngày)
     /// </summary>
     /// <param name="fromDate"></param>
     /// <param name="toDate"></param>
     /// <returns></returns>
     [HttpGet("Statistic")]
-    public async Task<IActionResult> GetDailyOrderStatistic(DateOnly fromDate, DateOnly toDate)
+    [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN}, {ConstantRole.PARTNER_ADMIN}, {ConstantRole.DELIVERY_ADMIN}")]
+    public async Task<IActionResult> GetDailyOrderStatistic(DateOnly? fromDate, DateOnly? toDate)
     {
         var response = await _dailyOrderService.GetDailyOrderForDownload(fromDate, toDate);
         if (response.IsError)
