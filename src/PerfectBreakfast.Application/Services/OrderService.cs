@@ -571,7 +571,7 @@ public class OrderService : IOrderService
             };
             var comboInclude = new IncludeInfo<DailyOrder>
             {
-                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Order)sp).OrderDetails,
