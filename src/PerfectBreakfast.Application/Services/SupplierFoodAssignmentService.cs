@@ -681,14 +681,20 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(packageIds,
                     user.PartnerId!.Value, supplierId);
             var foodAssignmentForCompany = supplierAssignment
-                .GroupBy(x => (x.Package.Id, x.Package.DailyOrder.MealSubscription.Company.Name))
+                .GroupBy(x => 
+                    (
+                         x.Package.Id, 
+                         x.Package.DailyOrder.MealSubscription.Company.Name,
+                         x.SupplierCommissionRate.Supplier.Name,
+                         x.Package.DailyOrder.MealSubscription.Meal.MealType
+                    ))
                 .ToDictionary(x => x.Key, g => g.ToList()); ;
             
             var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
             {
                 var id = x.Key.Id;
-                var companyName = x.Key.Name;
-                const string partnerName = "";
+                var companyName = x.Key.Item2;
+                var partnerName = $"{x.Key.Item3} - {x.Key.MealType}";
                 var supplierFoodAssignments = _mapper.Map<List<FoodAssignmentResponse>>(x.Value);
                 return new FoodAssignmentDownloadForSupplier(id, partnerName, companyName, supplierFoodAssignments);
             }).ToList();

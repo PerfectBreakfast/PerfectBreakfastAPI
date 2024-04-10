@@ -141,11 +141,8 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
     
     /// <summary>
@@ -167,11 +164,9 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
     /// <summary>
@@ -194,10 +189,8 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+
+        var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 }

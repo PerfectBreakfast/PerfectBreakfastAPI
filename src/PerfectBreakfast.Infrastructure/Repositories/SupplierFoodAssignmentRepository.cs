@@ -38,10 +38,15 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(s => s.Package.PartnerId == partnerId && s.SupplierCommissionRate.SupplierId == supplierId)
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
+                    .ThenInclude(s => s.Supplier)
                 .Include(s => s.Package)
                     .ThenInclude(s => s.DailyOrder)
                         .ThenInclude(s => s.MealSubscription)
                             .ThenInclude(s => s.Company)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.DailyOrder)
+                        .ThenInclude(s => s.MealSubscription)
+                            .ThenInclude(s => s.Meal)
                 .ToListAsync();
             
             var filteredAssignments = supplierAssignments

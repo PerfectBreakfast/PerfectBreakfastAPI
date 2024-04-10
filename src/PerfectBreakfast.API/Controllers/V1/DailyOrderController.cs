@@ -139,7 +139,7 @@ public class DailyOrderController : BaseController
     /// <param name="fromDate"></param>
     /// <param name="toDate"></param>
     /// <returns></returns>
-    [HttpGet("Statistic")]
+    [HttpGet("statistic")]
     [Authorize(Roles = $"{ConstantRole.SUPER_ADMIN}, {ConstantRole.PARTNER_ADMIN}, {ConstantRole.DELIVERY_ADMIN}")]
     public async Task<IActionResult> GetDailyOrderStatistic(DateOnly? fromDate, DateOnly? toDate)
     {
