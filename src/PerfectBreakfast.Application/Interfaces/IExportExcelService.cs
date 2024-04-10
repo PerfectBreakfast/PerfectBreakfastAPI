@@ -10,4 +10,5 @@ public interface IExportExcelService
     public byte[] DownloadSupplierFoodAssignmentForPartner(List<FoodAssignmentDownloadForSupplier> supplierFood);
     public byte[] DownloadSupplierFoodAssignmentForSuperAdmin(List<SupplierFoodAssignmentForSuperAdmin> supplierFoods);
     public byte[] DownloadDailyOrderStatistic(List<DailyOrderStatisticResponse> response);
+    public byte[] DownloadDailyOrderStatisticForAdmin(List<DailyOrderStatisticResponse> response);
 }
