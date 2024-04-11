@@ -604,6 +604,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             var supplierCommissionRates =
                 await _unitOfWork.SupplierCommissionRateRepository
                     .GetBySupplierId(updateSupplierFoodAssignment.SupplierId);
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(supplierFoodAssignment.FoodId.Value);
             var supplierCommissionRate =
                 supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
             if (supplierCommissionRate == null)
@@ -611,7 +612,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 result.AddError(ErrorCode.BadRequest, "Nhà cung cấp này chưa đăng kí món");
                 return result;
             }
-
+            supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
             supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
             supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
