@@ -2,6 +2,7 @@
 
 public record FoodAssignmentGroupByCompany
 (
+    Guid? Id,
     string? CompanyName,
     List<FoodAssignmentResponse> FoodAssignmentResponses
 );

@@ -3,7 +3,6 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.DailyOrder.StatisticResponse;
-using PerfectBreakfast.Application.Models.OrderModel.Response;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
 
 namespace PerfectBreakfast.Infrastructure.ExportService;
@@ -33,8 +32,72 @@ public class ExportExcelService : IExportExcelService
             worksheet.Cells["A1:E1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
             worksheet.Row(1).Height = 20;
                 
-            worksheet.Cells["A2"].Value = "Tên Đối Tác";
-            worksheet.Cells["B2"].Value = "Tên Doanh Nghiệp";
+            worksheet.Cells["A2"].Value = "Mã đơn phân chia";
+            worksheet.Cells["B2"].Value = "Tên Đối Tác";
+            worksheet.Cells["C2"].Value = "Thời Gian bàn giao";
+            worksheet.Cells["D2"].Value = "Tên Món Ăn/đồ uống";
+            worksheet.Cells["E2"].Value = "Số Lượng thực nhận";
+            worksheet.Cells["F2"].Value = "Trạng Thái";
+            worksheet.Cells["G2"].Value = "Hoàn thành";
+                
+            for (var i = 1; i <= 20; i++)
+            {
+                worksheet.Cells[2, i].Style.Font.Color.SetColor(Color.FromArgb(5, 75, 252)); // Dark Cornflower Blue
+                worksheet.Cells[2, i].Style.Font.Bold = true;
+            }
+
+            var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
+            
+            
+            // Ghi giá trị Date và các dữ liệu cụ thể
+            foreach (var supplierFood in supplierFoodList)
+            {
+                worksheet.Cells[dataStartRow, 1].Value = supplierFood.Id;
+                worksheet.Cells[dataStartRow, 2].Value = supplierFood.PartnerName;
+                foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentResponses)
+                {
+                    worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline.ToString();
+                    worksheet.Cells[dataStartRow, 4].Value = foodAssignmentGroup.FoodName;
+                    worksheet.Cells[dataStartRow, 5].Value = foodAssignmentGroup.AmountCooked;
+                    worksheet.Cells[dataStartRow, 6].Value = foodAssignmentGroup.Status;
+                    dataStartRow++; 
+                }
+            }
+            
+            // Auto-fit columns
+            for (var i = 1; i <= 20; i++)
+            {
+                worksheet.Column(i).AutoFit();
+            }
+
+            return excelPackage.GetAsByteArray();
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+    }
+
+    public byte[] DownloadSupplierFoodAssignmentForPartner(List<FoodAssignmentDownloadForSupplier> supplierFoodList)
+    {
+        try
+        {
+            using var excelPackage = new ExcelPackage();
+            var worksheet = excelPackage.Workbook.Worksheets.Add("SupplierFoodAssignments");
+
+            // Tạo tiêu đề động
+            worksheet.Cells["A1:E1"].Merge = true;
+            worksheet.Cells["A1"].Value = $"Perfect Breakfast - {supplierFoodList.First().PartnerName}";
+            worksheet.Cells["A1"].Style.Font.Size = 20;
+            worksheet.Cells["A1:E1"].Style.Font.Bold = true;
+            worksheet.Cells["A1:E1"].Style.Font.Size = 14;
+            worksheet.Cells["A1:E1"].Style.Font.Color.SetColor(Color.Green);
+            worksheet.Cells["A1:E1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["A1:E1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            worksheet.Row(1).Height = 20;
+                
+            worksheet.Cells["A2"].Value = "Mã đơn phân chia";
+            worksheet.Cells["b2"].Value = "Tên doanh nghiệp";
             worksheet.Cells["C2"].Value = "Thời Gian bàn giao";
             worksheet.Cells["D2"].Value = "Tên Món Ăn/đồ uống";
             worksheet.Cells["E2"].Value = "Số Lượng thực nhận";
@@ -52,11 +115,16 @@ public class ExportExcelService : IExportExcelService
             // Ghi giá trị Date và các dữ liệu cụ thể
             foreach (var supplierFood in supplierFoodList)
             {
-                worksheet.Cells[dataStartRow, 1].Value = supplierFood.PartnerName;
+                worksheet.Cells[dataStartRow, 1].Value = supplierFood.Id;
                 worksheet.Cells[dataStartRow, 2].Value = supplierFood.CompanyName;
+                var isFirstAssignment = true;
                 foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentResponses)
                 {
-                    worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline.ToString();
+                    if (isFirstAssignment)
+                    {
+                        worksheet.Cells[dataStartRow, 3].Value = foodAssignmentGroup.DeliveryDeadline.ToString();
+                        isFirstAssignment = false;
+                    }
                     worksheet.Cells[dataStartRow, 4].Value = foodAssignmentGroup.FoodName;
                     worksheet.Cells[dataStartRow, 5].Value = foodAssignmentGroup.AmountCooked;
                     worksheet.Cells[dataStartRow, 6].Value = foodAssignmentGroup.Status;
@@ -171,10 +239,14 @@ public class ExportExcelService : IExportExcelService
             worksheet.Cells["D2"].Value = "Tên đối tác";
             worksheet.Cells["E2"].Value = "Đơn vị vận chuyển";
             worksheet.Cells["F2"].Value = "Bữa Ăn";
-            worksheet.Cells["H2"].Value = "Thời gian bàn giao";
-            worksheet.Cells["H2"].Value = "Combo/món";
-            worksheet.Cells["I2"].Value = "Món ăn";
-            worksheet.Cells["J2"].Value = "Số lượng";
+            worksheet.Cells["G2"].Value = "Thời gian bàn giao";
+            worksheet.Cells["H2"].Value = "Tổng số lượng đơn";
+            worksheet.Cells["I2"].Value = "Số lượng đơn thành công";
+            worksheet.Cells["J2"].Value = "Số lượng đơn thất bại";
+            worksheet.Cells["K2"].Value = "Tổng tiền";
+            worksheet.Cells["L2"].Value = "Combo/món";
+            worksheet.Cells["M2"].Value = "Món ăn";
+            worksheet.Cells["N2"].Value = "Số lượng";
                 
             for (var i = 1; i <= 20; i++)
             {
@@ -183,38 +255,70 @@ public class ExportExcelService : IExportExcelService
             }
 
             var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
-
             foreach (var response in responses)
             {
                 // Ghi giá trị Date và các dữ liệu cụ thể
                 worksheet.Cells[dataStartRow, 1].Value = response.CreationDate;
                 worksheet.Cells[dataStartRow, 2].Value = response.BookingDate;
-
+                
+                
                 foreach (var companyForDailyOrder in response.CompanyForDailyOrders)
                 {
+                    //var companyStartRow = dataStartRow; // ghi nhớ dòng để merge
+                    
                     worksheet.Cells[dataStartRow, 3].Value = companyForDailyOrder.Name;
                     worksheet.Cells[dataStartRow, 4].Value = companyForDailyOrder.Partner;
                     worksheet.Cells[dataStartRow, 5].Value = companyForDailyOrder.Delivery;
-
                     foreach (var mealForDailyOrder in companyForDailyOrder.MealForDailyOrders)
                     {
+                        //var mealStartRow = dataStartRow; // ghi nhớ dòng để merge
+                        
                         worksheet.Cells[dataStartRow, 6].Value = mealForDailyOrder.Meal;
-                        worksheet.Cells[dataStartRow, 7].Value = mealForDailyOrder.TimeHandover;
-
+                        worksheet.Cells[dataStartRow, 7].Value = mealForDailyOrder.Time;
+                        worksheet.Cells[dataStartRow, 8].Value = mealForDailyOrder.TotalOrderQuantity;
+                        worksheet.Cells[dataStartRow, 9].Value = mealForDailyOrder.CompleteQuantity;
+                        worksheet.Cells[dataStartRow, 10].Value = mealForDailyOrder.CancelQuantity;
+                        worksheet.Cells[dataStartRow, 11].Value = mealForDailyOrder.TotalPrice;
                         foreach (var foodAssignmentResponse in mealForDailyOrder.FoodForDailyOrders)
                         {
-                            worksheet.Cells[dataStartRow, 8].Value = foodAssignmentResponse.Name;
-                            worksheet.Cells[dataStartRow, 9].Value = foodAssignmentResponse.Food;
-                            worksheet.Cells[dataStartRow, 10].Value = foodAssignmentResponse.Quantity;
+                            worksheet.Cells[dataStartRow, 12].Value = foodAssignmentResponse.Name;
+                            worksheet.Cells[dataStartRow, 13].Value = foodAssignmentResponse.Food;
+                            worksheet.Cells[dataStartRow, 14].Value = foodAssignmentResponse.Quantity;
                             dataStartRow++;
                         }
+
+                        // if (mealStartRow >= dataStartRow) continue;
+                        // // Merge riêng lẻ cho từng cột từ 6-11
+                        // for (var col = 6; col <= 11; col++) {
+                        //     worksheet.Cells[mealStartRow, col, dataStartRow - 1, col].Merge = true;
+                        //     // Căn giữa nội dung sau khi merge
+                        //     worksheet.Cells[mealStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        // }
                     }
+
+                    // if (companyStartRow >= dataStartRow) continue;
+                    // {
+                    //     // Merge riêng lẻ cho từng cột từ 3-5
+                    //     for (var col = 3; col <= 5; col++) {
+                    //         worksheet.Cells[companyStartRow, col, dataStartRow - 1, col].Merge = true;
+                    //         // Căn giữa nội dung sau khi merge
+                    //         worksheet.Cells[companyStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    //     }
+                    // }
                 }
+                // if (responseStartRow >= dataStartRow) continue;
+                // {
+                //     // Merge riêng lẻ cho từng cột 1 và 2
+                //     for (var col = 1; col <= 2; col++) {
+                //         worksheet.Cells[responseStartRow, col, dataStartRow - 1, col].Merge = true;
+                //         // Căn giữa nội dung sau khi merge
+                //         worksheet.Cells[responseStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //     }
+                // }
             }
             
-
             // Auto-fit columns
-            for (var i = 1; i <= 20; i++)
+            for (var i = 1; i <= 30; i++)
             {
                 worksheet.Column(i).AutoFit();
             }
@@ -226,5 +330,120 @@ public class ExportExcelService : IExportExcelService
             throw new Exception(e.Message);
         }
     }
-    
+
+    public byte[] DownloadDailyOrderStatisticForAdmin(List<DailyOrderStatisticResponse> responses)
+    {
+        try
+        {
+            using var excelPackage = new ExcelPackage();
+            var worksheet = excelPackage.Workbook.Worksheets.Add("Thống kê đơn hàng");
+
+            // Tạo tiêu đề động
+            worksheet.Cells["A1:E1"].Merge = true;
+            worksheet.Cells["A1"].Value = "Perfect Breakfast";
+            worksheet.Cells["A1"].Style.Font.Size = 20;
+            worksheet.Cells["A1:E1"].Style.Font.Bold = true;
+            worksheet.Cells["A1:E1"].Style.Font.Size = 14;
+            worksheet.Cells["A1:E1"].Style.Font.Color.SetColor(Color.Green);
+            worksheet.Cells["A1:E1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["A1:E1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            worksheet.Row(1).Height = 20;
+                
+            worksheet.Cells["A2"].Value = "Ngày đặt";
+            worksheet.Cells["B2"].Value = "Ngày giao";
+            worksheet.Cells["C2"].Value = "Khách hàng";
+            worksheet.Cells["D2"].Value = "Tên đối tác";
+            worksheet.Cells["E2"].Value = "Đơn vị vận chuyển";
+            worksheet.Cells["F2"].Value = "Bữa Ăn";
+            worksheet.Cells["G2"].Value = "Thời gian bàn giao";
+            worksheet.Cells["H2"].Value = "Tổng số lượng đơn";
+            worksheet.Cells["I2"].Value = "Số lượng đơn thành công";
+            worksheet.Cells["J2"].Value = "Số lượng đơn thất bại";
+            worksheet.Cells["K2"].Value = "Tổng tiền";
+            worksheet.Cells["L2"].Value = "Combo/món";
+            worksheet.Cells["M2"].Value = "Món ăn";
+            worksheet.Cells["N2"].Value = "Số lượng";
+                
+            for (var i = 1; i <= 20; i++)
+            {
+                worksheet.Cells[2, i].Style.Font.Color.SetColor(Color.FromArgb(5, 75, 252)); // Dark Cornflower Blue
+                worksheet.Cells[2, i].Style.Font.Bold = true;
+            }
+
+            var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
+            foreach (var response in responses)
+            {
+                // Ghi giá trị Date và các dữ liệu cụ thể
+                worksheet.Cells[dataStartRow, 1].Value = response.CreationDate;
+                worksheet.Cells[dataStartRow, 2].Value = response.BookingDate;
+                
+                
+                foreach (var companyForDailyOrder in response.CompanyForDailyOrders)
+                {
+                    //var companyStartRow = dataStartRow; // ghi nhớ dòng để merge
+                    
+                    worksheet.Cells[dataStartRow, 3].Value = companyForDailyOrder.Name;
+                    worksheet.Cells[dataStartRow, 4].Value = companyForDailyOrder.Partner;
+                    worksheet.Cells[dataStartRow, 5].Value = companyForDailyOrder.Delivery;
+                    foreach (var mealForDailyOrder in companyForDailyOrder.MealForDailyOrders)
+                    {
+                        //var mealStartRow = dataStartRow; // ghi nhớ dòng để merge
+                        
+                        worksheet.Cells[dataStartRow, 6].Value = mealForDailyOrder.Meal;
+                        worksheet.Cells[dataStartRow, 7].Value = mealForDailyOrder.Time;
+                        worksheet.Cells[dataStartRow, 8].Value = mealForDailyOrder.TotalOrderQuantity;
+                        worksheet.Cells[dataStartRow, 9].Value = mealForDailyOrder.CompleteQuantity;
+                        worksheet.Cells[dataStartRow, 10].Value = mealForDailyOrder.CancelQuantity;
+                        worksheet.Cells[dataStartRow, 11].Value = mealForDailyOrder.TotalPrice;
+                        foreach (var foodAssignmentResponse in mealForDailyOrder.FoodForDailyOrders)
+                        {
+                            worksheet.Cells[dataStartRow, 12].Value = foodAssignmentResponse.Name;
+                            worksheet.Cells[dataStartRow, 13].Value = foodAssignmentResponse.Food;
+                            worksheet.Cells[dataStartRow, 14].Value = foodAssignmentResponse.Quantity;
+                            dataStartRow++;
+                        }
+
+                        // if (mealStartRow >= dataStartRow) continue;
+                        // // Merge riêng lẻ cho từng cột từ 6-11
+                        // for (var col = 6; col <= 11; col++) {
+                        //     worksheet.Cells[mealStartRow, col, dataStartRow - 1, col].Merge = true;
+                        //     // Căn giữa nội dung sau khi merge
+                        //     worksheet.Cells[mealStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        // }
+                    }
+
+                    // if (companyStartRow >= dataStartRow) continue;
+                    // {
+                    //     // Merge riêng lẻ cho từng cột từ 3-5
+                    //     for (var col = 3; col <= 5; col++) {
+                    //         worksheet.Cells[companyStartRow, col, dataStartRow - 1, col].Merge = true;
+                    //         // Căn giữa nội dung sau khi merge
+                    //         worksheet.Cells[companyStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    //     }
+                    // }
+                }
+                // if (responseStartRow >= dataStartRow) continue;
+                // {
+                //     // Merge riêng lẻ cho từng cột 1 và 2
+                //     for (var col = 1; col <= 2; col++) {
+                //         worksheet.Cells[responseStartRow, col, dataStartRow - 1, col].Merge = true;
+                //         // Căn giữa nội dung sau khi merge
+                //         worksheet.Cells[responseStartRow, col, dataStartRow - 1, col].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                //     }
+                // }
+            }
+            
+            // Auto-fit columns
+            for (var i = 1; i <= 30; i++)
+            {
+                worksheet.Column(i).AutoFit();
+            }
+
+            return excelPackage.GetAsByteArray();
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+    }
 }

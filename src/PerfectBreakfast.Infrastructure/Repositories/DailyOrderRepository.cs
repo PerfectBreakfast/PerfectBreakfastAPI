@@ -279,12 +279,20 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
         }
 
-        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds)
+        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds, DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) 
+                            && d.MealSubscription != null 
+                            && d.MealSubscription.Company != null
+                            && d.BookingDate <= toDate 
+                            && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Meal)
                 .Include(d => d.Orders)
@@ -292,14 +300,19 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<DailyOrder>> GetForStatistic()
+        public async Task<List<DailyOrder>> GetForStatistic(DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => d.OrderQuantity > 0)
+                .Where(d => d.OrderQuantity > 0 && d.BookingDate <= toDate && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Company)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Meal)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
+                .Include(d => d.Orders)
                 .OrderByDescending(d => d.BookingDate)
                 .AsSplitQuery()
                 .ToListAsync();
