@@ -267,6 +267,7 @@ log*.txt
 
 # Hangfire SQLite database
 Hangfire.db
+Hangfire1.db
 
 # Hangfire SQLite temporary files
 Hangfire.db-shm
