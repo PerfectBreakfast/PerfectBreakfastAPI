@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Exception = System.Exception;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -16,12 +17,14 @@ public class ComboService : IComboService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IImgurService _imgurService;
+    private readonly ICurrentTime _currentTime;
 
-    public ComboService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService)
+    public ComboService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imgurService = imgurService;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<ComboResponse>> CreateCombo(CreateComboRequest createComboRequest)
@@ -162,6 +165,7 @@ public class ComboService : IComboService
         }
         return result;
     }
+    
 
     public async Task<OperationResult<List<ComboResponse>>> GetCombos()
     {

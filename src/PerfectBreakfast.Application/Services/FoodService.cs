@@ -513,7 +513,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -522,7 +522,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var comboInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,

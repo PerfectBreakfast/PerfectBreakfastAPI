@@ -141,40 +141,35 @@ public class SupplierFoodAssignmentController : BaseController
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
-
+    
     /// <summary>
-    /// API For Super Admin - Super Admin download theo ngày giao hàng
+    /// API For Supplier Admin - Supplier download
     /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("super-admin/download-excel")]
-    public async Task<IActionResult> DownloadSupplierFoodAssignmentBySuperAdmin(DateOnly fromDate, DateOnly toDate)
+    [HttpPost("partner/download-excel"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> DownloadSupplierFoodAssignmentForPartner(DownloadFoodAssignmentForPartnerRequest request)
     {
         
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSuperAdmin(fromDate, toDate);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForPartnerDownload(request.PackageIds, request.SupplierId);
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
         }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSuperAdmin(response.Payload);
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForPartner(response.Payload);
         if (content == null)
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
     
+
     /// <summary>
     /// API All Confirm For Supplier Admin
     /// </summary>
@@ -187,4 +182,5 @@ public class SupplierFoodAssignmentController : BaseController
         var response = await _supplierFoodAssignmentService.ConfirmAllFoodAssignments(packageId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     } 
+
 }

@@ -2,7 +2,7 @@
 
 public enum DailyOrderStatus
 {
-    Initial,
+    Initial,  
     Processing,
     Divided,
     Cooking,

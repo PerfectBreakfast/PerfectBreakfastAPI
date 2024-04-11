@@ -26,9 +26,11 @@ public class OrderService : IOrderService
     private readonly IPayOsService _payOsService;
     private readonly IDistributedCache _cache;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly ICurrentTime _currentTime;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
-        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient)
+        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -36,6 +38,7 @@ public class OrderService : IOrderService
         _payOsService = payOsService;
         _cache = cache;
         _backgroundJobClient = backgroundJobClient;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
@@ -482,52 +485,6 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly fromDate, DateOnly toDate)
-    {
-        var result = new OperationResult<OrderStatisticResponse>();
-        try
-        {
-            if (fromDate >= toDate || toDate.AddDays(-2) <= fromDate)
-            {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn ít nhất 2 ngày so với 'đến ngày'");
-            }
-            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
-            var completeOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.Complete).ToList();
-
-            // Tính toán số lần xuất hiện của mỗi ComboId trong tất cả các OrderDetail
-            var comboIdOccurrences = completeOrders
-                .SelectMany(order => order.OrderDetails) // Lấy tất cả các OrderDetail từ mỗi CompleteOrder
-                .GroupBy(detail => detail.ComboId) // Nhóm theo ComboId
-                .Select(group => new
-                {
-                    ComboId = group.Key,
-                    Count = group.Count() // Đếm số lần xuất hiện của mỗi ComboId
-                })
-                .OrderByDescending(combo => combo.Count) // Sắp xếp giảm dần theo số lần xuất hiện
-                .FirstOrDefault(); // Lấy ComboId xuất hiện nhiều nhất
-
-            // Trả về ComboId phổ biến nhất, hoặc null nếu không tìm thấy
-            var comboPopularId = comboIdOccurrences?.ComboId;
-
-            //Lấy food name trong combo
-            var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(comboPopularId);
-            var comboPopular = "Không có món hoàn thành";
-            if (combo != null)
-            {
-                var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                comboPopular = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-            }
-            var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, comboPopular);
-            result.Payload = orderStatistic;
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
     public async Task<OperationResult<List<OrderResponse>>> GetOrderByDailyOrder(Guid dailyOrderId)
     {
         var result = new OperationResult<List<OrderResponse>>();
@@ -551,7 +508,7 @@ public class OrderService : IOrderService
             };
             var comboInclude = new IncludeInfo<DailyOrder>
             {
-                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Order)sp).OrderDetails,

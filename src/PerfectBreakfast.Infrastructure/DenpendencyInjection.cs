@@ -82,6 +82,7 @@ public static class DenpendencyInjection
         services.AddScoped<IHangfireSettingService, HangFireSettingService>();
         services.AddScoped<IMealService, MealService>();
         services.AddScoped<IPackageService, PackageService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
 }

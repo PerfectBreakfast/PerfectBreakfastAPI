@@ -53,6 +53,10 @@ public class OrderController : BaseController
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public async Task<IActionResult> GetOrders()
     {
@@ -148,19 +152,6 @@ public class OrderController : BaseController
         var response = await _orderService.CompleteOrder(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    /// <summary>
-    /// API for Super Admin (thống kê)
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("statistic"), Authorize(policy: ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetOrderPagination(DateOnly fromDate, DateOnly toDate)
-    {
-        var response = await _orderService.OrderStatistic(fromDate, toDate);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
     
     /// <summary>
     /// Api For All login 
@@ -173,4 +164,5 @@ public class OrderController : BaseController
         var response = await _orderService.GetOrderByDailyOrder(dailyOrderId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+    
 }

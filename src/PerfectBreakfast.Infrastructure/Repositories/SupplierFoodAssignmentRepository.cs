@@ -22,10 +22,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
                 .Include(s => s.Package)
-                    .ThenInclude(s => s.DailyOrder)
-                        .ThenInclude(s => s.MealSubscription)
-                            .ThenInclude(s => s.Company)
-                .Include(s => s.Package)
                     .ThenInclude(s => s.Partner)
                 .ToListAsync();
             
@@ -42,10 +38,15 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .Where(s => s.Package.PartnerId == partnerId && s.SupplierCommissionRate.SupplierId == supplierId)
                 .Include(s => s.Food)
                 .Include(s => s.SupplierCommissionRate)
+                    .ThenInclude(s => s.Supplier)
                 .Include(s => s.Package)
                     .ThenInclude(s => s.DailyOrder)
                         .ThenInclude(s => s.MealSubscription)
                             .ThenInclude(s => s.Company)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.DailyOrder)
+                        .ThenInclude(s => s.MealSubscription)
+                            .ThenInclude(s => s.Meal)
                 .ToListAsync();
             
             var filteredAssignments = supplierAssignments
@@ -169,16 +170,18 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<List<SupplierFoodAssignment>> GetByForSuperAdmin()
+        public async Task<List<SupplierFoodAssignment>> GetByForSuperAdmin(DateOnly? fromDate, DateOnly? toDate)
         {
-            // return await _dbSet.Where(s => s.Status != SupplierFoodAssignmentStatus.Pending)
-            //     .Include(s => s.Partner)
-            //     .Include(s => s.Food)
-            //     .Include(s => s.SupplierCommissionRate)
-            //     .Include(s => s.DailyOrder)
-            //     .ThenInclude(s => s.MealSubscription)
-            //     .ToListAsync();
-            throw new NotImplementedException();
+            return await _dbSet.Where(s =>
+                    (s.Status != SupplierFoodAssignmentStatus.Pending || s.Status != SupplierFoodAssignmentStatus.Declined)
+                    && fromDate <= s.Package.DailyOrder.BookingDate && s.Package.DailyOrder.BookingDate <= toDate)
+                .Include(s => s.Food)
+                .Include(s => s.SupplierCommissionRate)
+                    .ThenInclude(s => s.Supplier)
+                .Include(s => s.Package)
+                    .ThenInclude(s => s.DailyOrder)
+                .OrderByDescending(s => s.Package.DailyOrder.BookingDate)
+                .ToListAsync();
         }
     }
 

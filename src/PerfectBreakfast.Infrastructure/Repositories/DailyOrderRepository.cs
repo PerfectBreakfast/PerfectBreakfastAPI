@@ -228,15 +228,25 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
         }
 
-        public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
+        public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds,DailyOrderStatus? status = null, int pageNumber = 0, int pageSize = 10)
         {
             // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
             var query = _dbSet.AsQueryable();
 
             // Lọc dựa trên mealSubscriptionIds và điều kiện khác
-            query = query
-                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0);
+            // nếu k có status thì lấy bth
+            if (status is null)
+            {
+                query = query
+                    .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null &&
+                                d.MealSubscription.Company != null && d.OrderQuantity > 0);
+            }
+            else
+            {
+                query = query
+                    .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null &&
+                                d.MealSubscription.Company != null && d.OrderQuantity > 0 && d.Status == status);
+            }
 
             // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
             query = query.AsNoTracking();
@@ -269,12 +279,20 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
         }
 
-        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds)
+        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds, DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) 
+                            && d.MealSubscription != null 
+                            && d.MealSubscription.Company != null
+                            && d.BookingDate <= toDate 
+                            && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Meal)
                 .Include(d => d.Orders)
@@ -282,14 +300,19 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<DailyOrder>> GetForStatistic()
+        public async Task<List<DailyOrder>> GetForStatistic(DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => d.OrderQuantity > 0)
+                .Where(d => d.OrderQuantity > 0 && d.BookingDate <= toDate && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Company)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Meal)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
+                .Include(d => d.Orders)
                 .OrderByDescending(d => d.BookingDate)
                 .AsSplitQuery()
                 .ToListAsync();

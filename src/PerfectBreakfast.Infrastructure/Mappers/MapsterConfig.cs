@@ -17,6 +17,7 @@ using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using ComboAndFoodResponse = PerfectBreakfast.Application.Models.MenuModels.Response.ComboAndFoodResponse;
 
 namespace PerffectBreakfast.Infrastructure.Mappers;
 
