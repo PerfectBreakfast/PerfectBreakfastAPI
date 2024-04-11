@@ -495,7 +495,7 @@ public class DailyOrderService : IDailyOrderService
                                 var comboForOrder = new FoodForDailyOrder
                                 (
                                     combo.Name,
-                                    $"{string.Join(", ", foodEntities.Select(food => food.Name))} - khẩu phầm combo",
+                                    $"{string.Join(", ", foodEntities.Select(food => food.Name))}",
                                     orderDetail.Quantity
                                 );
                                 foodForDailyOrder.Add(comboForOrder);
@@ -504,8 +504,8 @@ public class DailyOrderService : IDailyOrderService
                             {
                                 var foodForOrder = new FoodForDailyOrder
                                 (
+                                    orderDetail.Food.Name,
                                     "-",
-                                    orderDetail.Food.Name + "- khẩu phầm đơn lẻ",
                                     orderDetail.Quantity
                                 );
                                 foodForDailyOrder.Add(foodForOrder);
