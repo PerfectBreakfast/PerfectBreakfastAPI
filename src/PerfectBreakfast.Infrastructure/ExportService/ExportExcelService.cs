@@ -187,11 +187,13 @@ public class ExportExcelService : IExportExcelService
             }
 
             var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
+            var color = false;
             foreach (var response in responses)
             {
                 // Ghi giá trị Date và các dữ liệu cụ thể
                 worksheet.Cells[dataStartRow, 1].Value = response.CreationDate;
                 worksheet.Cells[dataStartRow, 2].Value = response.BookingDate;
+                var fillColor = color ? Color.LightGreen : Color.White;
                 foreach (var companyForDailyOrder in response.CompanyForDailyOrders)
                 {
                     worksheet.Cells[dataStartRow, 3].Value = companyForDailyOrder.Name;
@@ -216,10 +218,18 @@ public class ExportExcelService : IExportExcelService
                             worksheet.Cells[dataStartRow, 13].Value = foodAssignmentResponse.Food;
                             worksheet.Cells[dataStartRow, 14].Value = foodAssignmentResponse.Quantity;
                             worksheet.Cells[dataStartRow, 14].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                            //Thay màu nền
+                            worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Fill.BackgroundColor.SetColor(fillColor);
+                            
+                            //border
+                            var border = worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Border;
+                            border.Top.Style = border.Bottom.Style = border.Left.Style = border.Right.Style = ExcelBorderStyle.Thin;
                             dataStartRow++;
                         }
                     }
                 }
+                color = !color;
             }
             
             // Auto-fit columns
@@ -276,11 +286,14 @@ public class ExportExcelService : IExportExcelService
             }
 
             var dataStartRow = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
+            var color = false;
             foreach (var response in responses)
             {
                 // Ghi giá trị Date và các dữ liệu cụ thể
                 worksheet.Cells[dataStartRow, 1].Value = response.CreationDate;
                 worksheet.Cells[dataStartRow, 2].Value = response.BookingDate;
+                
+                var fillColor = color ? Color.LightGreen : Color.White;
                 foreach (var companyForDailyOrder in response.CompanyForDailyOrders)
                 {
                     worksheet.Cells[dataStartRow, 3].Value = companyForDailyOrder.Name;
@@ -305,10 +318,19 @@ public class ExportExcelService : IExportExcelService
                             worksheet.Cells[dataStartRow, 13].Value = foodAssignmentResponse.Food;
                             worksheet.Cells[dataStartRow, 14].Value = foodAssignmentResponse.Quantity;
                             worksheet.Cells[dataStartRow, 14].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                            
+                            //Thay màu nền
+                            worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Fill.BackgroundColor.SetColor(fillColor);
+                            
+                            //border
+                            var border = worksheet.Cells[dataStartRow, 1, dataStartRow, 14].Style.Border;
+                            border.Top.Style = border.Bottom.Style = border.Left.Style = border.Right.Style = ExcelBorderStyle.Thin;
                             dataStartRow++;
                         }
                     }
                 }
+                color = !color;
             }
             
             // Tạo tiêu đề động
@@ -339,13 +361,13 @@ public class ExportExcelService : IExportExcelService
             }
 
             var dataStartRow2 = 3; // Bắt đầu từ dòng thứ 3 để dành cho dữ liệu
-
+            var colorFlip = false;
             foreach (var supplierFood in supplierFoods)
             {
                 // Ghi giá trị Date và các dữ liệu cụ thể
                 worksheet.Cells[dataStartRow2, 18].Value = supplierFood.CreationDate;
                 worksheet.Cells[dataStartRow2, 19].Value = supplierFood.BookingDate;
-
+                var fillColor = colorFlip ? Color.LightGreen : Color.White;
                 foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupBySuppliers)
                 {
                     worksheet.Cells[dataStartRow2, 20].Value = foodAssignmentGroup.SupplierName;
@@ -363,10 +385,18 @@ public class ExportExcelService : IExportExcelService
                         worksheet.Cells[dataStartRow2, 25].Value = foodAssignmentResponse.ReceivedAmount;
                         worksheet.Cells[dataStartRow2, 26].Value = foodAssignmentResponse.Status;
                         worksheet.Cells[dataStartRow2, 22].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        
+                        // Áp dụng màu nền
+                        worksheet.Cells[dataStartRow2, 18, dataStartRow2, 26].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        worksheet.Cells[dataStartRow2, 18, dataStartRow2, 26].Style.Fill.BackgroundColor.SetColor(fillColor);
+                        
+                        //border
+                        var border = worksheet.Cells[dataStartRow2, 18, dataStartRow2, 26].Style.Border;
+                        border.Top.Style = border.Bottom.Style = border.Left.Style = border.Right.Style = ExcelBorderStyle.Thin;
                         dataStartRow2++;
                     }
-                    
                 }
+                colorFlip = !colorFlip;
             }
             
             // Auto-fit columns
