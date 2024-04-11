@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
@@ -861,4 +862,79 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
 
         return result;
     }
+
+    public async Task<OperationResult<bool>> ConfirmAllFoodAssignments(Guid packageId)
+    {
+        var result = new OperationResult<bool>();
+        var userId = _claimsService.GetCurrentUserId;
+        try
+        {
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
+            
+            var dailyOrder = await _unitOfWork.PackageRepository.FindAll(x => x.Id == packageId)
+                .Select(x => x.DailyOrder).SingleOrDefaultAsync();
+            if (dailyOrder is not { Status: DailyOrderStatus.Divided })
+            {
+                switch (dailyOrder.Status)
+                {
+                    case DailyOrderStatus.Complete:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
+                        return result;
+                    case DailyOrderStatus.Cooking:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                        return result;
+                    case DailyOrderStatus.Initial:
+                        result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
+                        return result;
+                    case DailyOrderStatus.Processing:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                        return result;
+                    case DailyOrderStatus.Waiting:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                        return result;
+                    case DailyOrderStatus.Delivering:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
+                        return result;
+                    default:
+                        result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
+                        return result;
+                }
+            }
+            
+            // Retrieve all supplier food assignments related to the packages
+            var assignments = await _unitOfWork.SupplierFoodAssignmentRepository.GetByPackages(packageId, user.SupplierId.Value);
+            
+            // Confirm all assignments if possible
+            foreach (var assignment in assignments)
+            {
+                if (assignment.Status == SupplierFoodAssignmentStatus.Pending)
+                {
+                    assignment.Status = SupplierFoodAssignmentStatus.Confirmed;
+                }
+            }
+            
+            _unitOfWork.SupplierFoodAssignmentRepository.UpdateRange(assignments);
+            
+            var supplierFoodAssignments =
+                await _unitOfWork.SupplierFoodAssignmentRepository
+                    .GetByPackage(packageId);
+            var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
+            if (allConfirmed)
+            {
+                dailyOrder.Status = DailyOrderStatus.Cooking;
+                _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            }
+            
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess; // Set the payload to the status of all confirmations
+            
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError(ex.Message);
+        }
+
+        return result;
+    }
+
 }

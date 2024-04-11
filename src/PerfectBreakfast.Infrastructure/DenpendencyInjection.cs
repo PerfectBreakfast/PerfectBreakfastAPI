@@ -50,7 +50,7 @@ public static class DenpendencyInjection
             hangfire.UseSimpleAssemblyNameTypeSerializer();
             hangfire.UseRecommendedSerializerSettings();
             hangfire.UseColouredConsoleLogProvider();
-            hangfire.UseSQLiteStorage("Hangfire.db"); // storage by SQLite
+            hangfire.UseSQLiteStorage("Hangfire1.db"); // storage by SQLite
         });
         services.AddHangfireServer();
 

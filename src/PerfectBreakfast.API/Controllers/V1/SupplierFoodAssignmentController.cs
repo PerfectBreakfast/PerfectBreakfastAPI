@@ -63,7 +63,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="pageSize"></param>
     /// <returns></returns>
     [HttpGet("supplier")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
@@ -76,7 +76,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="packageIds"></param>
     /// <returns></returns>
     [HttpPost("supplier/packages")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds)
     {
         var response = await _supplierFoodAssignmentService
@@ -103,7 +103,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="status"> 0: Declined, 1: Confirmed</param>
     /// <returns></returns>
     [HttpPut("{id}/status-confirmation")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> ConfirmFoodAssignmentBySupplier(Guid id, int status)
     {
         var response = await _supplierFoodAssignmentService.ChangeStatusFoodAssignment(id, status);
@@ -127,7 +127,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("download-excel")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> DownloadSupplierFoodAssignment(DownloadSupplierFoodAssignmentRequest request)
     {
         
@@ -169,4 +169,18 @@ public class SupplierFoodAssignmentController : BaseController
         return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
     
+
+    /// <summary>
+    /// API All Confirm For Supplier Admin
+    /// </summary>
+    /// <param name="packageId"></param>
+    /// <returns></returns>
+    [HttpPut("status-confirmations-all/{packageId}")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
+    public async Task<IActionResult> ConfirmAndCompleteAllFoodAssignments(Guid packageId)
+    {
+        var response = await _supplierFoodAssignmentService.ConfirmAllFoodAssignments(packageId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    } 
+
 }
