@@ -4,6 +4,7 @@ using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
+using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.StatisticResponse;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -709,80 +710,77 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     }
 
     public async Task<OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>>
-        GetSupplierFoodAssignmentsForSuperAdmin(DateOnly fromDate, DateOnly toDate)
+        GetSupplierFoodAssignmentsForSuperAdmin(DateOnly? fromDate, DateOnly? toDate)
     {
         var result = new OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>();
         try
         {
-            // var supplierFoodAssignments =
-            //     await _unitOfWork.SupplierFoodAssignmentRepository.GetByForSuperAdmin();
-            //
-            // supplierFoodAssignments = supplierFoodAssignments
-            //     .Where(s => fromDate <= s.DailyOrder.BookingDate && s.DailyOrder.BookingDate <= toDate)
-            //     .ToList();
-            //
-            // if (supplierFoodAssignments.Count == 0)
-            // {
-            //     result.AddError(ErrorCode.BadRequest, "Ngày này không có món được phân chia");
-            //     return result;
-            // }
-            // var supplierFoodAssignmentByDates = supplierFoodAssignments.GroupBy(x => new { x.DailyOrder.CreationDate, x.DailyOrder.BookingDate })
-            //     .ToDictionary(x => x.Key, g => g.ToList());
-            //
-            // // custom output
-            // var supplierFoodAssignmentResponse = supplierFoodAssignmentByDates.Select(x =>
-            // {
-            //     var creationDate = x.Key.CreationDate; // creationDate từ Dictionary
-            //     var bookingDate = x.Key.BookingDate;
-            //     var foodAssignmentsGroupByPartner = x.Value.GroupBy(y => y.Partner.Name)
-            //         .ToDictionary(y => y.Key, g => g.ToList());
-            //     
-            //     var foodAssignmentGroupByPartnerResponse = foodAssignmentsGroupByPartner.Select(x =>
-            //     {
-            //         var partnerName = x.Key;
-            //         
-            //         var foodAssignmentGroupByPartner = x.Value.GroupBy(y => y.DailyOrder.MealSubscription.StartTime)
-            //             .ToDictionary(y => y.Key, g => g.ToList());
-            //
-            //         var deliveryTimeResponse = foodAssignmentGroupByPartner.Select(x =>
-            //         {
-            //             var deliveryTime = x.Key.Value.AddHours(-1);
-            //             // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
-            //             var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
-            //             {
-            //                 var foodName = supplierFoodAssignment.Food?.Name;
-            //                 if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Combo)
-            //                 {
-            //                     foodName += " - khẩu phần combo";
-            //                 }
-            //                 else if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Retail)
-            //                 {
-            //                     foodName += " - khẩu phần đơn lẻ";
-            //                 }
-            //                 // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
-            //                 return new FoodAssignmentResponse
-            //                 {
-            //                     Id = supplierFoodAssignment.Id,
-            //                     FoodName = foodName,
-            //                     AmountCooked = supplierFoodAssignment.AmountCooked,
-            //                     ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
-            //                     CommissionRate = supplierFoodAssignment.SupplierCommissionRate?.CommissionRate,
-            //                     Status = supplierFoodAssignment.Status.ToString()
-            //                 };
-            //             }).ToList();
-            //             return new SupplierDeliveryTime(deliveryTime, foodAssignmentResponses);
-            //         }).ToList();
-            //         
-            //         return new FoodAssignmentGroupByPartner(partnerName, deliveryTimeResponse);
-            //         
-            //     }).ToList();
-            //     
-            //     // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
-            //     return new SupplierFoodAssignmentForSuperAdmin(DateOnly.FromDateTime(creationDate), bookingDate, foodAssignmentGroupByPartnerResponse);
-            // }).ToList();
-            //
-            //
-            // result.Payload = supplierFoodAssignmentResponse;
+            var today = _currentTime.GetCurrentTime();
+            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
+            toDate ??= DateOnly.FromDateTime(today);
+            
+            if (fromDate >= toDate)
+            {
+                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
+            }
+            
+            var supplierFoodAssignments =
+                await _unitOfWork.SupplierFoodAssignmentRepository.GetByForSuperAdmin(fromDate, toDate);
+            
+            
+            if (supplierFoodAssignments.Count == 0)
+            {
+                result.AddError(ErrorCode.BadRequest, "Ngày này không có món được phân chia");
+                return result;
+            }
+            var supplierFoodAssignmentByDates = supplierFoodAssignments.GroupBy(x => new { x.Package.DailyOrder.CreationDate, x.Package.DailyOrder.BookingDate })
+                .ToDictionary(x => x.Key, g => g.ToList());
+            
+            // custom output
+            var supplierFoodAssignmentResponse = supplierFoodAssignmentByDates.Select(x =>
+            {
+                var creationDate = x.Key.CreationDate; // creationDate từ Dictionary
+                var bookingDate = x.Key.BookingDate;
+                var foodAssignmentsGroupByPartner = x.Value.GroupBy(y => y.SupplierCommissionRate.Supplier.Name)
+                    .ToDictionary(y => y.Key, g => g.ToList());
+                
+                var foodAssignmentGroupByPartnerResponse = foodAssignmentsGroupByPartner.Select(x =>
+                {
+                    var supplierName = x.Key;
+                    
+                    // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
+                    var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
+                    {
+                        var foodName = supplierFoodAssignment.Food?.Name;
+                        if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Combo)
+                        {
+                            foodName += " - khẩu phần combo";
+                        }
+                        else if (supplierFoodAssignment.Food?.FoodStatus == FoodStatus.Retail)
+                        {
+                            foodName += " - khẩu phần đơn lẻ";
+                        }
+                        // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
+                        return new FoodAssignmentResponse
+                        {
+                            Id = supplierFoodAssignment.Id,
+                            FoodName = foodName,
+                            AmountCooked = supplierFoodAssignment.AmountCooked,
+                            ReceivedAmount = supplierFoodAssignment.ReceivedAmount,
+                            CommissionRate = supplierFoodAssignment.SupplierCommissionRate?.CommissionRate,
+                            Status = supplierFoodAssignment.Status.ToString(),
+                            DeliveryDeadline = supplierFoodAssignment.DeliveryDeadline
+                        };
+                    }).ToList();
+                    return new FoodAssignmentGroupForSupplier(supplierName, foodAssignmentResponses);
+                    
+                }).ToList();
+                
+                // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
+                return new SupplierFoodAssignmentForSuperAdmin(DateOnly.FromDateTime(creationDate), bookingDate, foodAssignmentGroupByPartnerResponse);
+            }).ToList();
+            
+            result.Payload = supplierFoodAssignmentResponse;
         }
         catch (Exception e)
         {

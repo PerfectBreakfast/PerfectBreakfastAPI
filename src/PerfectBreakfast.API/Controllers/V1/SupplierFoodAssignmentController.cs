@@ -168,29 +168,5 @@ public class SupplierFoodAssignmentController : BaseController
         var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
         return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
-
-    /// <summary>
-    /// API For Super Admin - Super Admin download theo ngày giao hàng
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("super-admin/download-excel")]
-    public async Task<IActionResult> DownloadSupplierFoodAssignmentBySuperAdmin(DateOnly fromDate, DateOnly toDate)
-    {
-        
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSuperAdmin(fromDate, toDate);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSuperAdmin(response.Payload);
-        if (content == null)
-        {
-            return NotFound("Some thing wrong");
-        }
-
-        var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
-        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-    }
+    
 }
