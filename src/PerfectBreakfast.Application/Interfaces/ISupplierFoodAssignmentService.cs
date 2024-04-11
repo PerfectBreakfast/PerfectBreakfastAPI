@@ -1,6 +1,7 @@
 ﻿using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Request;
 using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
+using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.StatisticResponse;
 
 namespace PerfectBreakfast.Application.Interfaces
 {
@@ -12,7 +13,11 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<FoodAssignmentResponse>> ChangeStatusFoodAssignment(Guid id, int status);
         public Task<OperationResult<FoodAssignmentResponse>> CompleteFoodAssignment(Guid id);
         public Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(UpdateSupplierFoodAssignment updateSupplierFoodAssignment);
-        public Task<OperationResult<List<SupplierFoodAssignmentForSupplier>>> GetSupplierFoodAssignmentsByBookingDate(DateOnly bookingDate);
-        public Task<OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>> GetSupplierFoodAssignmentsForSuperAdmin(DateOnly fromDate, DateOnly toDate);
+        public Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForSupplierDownload(List<Guid> packageIds);
+        public Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForPartnerDownload(List<Guid> packageIds, Guid supplierId);
+        public Task<OperationResult<List<SupplierFoodAssignmentForSuperAdmin>>> GetSupplierFoodAssignmentsForSuperAdmin(DateOnly? fromDate, DateOnly? toDate);
+        public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds);
+        public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailByPartner(FoodAssignmentByPartnerRequest request);
+        public Task<OperationResult<bool>> ConfirmAllFoodAssignments(Guid packageId); // New method added
     }
 }

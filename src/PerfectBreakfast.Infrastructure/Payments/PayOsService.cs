@@ -36,7 +36,7 @@ public class PayOsService : IPayOsService
     public async Task<PaymentResponse> CreatePaymentLink(Order order)
     {
         List<ItemData> items = new ();
-        int expiredAt = (int)(DateTime.UtcNow.AddMinutes(15).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;  // set thời gian expiredAt là 20p 
+        int expiredAt = (int)(DateTime.UtcNow.AddMinutes(15).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;  // set thời gian expiredAt là 15p 
         PaymentData paymentData = new PaymentData(order.OrderCode, 
             (int)order.TotalPrice, 
             $"{_currentTime.GetCurrentTime().ToString("dd-MM-yyyy")} Thanh toan", 
@@ -51,18 +51,15 @@ public class PayOsService : IPayOsService
             expiredAt);
 
         var result = await _payOs.createPaymentLink(paymentData);
-        if (result.status == "PENDING")
+        if (result.status != "PENDING") return new PaymentResponse { IsSuccess = false };
+        var paymentResponse = new PaymentResponse
         {
-            var paymentResponse = new PaymentResponse
-            {
-                PaymentUrl = result.checkoutUrl,
-                QrCode = result.qrCode,
-                DeepLink = null,
-                IsSuccess = true
-            };
-            return paymentResponse;
-        }
-        return new PaymentResponse{IsSuccess = false};
+            PaymentUrl = result.checkoutUrl,
+            QrCode = result.qrCode,
+            DeepLink = null,
+            IsSuccess = true
+        };
+        return paymentResponse;
     }
 
     public async Task<bool> ConfirmWebhook(ConfirmWebhook body)
@@ -83,7 +80,7 @@ public class PayOsService : IPayOsService
         try
         {
             // check signature
-            WebhookData data =  _payOs.verifyPaymentWebhookData(type);
+            var data =  _payOs.verifyPaymentWebhookData(type);
             Console.WriteLine("############ đã Verify Payment WebhookData ############# ");
 
             if (data.code != "00") return new Response(0, "Ok", null);
@@ -92,7 +89,7 @@ public class PayOsService : IPayOsService
             {
                 return new Response(0, "Ok", null);
             }
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById(order.DailyOrderId!.Value);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(order.DailyOrderId!.Value);
             if (data.amount != order.TotalPrice) return new Response(0, "Ok", null);
             order.OrderStatus = OrderStatus.Paid;
             dailyOrder.TotalPrice += order.TotalPrice;
@@ -100,7 +97,6 @@ public class PayOsService : IPayOsService
             _unitOfWork.OrderRepository.Update(order);
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             await _unitOfWork.SaveChangeAsync();
-                    
             // thực hiện xóa cache payment link đi 
             await _cache.RemoveAsync($"order-{order.Id}");
             return new Response(0, "Ok", null);

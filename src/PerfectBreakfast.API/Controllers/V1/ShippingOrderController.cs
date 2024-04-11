@@ -11,22 +11,12 @@ namespace PerfectBreakfast.API.Controllers.V1;
 public class ShippingOrderController : BaseController
 {
     private readonly IShippingOrderService _shippingOrderService;
-
+    
     public ShippingOrderController(IShippingOrderService shippingOrderService)
     {
         _shippingOrderService = shippingOrderService;
     }
     
-    /// <summary>
-    /// Api for Delivery Admin
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("deliveryadmin"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
-    public async Task<IActionResult> GetShippingOrder()
-    {
-        var response = await _shippingOrderService.GetAllShippingOrdersWithDetails();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
     
     /// <summary>
     /// Api for Delivery Admin 
@@ -55,43 +45,38 @@ public class ShippingOrderController : BaseController
     /// <summary>
     /// Api for Delivery Staff Or Delivery Admin- (API xác nhận món lấy hàng đi giao)
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="dailyOrderId"></param>
     /// <returns></returns>
-    [HttpPut("confirmation/{id:guid}")]
+    [HttpPut("confirmation/{dailyOrderId:guid}")]
     [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
-    public async Task<IActionResult> ConfirmStatusShippingOrder(Guid id)
+    public async Task<IActionResult> ConfirmStatusShippingOrder(Guid dailyOrderId)
     {
-        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(id); // Pass both ID and DTO to the service
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-    
-    
-    /*[HttpGet("daily-order/pending-status"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> GetDailyOrderPendingByDeliveryStaff()
-    {
-        var response = await _shippingOrderService.GetDailyOrderByShipper();
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }*/
-    
-    /// <summary>
-    /// Api for Delivery Staff-API lấy lịch sử daily order
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("delivery-staff/history-order"),Authorize(Policy = ConstantRole.RequireDeliveryStaffRole)]
-    public async Task<IActionResult> GetAllDailyOrderByDeliveryStaff()
-    {
-        var response = await _shippingOrderService.GetHistoryDailyOrderByShipper();
+        var response = await _shippingOrderService.ConfirmShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
     /// <summary>
-    /// Api for Delivery Admin-API để lấy staff theo daily order
+    /// Api for Delivery Staff Or Delivery Admin- (API đóng ca giao hàng , khi mà hết giờ giao mà vẫn còn đơn chưa có ai lấy)
     /// </summary>
+    /// <param name="dailyOrderId"></param>
     /// <returns></returns>
-    [HttpGet("delivery-staff/daily-order/{id:guid}"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
-    public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid id)
+    [HttpPut("end/{dailyOrderId:guid}")]
+    [Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF}")]
+    public async Task<IActionResult> EndShippingOrder(Guid dailyOrderId)
     {
-        var response = await _shippingOrderService.GetSDeliveryStaffByDailyOrder(id);
+        var response = await _shippingOrderService.EndShippingOrderByShipper(dailyOrderId); // Pass both ID and DTO to the service
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// Api for Delivery Admin,Staff,Super Admin- (API để lấy staff theo daily order Id)
+    /// </summary>
+    /// <param name="dailyOrderId"></param>
+    /// <returns></returns>
+    [HttpGet("delivery-staff/daily-order/{dailyOrderId:guid}"), Authorize(Roles = $"{ConstantRole.DELIVERY_ADMIN},{ConstantRole.DELIVERY_STAFF},{ConstantRole.SUPER_ADMIN}")]
+    public async Task<IActionResult> GetDeliveryStaffByDailyOrder(Guid dailyOrderId)
+    {
+        var response = await _shippingOrderService.GetDeliveryStaffByDailyOrder(dailyOrderId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
 }

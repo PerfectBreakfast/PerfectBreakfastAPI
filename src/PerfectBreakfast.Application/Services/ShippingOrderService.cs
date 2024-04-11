@@ -1,9 +1,8 @@
 ﻿using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
-using PerfectBreakfast.Application.Models.DailyOrder.Response;
-using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Request;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
@@ -17,49 +16,26 @@ public class ShippingOrderService : IShippingOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IClaimsService _claimsService;
+    private readonly ICurrentTime _currentTime;
 
-
-    public ShippingOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService)
+    public ShippingOrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
+        _currentTime = currentTime;
     }
 
-    // get all shipper with dailyOder Detail
-    public async Task<OperationResult<List<ShippingOrderDTO>>> GetAllShippingOrdersWithDetails()
+    public async Task<OperationResult<bool>> CreateShippingOrder(CreateShippingOrderRequest requestModel)
     {
-        var result = new OperationResult<List<ShippingOrderDTO>>();
-        try
-        {
-            var shippingOrders = await _unitOfWork.ShippingOrderRepository
-                .GetAllWithDailyOrdersAsync(); // Assuming this correctly fetches ShippingOrder including DailyOrder
-
-            var shippingOrderDTOs = shippingOrders.Select(so => new ShippingOrderDTO
-            {
-                ShipperId = so.ShipperId,
-                DailyOrder = _mapper.Map<DailyOrderResponse>(so.DailyOrder) // Direct mapping without Select
-            }).ToList();
-
-            result.Payload = shippingOrderDTOs;
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<List<ShippingOrderResponse>>> CreateShippingOrder(
-        CreateShippingOrderRequest requestModel)
-    {
-        var result = new OperationResult<List<ShippingOrderResponse>>();
+        var result = new OperationResult<bool>();
         var list = new List<ShippingOrder>();
         try
         {
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId);
-            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking && dailyOrder.Status !=DailyOrderStatus.Waiting)
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(requestModel.DailyOrderId, x => x.MealSubscription!);
+            if (dailyOrder.Status != DailyOrderStatus.Processing && dailyOrder.Status != DailyOrderStatus.Cooking &&
+                dailyOrder.Status != DailyOrderStatus.Waiting && dailyOrder.Status != DailyOrderStatus.Divided)
             {
                 result.AddError(ErrorCode.BadRequest,
                     $"Trạng thái đơn hàng không đúng {dailyOrder.Status.ToString()}");
@@ -83,8 +59,8 @@ public class ShippingOrderService : IShippingOrderService
                 Status = ShippingStatus.Pending
             }));
             await _unitOfWork.ShippingOrderRepository.AddRangeAsync(list);
-            await _unitOfWork.SaveChangeAsync();
-            return result;
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
         }
         catch (NotFoundIdException)
         {
@@ -98,7 +74,8 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderTodayByDeliveryStaff(DateTime time)
+    public async Task<OperationResult<List<ShippingOrderForShipperResponse>>> GetShippingOrderTodayByDeliveryStaff(
+        DateTime time)
     {
         var result = new OperationResult<List<ShippingOrderForShipperResponse>>();
         var userId = _claimsService.GetCurrentUserId;
@@ -106,114 +83,21 @@ public class ShippingOrderService : IShippingOrderService
         {
             // Hàm này còn đang sửa tiêp cho nagyf mai 
             var date = DateOnly.FromDateTime(time);
-            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderTodayByShipperIdAndDate(userId,date);
-            
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderTodayByShipperIdAndDate(userId, date);
+
             result.Payload = _mapper.Map<List<ShippingOrderForShipperResponse>>(shippingOrders);
         }
         catch (Exception e)
         {
             result.AddUnknownError(e.Message);
         }
+
         return result;
     }
 
-    // public async Task<OperationResult<List<TotalComboForStaff>>> GetDailyOrderByShipper()
-    // {
-    //     var result = new OperationResult<List<TotalComboForStaff>>();
-    //     var totalFoods = new List<TotalFoodForCompanyResponse>();
-    //     var userId = _claimsService.GetCurrentUserId;
-    //     try
-    //     {
-    //         var dailyOrderInclude = new IncludeInfo<ShippingOrder>
-    //         {
-    //             NavigationProperty = x => x.DailyOrder,
-    //             ThenIncludes =
-    //             [
-    //                 sp => ((DailyOrder)sp).MealSubscription,
-    //                 sp => ((MealSubscription)sp).Meal,
-    //                 sp => ((MealSubscription)sp).Company,
-    //                 sp => ((DailyOrder)sp).Orders,
-    //                 sp => ((Order)sp).OrderDetails,
-    //                 sp => ((OrderDetail)sp).Combo
-    //             ]
-    //         };
-    //         var shipperInclude = new IncludeInfo<ShippingOrder>
-    //         {
-    //             NavigationProperty = x => x.Shipper
-    //         };
-    //         var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperId(userId);
-    //         var comboCounts = new Dictionary<string, int>();
-    //         foreach (var shippingOrder in shippingOrders)
-    //         {
-    //             // Lấy daily order
-    //             if (shippingOrder.DailyOrder is null)
-    //             {
-    //                 result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
-    //                 return result;
-    //             }
-    //
-    //             // Lấy chi tiết các order detail
-    //             var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(shippingOrder.DailyOrder.Id);
-    //             var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
-    //
-    //             // Đếm số lượng từng loại combo và bỏ vào comboCount
-    //             foreach (var comboName in orderDetails.Select(orderDetail => orderDetail.Combo.Name))
-    //             {
-    //                 if (comboCounts.TryGetValue(comboName, out var value))
-    //                 {
-    //                     comboCounts[comboName] = ++value;
-    //                 }
-    //                 else
-    //                 {
-    //                     comboCounts.Add(comboName, 1);
-    //                 }
-    //             }
-    //
-    //             // Tạo danh sách totalFoodList từ foodCounts
-    //             var totalCombo = comboCounts.Select(kv => new TotalFoodResponse
-    //             {
-    //                 Name = kv.Key,
-    //                 Quantity = kv.Value
-    //             }).ToList();
-    //             var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)shippingOrder.DailyOrder.MealSubscription
-    //                 .MealId);
-    //             var company =
-    //                 await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)shippingOrder.DailyOrder.MealSubscription
-    //                     .CompanyId);
-    //             var totalFood = new TotalFoodForCompanyResponse()
-    //             {
-    //                 DailyOrderId = shippingOrder.DailyOrder.Id,
-    //                 Meal = meal.MealType,
-    //                 DeliveryTime = shippingOrder.DailyOrder.MealSubscription.StartTime?.AddHours(-1),
-    //                 CompanyName = company.Name,
-    //                 Address = company.Address,
-    //                 PhoneNumber = company.PhoneNumber,
-    //                 BookingDate = shippingOrder.DailyOrder.BookingDate,
-    //                 TotalFoodResponses = totalCombo
-    //             };
-    //             totalFoods.Add(totalFood);
-    //         }
-    //
-    //         var groupedByDate = totalFoods.GroupBy(f => f.BookingDate)
-    //             .Select(g => new TotalComboForStaff(
-    //                 BookingDate: g.Key,
-    //                 TotalFoodForCompanyResponses: g.ToList()))
-    //             .OrderByDescending(g => g.BookingDate)
-    //             .ToList();
-    //
-    //         result.Payload = groupedByDate;
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         result.AddUnknownError(e.Message);
-    //     }
-    //
-    //     return result;
-    // }
-
-    public async Task<OperationResult<DailyOrderResponse>> ConfirmShippingOrderByShipper(Guid dailyOrderId)
+    public async Task<OperationResult<bool>> ConfirmShippingOrderByShipper(Guid dailyOrderId)
     {
-        var result = new OperationResult<DailyOrderResponse>();
+        var result = new OperationResult<bool>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
@@ -222,10 +106,10 @@ public class ShippingOrderService : IShippingOrderService
             // check đơn hàng có phải phân công đúng của shipper không ?
             if (!shippingOrders.Any() || shippingOrders.All(order => order.ShipperId != userId))
             {
-                result.AddError(ErrorCode.BadRequest, "Đơn hàng này không phải phân công của bạn");
+                result.AddError(ErrorCode.BadRequest, "Đơn hàng này không phải nhiệm vụ của bạn");
                 return result;
             }
-            
+
             // check xem xem tổng đơn(dailyOrder) đã ở trạng thái sẵn sàng chờ đến lấy đi giao hay chưa ? 
             var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(dailyOrderId);
             if (dailyOrder is not { Status: DailyOrderStatus.Waiting })
@@ -244,30 +128,36 @@ public class ShippingOrderService : IShippingOrderService
                     case DailyOrderStatus.Processing:
                         result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
                         return result;
-                    case DailyOrderStatus.Waiting:
-                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                    case DailyOrderStatus.Divided:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                        return result;
+                    case DailyOrderStatus.NoOrders:
+                        result.AddError(ErrorCode.BadRequest, "Đơn này không có");
                         return result;
                     case DailyOrderStatus.Delivering:
                         result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
                         return result;
+                    case DailyOrderStatus.Waiting:
+                        break;
                     default:
                         result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
                         return result;
                 }
             }
-            
+
             if (shippingOrders.All(s => s.Status == ShippingStatus.Pending))
             {
                 foreach (var shippingOrder in shippingOrders)
                 {
                     shippingOrder.Status = ShippingStatus.Confirm;
-                } 
+                }
             }
             else
             {
                 result.AddError(ErrorCode.ServerError, "Có 1 đơn vận chuyển không phải trong trạng thái chờ xác nhận");
                 return result;
             }
+
             _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
             dailyOrder.Status = DailyOrderStatus.Delivering;
             _unitOfWork.DailyOrderRepository.Update(dailyOrder);
@@ -277,7 +167,8 @@ public class ShippingOrderService : IShippingOrderService
                 result.AddError(ErrorCode.ServerError, "lỗi trong quá trình lưu xuống db");
                 return result;
             }
-            result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrder);
+
+            result.Payload = isSuccess;
         }
         catch (Exception e)
         {
@@ -287,69 +178,62 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<TotalFoodForCompanyResponse>>> GetHistoryDailyOrderByShipper()
+    public async Task<OperationResult<bool>> EndShippingOrderByShipper(Guid dailyOrderId)
     {
-        var result = new OperationResult<List<TotalFoodForCompanyResponse>>();
-        var totalFoods = new List<TotalFoodForCompanyResponse>();
-        var userId = _claimsService.GetCurrentUserId;
+        var result = new OperationResult<bool>();
         try
         {
-            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByShipperId(userId);
-            var comboCounts = new Dictionary<string, int>();
-            foreach (var shippingOrder in shippingOrders)
+            var shippingOrders = await _unitOfWork.ShippingOrderRepository
+                .GetShippingOrderByDailyOrderId(dailyOrderId);
+
+            // check xem xem tổng đơn(dailyOrder) đã ở trạng thái sẵn sàng chờ đến lấy đi giao hay chưa ? 
+            var dailyOrder = await _unitOfWork.DailyOrderRepository
+                .GetByIdAsync(dailyOrderId, x => x.MealSubscription!);
+            
+            // lấy ra thời gian có thể Đóng ca
+            var timeEnd = dailyOrder.BookingDate.ToDateTime(dailyOrder.MealSubscription!.EndTime); 
+
+            // nếu thời gian hiện tại < thời gian có thể đóng ca 
+            if (_currentTime.GetCurrentTime() < timeEnd)
             {
-                // Lấy daily order
-                var dailyOrder = await _unitOfWork.DailyOrderRepository.GetById((Guid)shippingOrder.DailyOrderId);
-                if (dailyOrder is null)
-                {
-                    result.AddError(ErrorCode.BadRequest, "Company doesn't have daily order");
-                    return result;
-                }
-
-                // Lấy chi tiết các order detail
-                var orders = await _unitOfWork.OrderRepository.GetOrderByDailyOrderId(dailyOrder.Id);
-                var orderDetails = orders.SelectMany(order => order.OrderDetails).ToList();
-
-                // Đếm số lượng từng loại combo và bỏ vào comboCount
-                foreach (var orderDetail in orderDetails)
-                {
-                    // Nếu là combo thì lấy chi tiết các food trong combo
-                    var combo = await _unitOfWork.ComboRepository.GetByIdAsync(orderDetail.Combo.Id);
-                    var comboName = orderDetail.Combo.Name;
-
-                    if (comboCounts.ContainsKey(comboName))
-                    {
-                        comboCounts[comboName]++;
-                    }
-                    else
-                    {
-                        comboCounts.Add(comboName, 1);
-                    }
-                }
-
-                // Tạo danh sách totalFoodList từ foodCounts
-                var totalCombo = comboCounts.Select(kv => new TotalFoodResponse
-                {
-                    Name = kv.Key,
-                    Quantity = kv.Value
-                }).ToList();
-                var meal = await _unitOfWork.MealRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.MealId);
-                var com = await _unitOfWork.CompanyRepository.GetByIdAsync((Guid)dailyOrder.MealSubscription.CompanyId);
-                var totalFood = new TotalFoodForCompanyResponse()
-                {
-                    DailyOrderId = dailyOrder.Id,
-                    Meal = meal.MealType,
-                    DeliveryTime = dailyOrder.MealSubscription.StartTime?.AddHours(-1),
-                    CompanyName = com.Name,
-                    Address = com.Address,
-                    PhoneNumber = com.PhoneNumber,
-                    BookingDate = dailyOrder.BookingDate,
-                    TotalFoodResponses = totalCombo
-                };
-                totalFoods.Add(totalFood);
+                result.AddError(ErrorCode.BadRequest, $"Thời gian đóng ca là: {timeEnd}");
+                return result;
             }
 
-            result.Payload = totalFoods;
+            // phải check tiếp nữa là cái này nó có đóng ca sau cái thời gian ăn của bữa theo công ty đos không ? 
+            if (dailyOrder.Status != DailyOrderStatus.Delivering) 
+            {
+                result.AddError(ErrorCode.BadRequest, "Không thể đóng ca");
+                return result;
+            }
+
+            // chuyển dailyOrder sang trạng thái complete 
+            dailyOrder.Status = DailyOrderStatus.Complete;
+
+            // lấy ra các order đang ở trạng thái đã thanh toán 
+            var orders = await _unitOfWork.OrderRepository.FindAll(x =>
+                x.DailyOrderId == dailyOrderId && x.OrderStatus == OrderStatus.Paid).ToListAsync();
+
+            // chuyển tất cả order đã thanh toán sang đã hủy vì quá thời gian giao hàng 
+            orders.ForEach(x => x.OrderStatus = OrderStatus.CancelledForOverdue);
+
+            // chuyển các nhiệm vụ theo dailyOrder sang trạng thái complete 
+            foreach (var shippingOrder in shippingOrders)
+            {
+                shippingOrder.Status = ShippingStatus.Complete;
+            }
+
+            _unitOfWork.ShippingOrderRepository.UpdateRange(shippingOrders);
+            _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            _unitOfWork.OrderRepository.UpdateRange(orders);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (!isSuccess)
+            {
+                result.AddError(ErrorCode.ServerError, "lỗi trong quá trình lưu xuống db");
+                return result;
+            }
+
+            result.Payload = isSuccess;
         }
         catch (Exception e)
         {
@@ -359,37 +243,13 @@ public class ShippingOrderService : IShippingOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<UserResponse>>> GetSDeliveryStaffByDailyOrder(Guid dailyOrderId)
+    public async Task<OperationResult<List<UserResponse>>> GetDeliveryStaffByDailyOrder(Guid dailyOrderId)
     {
         var result = new OperationResult<List<UserResponse>>();
         try
         {
-            var shippingOrders = await _unitOfWork.ShippingOrderRepository.GetShippingOrderByDailyOrder(dailyOrderId);
-            if (shippingOrders != null)
-            {
-                var users = shippingOrders
-                    .Select(user =>
-                    {
-                        if (user.Shipper != null)
-                            return new UserResponse
-                            {
-                                Id = user.Shipper.Id,
-                                Email = user.Shipper.Email,
-                                Name = user.Shipper.Name,
-                                Image = user.Shipper.Image,
-                                Code = user.Shipper.Code.ToString(),
-                                PhoneNumber = user.Shipper.PhoneNumber,
-                                EmailConfirmed = user.Shipper.EmailConfirmed,
-                                LockoutEnabled = user.Shipper.LockoutEnabled
-                            };
-                        return null;
-                    }).ToList();
-                result.Payload = users;
-            }
-            else
-            {
-                result.AddError(ErrorCode.BadRequest, "Đơn hàng chưa được phân công");
-            }
+            var users = await _unitOfWork.ShippingOrderRepository.GetStaffByDailyOrder(dailyOrderId);
+            result.Payload = _mapper.Map<List<UserResponse>>(users);
         }
         catch (Exception e)
         {

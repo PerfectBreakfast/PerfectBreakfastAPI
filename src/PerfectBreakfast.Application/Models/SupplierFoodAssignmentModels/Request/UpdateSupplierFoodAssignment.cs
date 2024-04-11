@@ -2,6 +2,6 @@
 
 public record UpdateSupplierFoodAssignment
 (
-    Guid? SupplierFoodAssignmentId,
-    Guid? SupplierId
+    Guid SupplierFoodAssignmentId,
+    Guid SupplierId
     );

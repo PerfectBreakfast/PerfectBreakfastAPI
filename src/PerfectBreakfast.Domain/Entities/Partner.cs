@@ -12,7 +12,7 @@ public class Partner : BaseEntity
     public ICollection<User?> Users { get; set; }
     public ICollection<SupplyAssignment?> SupplyAssignments { get; set; }
     public ICollection<PartnerPayment?> PartnerPayments { get; set; }
-    public ICollection<SupplierFoodAssignment?> SupplierFoodAssignments { get; set; }
+    public ICollection<Package?> Packages { get; set; }
     public ICollection<Company?> Companies { get; set; }
     
 }

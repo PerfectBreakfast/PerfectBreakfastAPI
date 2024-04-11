@@ -31,9 +31,13 @@ public class CompanyRepository : GenericRepository<Company>, ICompanyRepository
             .FirstOrDefaultAsync(c => c.Id == companyId);
     }
 
-    public async Task<List<Company>> SearchCompany(string searchTerm)
+    public async Task<List<Company>> SearchCompany(string searchTerm, DateTime now)
     {
         var lowerCaseSearchTerm = searchTerm.ToLower();
-        return await _dbSet.Where(c => c.Name.ToLower().Contains(lowerCaseSearchTerm)).Take(2).AsNoTracking().ToListAsync();
+        var twentyFourHoursAgo = now.AddHours(-24);
+        return await _dbSet.Where(c => c.Name.ToLower().Contains(lowerCaseSearchTerm) && c.CreationDate <= twentyFourHoursAgo)
+            .Take(2)
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

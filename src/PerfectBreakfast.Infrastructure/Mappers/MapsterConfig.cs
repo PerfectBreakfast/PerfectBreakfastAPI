@@ -9,14 +9,17 @@ using PerfectBreakfast.Application.Models.MealModels.Request;
 using PerfectBreakfast.Application.Models.MealModels.Response;
 using PerfectBreakfast.Application.Models.MenuModels.Response;
 using PerfectBreakfast.Application.Models.OrderModel.Response;
+using PerfectBreakfast.Application.Models.PackageModels.Response;
 using PerfectBreakfast.Application.Models.PartnerModels.Response;
 using PerfectBreakfast.Application.Models.ShippingOrder.Response;
+using PerfectBreakfast.Application.Models.SupplierFoodAssignmentModels.Response;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using ComboAndFoodResponse = PerfectBreakfast.Application.Models.MenuModels.Response.ComboAndFoodResponse;
 
-namespace PerfectBreakfast.Infrastructure.Mappers;
+namespace PerffectBreakfast.Infrastructure.Mappers;
 
 public class MapsterConfig : IRegister
 {
@@ -29,6 +32,11 @@ public class MapsterConfig : IRegister
         config.NewConfig<Partner, PartnerResponseModel>();
         config.NewConfig<SupplyAssignment, SupplyAssigmentResponse>();
 
+        // User
+        config.NewConfig<User, UserModelResponse>()
+            .Map(dest => dest.Roles, src => src.UserRoles.Select(x => x.Role.Name).ToList());
+        
+        
         // Order 
         config.NewConfig<Order, OrderHistoryResponse>()
             .Map(dest => dest.ComboCount, src => src.OrderDetails.Select(x => x.Quantity).Sum())
@@ -68,6 +76,14 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.ManagementUnitDtos, src => src.SupplyAssignments.Select(x => x.Partner))
             .Map(dest => dest.CommissionRates, src => src.SupplierCommissionRates);
         
+        // Supplier Food Assignment
+        config.NewConfig<SupplierFoodAssignment, FoodAssignmentResponse>()
+            .Map(dest => dest.FoodName, src => src.Food.Name)
+            .Map(dest => dest.CommissionRate, src => src.SupplierCommissionRate.CommissionRate);
+        config.NewConfig<SupplierFoodAssignment, FoodAssignmentForPackage>()
+            .Map(dest => dest.FoodName, src => src.Food.Name)
+            .Map(dest => dest.SupplierName, src => src.SupplierCommissionRate.Supplier.Name);
+        
         // Meal 
         config.NewConfig<MealSubscription, MealResponse>()
             .Map(dest => dest.Id, src => src.Meal.Id)
@@ -81,6 +97,9 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.MealId, src => src.MealId)
             .Map(dest => dest.StartTime, src => src.StartTime)
             .Map(dest => dest.EndTime, src => src.EndTime);
+
+        config.NewConfig<MealSubscription, MealSubscriptionResponse>()
+            .Map(dest => dest.MealType, src => src.Meal.MealType);
         
         // Menu 
         config.NewConfig<Menu,MenuResponse>()
@@ -113,9 +132,13 @@ public class MapsterConfig : IRegister
         // DailyOrder 
         config.NewConfig<DailyOrder, DailyOrderDto>()
             .Map(dest => dest.Meal, src => src.MealSubscription.Meal.MealType)
-            .Map(dest => dest.PickupTime,src => src.MealSubscription.StartTime)
+            .Map(dest => dest.PickupTime, src => src.MealSubscription.StartTime.AddHours(-1))
             .Map(dest => dest.HandoverTime,src => src.MealSubscription.StartTime)
             .Map(dest => dest.Company,src => src.MealSubscription.Company)
             .Map(dest => dest.Partner,src => src.MealSubscription.Company.Partner);
+        
+        // Package
+        config.NewConfig<Package, PackageForMeal>()
+            .Map(dest => dest.FoodAssignmentForPackages, src => src.SupplierFoodAssignments);
     }
 }

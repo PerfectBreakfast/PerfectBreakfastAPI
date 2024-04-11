@@ -217,6 +217,7 @@ public class UserService : IUserService
             
             user.UserName = request.Email;
             user.EmailConfirmed = true;
+            user.LockoutEnabled = false;
             user.CreationDate = _currentTime.GetCurrentTime();
             var identityResult = await _unitOfWork.UserManager.CreateAsync(user, request.Password);
             if (!identityResult.Succeeded)
@@ -453,14 +454,24 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<OperationResult<Pagination<UserResponse>>> GetUserPaginationAsync(int pageIndex = 0,
+    public async Task<OperationResult<Pagination<UserModelResponse>>> GetUserPaginationAsync(string? searchTerm,int pageIndex = 0,
         int pageSize = 10)
     {
-        var result = new OperationResult<Pagination<UserResponse>>();
+        var result = new OperationResult<Pagination<UserModelResponse>>();
         try
         {
-            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize);
-            result.Payload = _mapper.Map<Pagination<UserResponse>>(users);
+            var userInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = c => c.UserRoles,
+                ThenIncludes = [sp => ((UserRole)sp).Role]
+            };
+            
+            // Tạo biểu thức tìm kiếm (predicate)
+            Expression<Func<User, bool>>? searchPredicate = string.IsNullOrEmpty(searchTerm)
+                ? null
+                : (x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Email.ToLower().Contains(searchTerm.ToLower()));
+            var users = await _unitOfWork.UserRepository.ToPagination(pageIndex, pageSize,searchPredicate,userInclude);
+            result.Payload = _mapper.Map<Pagination<UserModelResponse>>(users);
         }
         catch (Exception e)
         {
@@ -517,6 +528,7 @@ public class UserService : IUserService
             }
             user.UserName = requestModel.Email;
             user.EmailConfirmed = true;
+            user.LockoutEnabled = false;
             user.CreationDate = _currentTime.GetCurrentTime();
             var identityResult = await _unitOfWork.UserManager.CreateAsync(user, "123456");
             if (!identityResult.Succeeded)
@@ -579,6 +591,8 @@ public class UserService : IUserService
             //user.Name = requestModel.Name ?? user.Name;
             user.PhoneNumber = requestModel.PhoneNumber ?? user.PhoneNumber;
             user.CompanyId = requestModel.CompanyId;
+            user.LockoutEnabled = false;
+            user.Code = await _unitOfWork.UserRepository.CalculateCompanyCode(requestModel.CompanyId);
 
             _unitOfWork.UserRepository.Update(user);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
@@ -661,7 +675,6 @@ public class UserService : IUserService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 

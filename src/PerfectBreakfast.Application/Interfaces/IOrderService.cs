@@ -19,7 +19,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<List<OrderHistoryResponse>>> GetOrderHistoryByDeliveryStaff(int pageNumber);
         public Task<OperationResult<OrderResponse>> RemoveOrder(Guid id);
         public Task<OperationResult<bool>> CompleteOrder(Guid id);
-        public Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly fromDate, DateOnly toDate);
         Task<OperationResult<List<OrderResponse>>> GetOrderByDailyOrder(Guid dailyOrderId);
     }
 }

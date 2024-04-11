@@ -18,6 +18,7 @@ namespace PerfectBreakfast.Application.Services;
         private readonly IImgurService _imgurService;
         private readonly IClaimsService _claimsService;
         private readonly ICurrentTime _currentTime;
+        
         public FoodService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService, IClaimsService claimsService, ICurrentTime currentTime)
         {
             _unitOfWork = unitOfWork;
@@ -156,7 +157,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -165,7 +166,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var comboInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -176,7 +177,6 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 
                 var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAndIncludeAsync(dailyOrderId, mealInclude, foodInclude, companyInclude, comboInclude);
-                
                 // Kiểm tra xem công ty có trong danh sách đối tác không
                 var companyFound = user.Partner.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
 
@@ -261,23 +261,9 @@ namespace PerfectBreakfast.Application.Services;
 
         public async Task<OperationResult<TotalFoodForPartnerResponse>> GetFoodsForDelivery(Guid dailyOrderId)
         {
-            var userId = _claimsService.GetCurrentUserId;
             var result = new OperationResult<TotalFoodForPartnerResponse>();
             try
             {
-                // khỏi cần check cái này vì hàm này chỉ là hàm get lên thoi, chỉ cần account là role staff thì là đc đi 
-                // var deliveryInclude = new IncludeInfo<User>
-                // {
-                //     NavigationProperty = x => x.Delivery,
-                //     ThenIncludes = [sp => ((Delivery)sp).Companies]
-                // };
-                // var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, deliveryInclude);
-                //
-                // if (user.Delivery == null)
-                // {
-                //     result.AddError(ErrorCode.NotFound, "Delivery does not exist");
-                //     return result;
-                // }
                         
                 // Lấy daily order
                 var mealInclude = new IncludeInfo<DailyOrder>
@@ -292,7 +278,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var foodInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -301,7 +287,7 @@ namespace PerfectBreakfast.Application.Services;
                 };
                 var comboInclude = new IncludeInfo<DailyOrder>
                 {
-                    NavigationProperty = x => x.Orders,
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
                     ThenIncludes =
                     [
                         sp => ((Order)sp).OrderDetails,
@@ -313,17 +299,6 @@ namespace PerfectBreakfast.Application.Services;
                 
                 var dailyOrder = await _unitOfWork.DailyOrderRepository
                     .GetByIdAndIncludeAsync(dailyOrderId, mealInclude, companyInclude, comboInclude, foodInclude);
-
-                // (khỏi check cái này luôn)
-                // Kiểm tra xem công ty có trong danh sách đối tác không
-                // var companyFound = user.Delivery.Companies.Any(company => company.Id == dailyOrder.MealSubscription.CompanyId);
-                //
-                // // Nếu công ty không được tìm thấy, thêm lỗi vào kết quả
-                // if (!companyFound)
-                // {
-                //     result.AddError(ErrorCode.BadRequest, "Company doesn't have this daily order");
-                //     return result;
-                // }
                 
                 // Lấy chi tiết các order detail
                 var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
@@ -394,12 +369,13 @@ namespace PerfectBreakfast.Application.Services;
             return result;
         }
 
-        public async Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id)
+        public async Task<OperationResult<List<FoodResponse>>> GetFoodForSupplier(Guid id, string? searchTerm)
         {
             var result = new OperationResult<List<FoodResponse>>();
             try
             {
-                var food = await _unitOfWork.FoodRepository.GetFoodForSupplier(id);
+                searchTerm ??= "";
+                var food = await _unitOfWork.FoodRepository.GetFoodForSupplier(id, searchTerm);
                 result.Payload = _mapper.Map<List<FoodResponse>>(food);
             }
             catch (Exception e)
@@ -410,6 +386,224 @@ namespace PerfectBreakfast.Application.Services;
             return result;
         }
 
+        public async Task<OperationResult<TotalFoodForPartnerResponse>> GetComboAndFoodsForPartner(Guid dailyOrderId)
+        {
+            var result = new OperationResult<TotalFoodForPartnerResponse>();
+            try
+            {
+                // Lấy daily order
+                var mealInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.MealSubscription,
+                    ThenIncludes = [sp => ((MealSubscription)sp).Meal]
+                };
+                var companyInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.MealSubscription,
+                    ThenIncludes = [sp => ((MealSubscription)sp).Company]
+                };
+                var foodInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                    ThenIncludes =
+                    [
+                        sp => ((Order)sp).OrderDetails,
+                            sp => ((OrderDetail)sp).Food
+                    ]
+                };
+                var comboInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                    ThenIncludes =
+                    [
+                        sp => ((Order)sp).OrderDetails,
+                            sp => ((OrderDetail)sp).Combo,
+                                sp => ((Combo)sp).ComboFoods,
+                                    sp => ((ComboFood)sp).Food
+                    ]
+                };
+                
+                var dailyOrder = await _unitOfWork.DailyOrderRepository
+                    .GetByIdAndIncludeAsync(dailyOrderId, mealInclude, companyInclude, comboInclude, foodInclude);
+                
+                // Lấy chi tiết các order detail
+                var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
+                
+                // Đếm số lượng từng loại food
+                var foodCounts = new Dictionary<(Guid, string, string), int>();
+                foreach (var orderDetail in orderDetails)
+                {
+                    if (orderDetail.Combo != null)
+                    {
+                        var combo = orderDetail.Combo;
+                        // Tạo một chuỗi duy nhất bao gồm tên của tất cả Food trong Combo
+                        var allFoodsName = string.Join(", ", combo.ComboFoods.Select(cf => cf.Food.Name).Distinct());
+                        var key = (combo.Id, combo.Name + " - combo", allFoodsName);
+
+                        if (foodCounts.ContainsKey(key))
+                        {
+                            foodCounts[key] += orderDetail.Quantity;
+                        }
+                        else
+                        {
+                            foodCounts[key] = orderDetail.Quantity;
+                        }
+                    }
+                    else if (orderDetail.Food != null)
+                    {
+                        var food = orderDetail.Food;
+                        // Food đơn lẻ, FoodName sẽ rỗng
+                        var key = (food.Id, food.Name + " - món đơn lẻ", string.Empty);
+                        if (foodCounts.ContainsKey(key))
+                        {
+                            foodCounts[key] += orderDetail.Quantity;
+                        }
+                        else
+                        {
+                            foodCounts[key] = orderDetail.Quantity;
+                        }
+                    }
+                }
+
+                // Tạo danh sách totalFoodList với cấu trúc mới
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
+                {
+                    Id = pair.Key.Item1,
+                    Name = pair.Key.Item2,
+                    FoodName = pair.Key.Item3, 
+                    Quantity = pair.Value
+                }).ToList();
+                var totalFoodForPartner = new TotalFoodForPartnerResponse()
+                {
+                    DailyOrderId = dailyOrder.Id,
+                    Meal = dailyOrder.MealSubscription.Meal.MealType,
+                    CompanyName = dailyOrder.MealSubscription.Company.Name,
+                    Phone = dailyOrder.MealSubscription.Company.PhoneNumber,
+                    Status = dailyOrder.Status.ToString(),
+                    TotalFoodResponses = totalFoodList
+                };
+                result.Payload = totalFoodForPartner;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
+        public async Task<OperationResult<TotalFoodForPartnerResponse>> GetComboAndFoodsForDelivery(Guid dailyOrderId)
+        {
+            var result = new OperationResult<TotalFoodForPartnerResponse>();
+            try
+            {
+                // Lấy daily order
+                var mealInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.MealSubscription,
+                    ThenIncludes = [sp => ((MealSubscription)sp).Meal]
+                };
+                var companyInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.MealSubscription,
+                    ThenIncludes = [sp => ((MealSubscription)sp).Company]
+                };
+                var foodInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
+                    ThenIncludes =
+                    [
+                        sp => ((Order)sp).OrderDetails,
+                            sp => ((OrderDetail)sp).Food
+                    ]
+                };
+                var comboInclude = new IncludeInfo<DailyOrder>
+                {
+                    NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
+                    ThenIncludes =
+                    [
+                        sp => ((Order)sp).OrderDetails,
+                            sp => ((OrderDetail)sp).Combo,
+                                sp => ((Combo)sp).ComboFoods,
+                                    sp => ((ComboFood)sp).Food
+                    ]
+                };
+                
+                var dailyOrder = await _unitOfWork.DailyOrderRepository
+                    .GetByIdAndIncludeAsync(dailyOrderId, mealInclude, companyInclude, comboInclude, foodInclude);
+                
+                // Lấy chi tiết các order detail
+                var orderDetails = dailyOrder.Orders.SelectMany(order => order.OrderDetails).ToList();
+
+                // Đếm số lượng từng loại food
+                var foodCounts = new Dictionary<(Guid, string, string), int>();
+                foreach (var orderDetail in orderDetails)
+                {
+                    if (orderDetail.Combo != null)
+                    {
+                        var combo = orderDetail.Combo;
+                        // Tạo một chuỗi duy nhất bao gồm tên của tất cả Food trong Combo
+                        var allFoodsName = string.Join(", ", combo.ComboFoods.Select(cf => cf.Food.Name).Distinct());
+                        var key = (combo.Id, combo.Name + " - combo", allFoodsName);
+
+                        if (foodCounts.ContainsKey(key))
+                        {
+                            foodCounts[key] += orderDetail.Quantity;
+                        }
+                        else
+                        {
+                            foodCounts[key] = orderDetail.Quantity;
+                        }
+                    }
+                    else if (orderDetail.Food != null)
+                    {
+                        var food = orderDetail.Food;
+                        // Food đơn lẻ, FoodName sẽ rỗng
+                        var key = (food.Id, food.Name + " - món đơn lẻ", string.Empty);
+                        if (foodCounts.ContainsKey(key))
+                        {
+                            foodCounts[key] += orderDetail.Quantity;
+                        }
+                        else
+                        {
+                            foodCounts[key] = orderDetail.Quantity;
+                        }
+                    }
+                }
+
+                // Tạo danh sách totalFoodList với cấu trúc mới
+                var totalFoodList = foodCounts.Select(pair => new TotalFoodResponse
+                {
+                    Id = pair.Key.Item1,
+                    Name = pair.Key.Item2,
+                    FoodName = pair.Key.Item3, 
+                    Quantity = pair.Value
+                }).ToList();
+                var totalFoodForPartner = new TotalFoodForPartnerResponse()
+                {
+                    DailyOrderId = dailyOrder.Id,
+                    Meal = dailyOrder.MealSubscription.Meal.MealType,
+                    CompanyName = dailyOrder.MealSubscription.Company.Name,
+                    Phone = dailyOrder.MealSubscription.Company.PhoneNumber,
+                    Status = dailyOrder.Status.ToString(),
+                    TotalFoodResponses = totalFoodList
+                };
+                result.Payload = totalFoodForPartner;
+            }
+            catch (NotFoundIdException)
+            {
+                result.AddError(ErrorCode.NotFound, "Id is not exist");
+            }
+            catch (Exception e)
+            {
+                result.AddUnknownError(e.Message);
+            }
+            return result;
+        }
+
         public async Task<OperationResult<FoodResponse>> RemoveFood(Guid foodId)
         {
             var result = new OperationResult<FoodResponse>();
@@ -417,6 +611,18 @@ namespace PerfectBreakfast.Application.Services;
             {
                 // find supplier by ID
                 var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+                var isFoodInCombo = await _unitOfWork.ComboFoodRepository.IsFoodExistInCombo(foodId);
+                var isFoodInMenu = await _unitOfWork.MenuFoodRepository.IsFoodExistInMenu(foodId);
+                if (isFoodInCombo)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Món ăn đang thuộc combo");
+                    return result;
+                }
+                if (isFoodInMenu)
+                {
+                    result.AddError(ErrorCode.BadRequest, "Món ăn đang thuộc menu");
+                    return result;
+                }
                 // Remove
                 _unitOfWork.FoodRepository.SoftRemove(food);
                 // saveChange

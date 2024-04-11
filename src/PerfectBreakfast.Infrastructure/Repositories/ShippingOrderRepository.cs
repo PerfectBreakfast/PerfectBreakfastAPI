@@ -2,7 +2,6 @@
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
-using PerfectBreakfast.Domain.Enums;
 
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
@@ -12,19 +11,7 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
     public ShippingOrderRepository(AppDbContext context, ICurrentTime timeService, IClaimsService claimsService) : base(context, timeService, claimsService)
     {
     }
-
-    public async Task<List<ShippingOrder>> GetShippingOrderByShipperId(Guid shipperId)
-    {
-        var shippingOrders = await _dbSet.Where(x => x.ShipperId == shipperId)
-            .Include(x => x.DailyOrder)
-                .ThenInclude(x => x.MealSubscription)
-                    .ThenInclude(x => x.Company)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .ToListAsync();
-        return shippingOrders;
-    }
-
+    
     public async Task<List<ShippingOrder>> GetShippingOrderTodayByShipperIdAndDate(Guid shipperId, DateOnly date)
     {
         var shippingOrders = await _dbSet.Where(x => x.ShipperId == shipperId && x.DailyOrder.BookingDate == date)
@@ -47,34 +34,19 @@ public class ShippingOrderRepository : GenericRepository<ShippingOrder>, IShippi
             .SingleOrDefaultAsync(x => x.ShipperId == shipperId && x.DailyOrderId == dailyOrderId);
     }
 
-    public async Task<bool> ExistsWithDailyOrderAndShipper(Guid dailyOrderId, Guid shipperId)
-    {
-        return await _dbSet
-            .AnyAsync(so => so.DailyOrderId == dailyOrderId && so.ShipperId == shipperId);
-    }
-
     public async Task<bool> ExistsWithDailyOrderAndShippers(Guid dailyOrderId, List<Guid?> shipperId)
     {
-        return await _dbSet
+        return await _dbSet.AsNoTracking()
             .AnyAsync(so => so.DailyOrderId == dailyOrderId && shipperId.Contains(so.ShipperId));
     }
 
-    public async Task<List<ShippingOrder>> GetAllWithDailyOrdersAsync()
+    // lấy các staff đã phân công cho cái đơn (dailyOrder)
+    public async Task<List<User?>> GetStaffByDailyOrder(Guid dailyOrderId)
     {
-        var shippingOrders = await _dbSet
-            .Include(so => so.DailyOrder) 
-            .ToListAsync();
-
-        return shippingOrders;
-    }
-
-    public async Task<List<ShippingOrder>> GetShippingOrderByDailyOrder(Guid dailyOrderId)
-    {
-        return await _dbSet.AsNoTracking().Where(s => s.DailyOrderId == dailyOrderId && s.Status == ShippingStatus.Pending)
-            .Include(s => s.Shipper)
-            .Include(s => s.DailyOrder)
-                .ThenInclude(d => d.MealSubscription)
-            .AsSplitQuery()
+        return await _dbSet.AsNoTracking()
+            .Where(so => so.DailyOrderId == dailyOrderId)
+            .Include(x => x.Shipper)
+            .Select(x => x.Shipper)
             .ToListAsync();
     }
 

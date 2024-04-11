@@ -379,12 +379,21 @@ public class DailyOrderService : IDailyOrderService
         return result;
     }
 
-    public async Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDownload(DateOnly fromDate, DateOnly toDate)
+    public async Task<OperationResult<List<DailyOrderStatisticResponse>>> GetDailyOrderForDownload(DateOnly? fromDate, DateOnly? toDate)
     {
         var result = new OperationResult<List<DailyOrderStatisticResponse>>();
         var userId = _claimsService.GetCurrentUserId;
         try
         {
+            var today = _currentTime.GetCurrentTime();
+            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
+            toDate ??= DateOnly.FromDateTime(today);
+            
+            if (fromDate >= toDate)
+            {
+                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
+            }
+            
             var partnerInclude = new IncludeInfo<User>
             {
                 NavigationProperty = x => x.Partner,
@@ -395,9 +404,21 @@ public class DailyOrderService : IDailyOrderService
                             sp => ((MealSubscription)sp).Meal
                 }
             };
-            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude);
-            var dailyOrders =  await _unitOfWork.DailyOrderRepository.GetForStatistic();
-            if (await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.PARTNER_ADMIN))
+            var deliveryInclude = new IncludeInfo<User>
+            {
+                NavigationProperty = x => x.Delivery,
+                ThenIncludes = new List<Expression<Func<object, object>>>
+                {
+                    sp => ((Delivery)sp).Companies,
+                        sp => ((Company)sp).MealSubscriptions,
+                            sp => ((MealSubscription)sp).Meal
+                }
+            };
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId, partnerInclude, deliveryInclude);
+            var isPartnerAdmin = await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.PARTNER_ADMIN);
+            var isDeliveryAdmin = await _unitOfWork.UserManager.IsInRoleAsync(user, ConstantRole.DELIVERY_ADMIN);
+            List<DailyOrder> dailyOrders; 
+            if (isPartnerAdmin)
             {
                 // get các bữa ăn của từng công ty
                 var mealSubscriptionIds = user.Partner.Companies
@@ -405,10 +426,25 @@ public class DailyOrderService : IDailyOrderService
                     .SelectMany(x => x.MealSubscriptions
                         .Where(c => !c.IsDeleted)
                         .Select(x => x.Id)).ToList();
-                dailyOrders = await _unitOfWork.DailyOrderRepository.GetByMeal(mealSubscriptionIds);
+                dailyOrders = await _unitOfWork.DailyOrderRepository.GetByMeal(mealSubscriptionIds, fromDate, toDate);
             }
+            else if (isDeliveryAdmin)
+            {
+                // get các bữa ăn của từng công ty
+                var mealSubscriptionIds = user.Delivery.Companies
+                    .Where(c => !c.IsDeleted)
+                    .SelectMany(x => x.MealSubscriptions
+                        .Where(c => !c.IsDeleted)
+                        .Select(x => x.Id)).ToList();
+                dailyOrders = await _unitOfWork.DailyOrderRepository.GetByMeal(mealSubscriptionIds, fromDate, toDate);
+            }
+            else
+            {
+                dailyOrders =  await _unitOfWork.DailyOrderRepository.GetForStatistic(fromDate, toDate);
+            }
+            
             dailyOrders = dailyOrders.Where(d =>
-                fromDate <= d.BookingDate && d.BookingDate <= toDate && d.Status != DailyOrderStatus.Initial && d.OrderQuantity > 0)
+                 d.Status != DailyOrderStatus.Initial && d.OrderQuantity > 0)
                 .ToList();
             if (dailyOrders.Count == 0)
             {
@@ -426,25 +462,27 @@ public class DailyOrderService : IDailyOrderService
                 var companyForDailyOrderGroup = d.Value.GroupBy(d => new
                     {
                         Id = d.MealSubscription.Company.Id, 
-                        Company = d.MealSubscription.Company.Name 
+                        Company = d.MealSubscription.Company.Name,
+                        Partner = d.MealSubscription.Company.Partner.Name,
+                        Delivery = d.MealSubscription.Company.Delivery.Name,
                     })
                     .ToDictionary(y => y.Key, g => g.ToList());
                 var companyForDailyOrder = companyForDailyOrderGroup.Select(d =>
                 {
                     var companyId = d.Key.Id;
                     var company = d.Key.Company;
-                    var co = _unitOfWork.CompanyRepository
-                        .GetByIdAsync(companyId, c => c.Partner, c => c.Delivery)
-                        .Result;
-                    var partner = co.Partner.Name;
-                    var delivery = co.Delivery.Name;
+                    var partner = d.Key.Partner;
+                    var delivery = d.Key.Delivery;
                     var mealForDailyOrder = d.Value.Select(d =>
                     {
                         var meal = d.MealSubscription.Meal.MealType;
-                        var time = new TimeOnly(1, 0, 0);
+                        var time = $"{d.MealSubscription.StartTime.ToString()} - {d.MealSubscription.EndTime.ToString()}";
                         var foodForDailyOrder = new List<FoodForDailyOrder>();
-
                         var orders =  _unitOfWork.OrderRepository.GetOrderByDailyOrderId(d.Id).Result;
+                        var totalOrderQuantity = orders.Count;
+                        var completeQuantity = orders.Count(o => o.OrderStatus == OrderStatus.Complete);
+                        var cancelQuantity = orders.Count(o => o.OrderStatus == OrderStatus.CancelledForOverdue);
+                        var totalPrice = d.TotalPrice;
                         var orderDetails = orders
                             .SelectMany(order => order.OrderDetails)
                             .ToList();
@@ -457,7 +495,7 @@ public class DailyOrderService : IDailyOrderService
                                 var comboForOrder = new FoodForDailyOrder
                                 (
                                     combo.Name,
-                                    $"{string.Join(", ", foodEntities.Select(food => food.Name))} - khẩu phầm combo",
+                                    $"{string.Join(", ", foodEntities.Select(food => food.Name))}",
                                     orderDetail.Quantity
                                 );
                                 foodForDailyOrder.Add(comboForOrder);
@@ -466,21 +504,20 @@ public class DailyOrderService : IDailyOrderService
                             {
                                 var foodForOrder = new FoodForDailyOrder
                                 (
-                                    "None",
-                                    orderDetail.Food.Name + "- khẩu phầm đơn lẻ",
+                                    orderDetail.Food.Name,
+                                    "-",
                                     orderDetail.Quantity
                                 );
                                 foodForDailyOrder.Add(foodForOrder);
                             }
                         }
-                        return new MealForDailyOrder(meal, time, foodForDailyOrder);
+                        return new MealForDailyOrder(meal, time, totalOrderQuantity, completeQuantity, cancelQuantity, totalPrice, foodForDailyOrder);
                     }).ToList(); 
                     
                     return new CompanyForDailyOrder(company, partner, delivery, mealForDailyOrder);
                 }).ToList();
 
-                return new DailyOrderStatisticResponse(creationDate, bookingDate,
-                    companyForDailyOrder);
+                return new DailyOrderStatisticResponse(creationDate, bookingDate, companyForDailyOrder);
             }).ToList();
 
             result.Payload = dailyOrderResponse;
@@ -491,8 +528,9 @@ public class DailyOrderService : IDailyOrderService
         }
         return result;
     }
+    
 
-    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(
+    public async Task<OperationResult<Pagination<DailyOrderForDeliveryResponse>>> GetDailyOrderPaginationAsync(DailyOrderStatus? status = null,
         int pageIndex = 0, int pageSize = 10)
     {
         var result = new OperationResult<Pagination<DailyOrderForDeliveryResponse>>();
@@ -502,7 +540,7 @@ public class DailyOrderService : IDailyOrderService
             var mealSubscription =  _unitOfWork.MealSubscriptionRepository.FindAll(m => m.Company, m => m.Meal);
             var mealSubscriptionIds = mealSubscription.Where(m => !m.IsDeleted).Select(m => m.Id).ToList();
             var dailyOrderPages =
-                await _unitOfWork.DailyOrderRepository.ToPagination(mealSubscriptionIds,pageIndex, pageSize);
+                await _unitOfWork.DailyOrderRepository.ToPagination(mealSubscriptionIds,status,pageIndex, pageSize);
 
             var dailyOrderResponses = dailyOrderPages.Items
                 .GroupBy(d => DateOnly.FromDateTime(d.BookingDate.ToDateTime(TimeOnly.MinValue)))

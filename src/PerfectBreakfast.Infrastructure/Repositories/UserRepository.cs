@@ -17,12 +17,13 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         Expression<Func<User, bool>>? predicate = null,
         params IncludeInfo<User>[] includeProperties)
     {
-        IQueryable<User> itemsQuery = _dbSet.OrderByDescending(x => x.CreationDate);
+        IQueryable<User> itemsQuery = _dbSet.AsQueryable();
         if (predicate != null) 
         {
             itemsQuery = itemsQuery.Where(predicate); 
         }
         var itemCount = await itemsQuery.CountAsync();
+        itemsQuery = itemsQuery.OrderByDescending(x => x.CreationDate);
         // Xử lý các thuộc tính include và thenInclude
         foreach (var includeProperty in includeProperties)
         {
@@ -38,6 +39,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
             
         var result = new Pagination<User>()
@@ -49,14 +51,7 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         };
         return result;
     }
-
-    /*public async Task<SignInResult> CheckPasswordSignin(User user, string password, bool lockoutOnFailure)
-    {
-        var isSuccess = await _signInManager
-            .CheckPasswordSignInAsync(user, password, lockoutOnFailure);
-        return isSuccess;
-    }*/
-
+    
     public async Task<int> CalculateCompanyCode(Guid companyId)
     {
         var companyCode = await _dbSet.AsNoTracking()
@@ -111,6 +106,17 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return null;
     }
 
+    public async Task<List<User>?> GetUserByCompanyId(Guid companyId)
+    {
+        return await _dbSet
+            .Where(x => x.CompanyId == companyId)
+            .Include(x => x.UserRoles)!
+                .ThenInclude(x => x.Role)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
     public async Task<User> GetUserByIdAsync(Guid id, params IncludeInfo<User>[]? includeProperties)
     {
         var query  = _dbSet.AsNoTracking().Where(x => x.Id == id);
@@ -132,13 +138,16 @@ public class UserRepository : BaseRepository<User>,IUserRepository
 
     public async Task<User?> GetInfoCurrentUserById(Guid id)
     {
-        return await _dbSet.Where(x => x.Id == id)
+        return await _dbSet
+            .AsNoTracking()
+            .Where(x => x.Id == id)
             .Include(x => x.Company)
             .Include(x => x.Delivery)
             .Include(x => x.Partner)
             .Include(x => x.Supplier)
             .Include(x => x.UserRoles)
                 .ThenInclude(x => x.Role)
+            .AsSplitQuery()
             .SingleOrDefaultAsync();
     }
 

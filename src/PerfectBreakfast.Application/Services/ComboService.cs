@@ -8,6 +8,7 @@ using PerfectBreakfast.Application.Models.FoodModels.Response;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Exception = System.Exception;
 
 namespace PerfectBreakfast.Application.Services;
 
@@ -16,12 +17,14 @@ public class ComboService : IComboService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IImgurService _imgurService;
+    private readonly ICurrentTime _currentTime;
 
-    public ComboService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService)
+    public ComboService(IUnitOfWork unitOfWork, IMapper mapper, IImgurService imgurService, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imgurService = imgurService;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<ComboResponse>> CreateCombo(CreateComboRequest createComboRequest)
@@ -61,8 +64,6 @@ public class ComboService : IComboService
                 result.AddError(ErrorCode.ServerError, "Food is not exist");
                 return result;
             }
-
-            result.Payload = _mapper.Map<ComboResponse>(combo);
         }
         catch (Exception e)
         {
@@ -78,6 +79,12 @@ public class ComboService : IComboService
         try
         {
             var combo = await _unitOfWork.ComboRepository.GetByIdAsync(id);
+            var isComboInMenu = await _unitOfWork.MenuFoodRepository.IsComboExistInMenu(id);
+            if (isComboInMenu)
+            {
+                result.AddError(ErrorCode.BadRequest, "Combo đang tồn tại trong menu");
+                return result;
+            }
             _unitOfWork.ComboRepository.SoftRemove(combo);
             await _unitOfWork.SaveChangeAsync();
         }
@@ -158,6 +165,7 @@ public class ComboService : IComboService
         }
         return result;
     }
+    
 
     public async Task<OperationResult<List<ComboResponse>>> GetCombos()
     {

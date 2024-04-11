@@ -50,7 +50,7 @@ public static class DenpendencyInjection
             hangfire.UseSimpleAssemblyNameTypeSerializer();
             hangfire.UseRecommendedSerializerSettings();
             hangfire.UseColouredConsoleLogProvider();
-            hangfire.UseSQLiteStorage("Hangfire.db"); // storage by SQLite
+            hangfire.UseSQLiteStorage("Hangfire1.db"); // storage by SQLite
         });
         services.AddHangfireServer();
 
@@ -81,6 +81,8 @@ public static class DenpendencyInjection
         services.AddScoped<IShippingOrderService, ShippingOrderService>();
         services.AddScoped<IHangfireSettingService, HangFireSettingService>();
         services.AddScoped<IMealService, MealService>();
+        services.AddScoped<IPackageService, PackageService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
 }

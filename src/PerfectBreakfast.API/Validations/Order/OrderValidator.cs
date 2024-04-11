@@ -15,7 +15,7 @@ namespace PerfectBreakfast.API.Validations.Order
                 .NotEmpty().WithMessage("Thanh toán không được để trống")
                 .MaximumLength(100).WithMessage("Thanh toán không quá 100 kí tự");
             
-            RuleFor(p => p.MealId)
+            RuleFor(p => p.MealSubscriptionId)
                 .NotNull().WithMessage("Bữa ăn không được để trống")
                 .NotEmpty().WithMessage("Bữa ăn không được để trống");
 

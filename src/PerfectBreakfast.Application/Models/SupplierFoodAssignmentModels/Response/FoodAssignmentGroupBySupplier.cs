@@ -2,6 +2,9 @@
 
 public record FoodAssignmentGroupBySupplier
 (
-     string? SupplierName,
-     List<PartnerFoodMealResponse> PartnerFoodMealResponses
+    Guid? SupplierId,
+    string? SupplierName, 
+    List<Guid?> PackageIds,
+    int? Status,
+    List<FoodAssignmentResponse> FoodAssignmentResponses
      );

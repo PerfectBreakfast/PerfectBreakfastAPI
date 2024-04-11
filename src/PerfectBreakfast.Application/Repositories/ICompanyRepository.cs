@@ -6,5 +6,6 @@ public interface ICompanyRepository : IGenericRepository<Company>
 {
     Task<Company?> GetCompanyById(Guid id);
     Task<Company?> GetCompanyDetailMealById(Guid companyId);
-    Task<List<Company>> SearchCompany(string searchTerm);
+    Task<List<Company>> SearchCompany(string searchTerm, DateTime now);
+    //Task<List<Company>> GetTop10(DateOnly fromDate, DateOnly toDate);
 }

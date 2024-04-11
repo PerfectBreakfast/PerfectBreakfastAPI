@@ -45,16 +45,42 @@ public class SupplierFoodAssignmentController : BaseController
     }
     
     /// <summary>
+    /// API For Partner Admin - (Lấy món được phân chia)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("partner/packages"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailByPartner(FoodAssignmentByPartnerRequest request)
+    {
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentDetailByPartner(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
     /// API For Supplier Admin
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
     [HttpGet("supplier")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> GetSupplierFoodAssignmentBySupplier(int pageIndex = 0, int pageSize = 10)
     {
         var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentBySupplier(pageIndex, pageSize);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
+    
+    /// <summary>
+    /// API For Supplier Admin - (Lấy món được phân chia)
+    /// </summary>
+    /// <param name="packageIds"></param>
+    /// <returns></returns>
+    [HttpPost("supplier/packages")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
+    public async Task<IActionResult> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds)
+    {
+        var response = await _supplierFoodAssignmentService
+            .GetSupplierFoodAssignmentDetailBySupplier(packageIds);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
@@ -77,7 +103,7 @@ public class SupplierFoodAssignmentController : BaseController
     /// <param name="status"> 0: Declined, 1: Confirmed</param>
     /// <returns></returns>
     [HttpPut("{id}/status-confirmation")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
     public async Task<IActionResult> ConfirmFoodAssignmentBySupplier(Guid id, int status)
     {
         var response = await _supplierFoodAssignmentService.ChangeStatusFoodAssignment(id, status);
@@ -94,58 +120,67 @@ public class SupplierFoodAssignmentController : BaseController
         var response = await _supplierFoodAssignmentService.UpdateSupplierFoodAssignment(updateSupplierFoodAssignment);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
+
+    /// <summary>
+    /// API For Supplier Admin - Supplier download
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost("download-excel")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
+    public async Task<IActionResult> DownloadSupplierFoodAssignment(DownloadSupplierFoodAssignmentRequest request)
+    {
+        
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSupplierDownload(request.PackageIds);
+        if (response.IsError)
+        {
+            return HandleErrorResponse(response.Errors);
+        }
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSupplier(response.Payload);
+        if (content == null)
+        {
+            return NotFound("Some thing wrong");
+        }
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
     
     /// <summary>
     /// API For Supplier Admin - Supplier download
     /// </summary>
-    /// <param name="bookingDate"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("download-excel")]
-    [Authorize(Roles = "SUPPLIER ADMIN")]
-    public async Task<IActionResult> DownloadSupplierFoodAssignment(DateOnly bookingDate)
+    [HttpPost("partner/download-excel"), Authorize(policy:ConstantRole.RequirePartnerAdminRole)]
+    public async Task<IActionResult> DownloadSupplierFoodAssignmentForPartner(DownloadFoodAssignmentForPartnerRequest request)
     {
         
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsByBookingDate(bookingDate);
+        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForPartnerDownload(request.PackageIds, request.SupplierId);
         if (response.IsError)
         {
             return HandleErrorResponse(response.Errors);
         }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSupplier(response.Payload[0]);
+        var content = _exportExcelService.DownloadSupplierFoodAssignmentForPartner(response.Payload);
         if (content == null)
         {
             return NotFound("Some thing wrong");
         }
-        else
-        {
-            var fileName = $"Món ăn phân chia cho ngày {bookingDate.ToString("dd/mmm/yyyy")}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
+
+        var fileName = $"Món ăn phân chia cho ngày {request.BookingDate}.xlsx";
+        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
+    
 
     /// <summary>
-    /// API For Super Admin - Super Admin download theo ngày giao hàng
+    /// API All Confirm For Supplier Admin
     /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
+    /// <param name="packageId"></param>
     /// <returns></returns>
-    [HttpGet("super-admin/download-excel")]
-    public async Task<IActionResult> DownloadSupplierFoodAssignmentBySuperAdmin(DateOnly fromDate, DateOnly toDate)
+    [HttpPut("status-confirmations-all/{packageId}")]
+    [Authorize(Roles = ConstantRole.SUPPLIER_ADMIN)]
+    public async Task<IActionResult> ConfirmAndCompleteAllFoodAssignments(Guid packageId)
     {
-        
-        var response = await _supplierFoodAssignmentService.GetSupplierFoodAssignmentsForSuperAdmin(fromDate, toDate);
-        if (response.IsError)
-        {
-            return HandleErrorResponse(response.Errors);
-        }
-        var content = _exportExcelService.DownloadSupplierFoodAssignmentForSuperAdmin(response.Payload);
-        if (content == null)
-        {
-            return NotFound("Some thing wrong");
-        }
-        else
-        {
-            var fileName = $"Món ăn phân chia từ {fromDate} đến {toDate}.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
-    }
+        var response = await _supplierFoodAssignmentService.ConfirmAllFoodAssignments(packageId);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    } 
+
 }

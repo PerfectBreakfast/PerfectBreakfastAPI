@@ -25,61 +25,47 @@ public class OrderService : IOrderService
     private readonly IClaimsService _claimsService;
     private readonly IPayOsService _payOsService;
     private readonly IDistributedCache _cache;
+    private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly ICurrentTime _currentTime;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
-        IPayOsService payOsService,IDistributedCache cache)
+        IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient,
+        ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _claimsService = claimsService;
         _payOsService = payOsService;
         _cache = cache;
+        _backgroundJobClient = backgroundJobClient;
+        _currentTime = currentTime;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
     {
         var userId = _claimsService.GetCurrentUserId;
         var paymentResponse = new PaymentResponse();
+        var bookingDate = DateOnly.FromDateTime(orderRequest.MenuDate);
         var result = new OperationResult<PaymentResponse>();
         try
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            
-            // fix lại đoạn bốc DailyOrder này cho nó sờ mút ==================
-            // ============================================================================
-            var mealSubscription = await _unitOfWork.MealSubscriptionRepository.FindByCompanyId((Guid)user.CompanyId, orderRequest.MealId);
-            if (mealSubscription == null)
-            {
-                result.AddError(ErrorCode.BadRequest, "Company does not have this meal");
-                return result;
-            }
-            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindByMealSubscription(mealSubscription.Id);
+            //var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.FindSingleAsync(x =>
+                    x.MealSubscriptionId == orderRequest.MealSubscriptionId && x.BookingDate == bookingDate);
             if (dailyOrder is null)
             {
-                result.AddError(ErrorCode.NotFound, "Meal is not exist");
+                result.AddError(ErrorCode.NotFound, "Meal Subscription is not exist");
                 return result;
             }
             var order = _mapper.Map<Order>(orderRequest);
-            order.MealId = orderRequest.MealId;
             var orderDetails = _mapper.Map<List<OrderDetail>>(orderRequest.OrderDetails);
             foreach (var od in orderDetails)
             {
                 if (od.ComboId != null)
                 {
-                    var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(od.ComboId);
-                    if (combo == null)
-                    {
-                        result.AddUnknownError($"Combo with Id {od.ComboId} not found.");
-                        return result;
-                    }
-                    var foods = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                    if (foods == null)
-                    {
-                        result.AddError(ErrorCode.BadRequest, "Combo khong co thuc an");
-                        return result;
-                    }
+                    var foods = await _unitOfWork.ComboFoodRepository.GetFoodByComboId(od.ComboId.Value);
                     
-                    decimal totalFoodPrice = foods.Sum(food => food.Price);
+                    var totalFoodPrice = foods.Sum(food => food.Price);
                     od.UnitPrice = totalFoodPrice;
                 }
                 else
@@ -92,7 +78,6 @@ public class OrderService : IOrderService
                     }
                     od.UnitPrice = food.Price;
                 }
-                
             }
             // lấy phương thức thanh toán
             var paymentMethod = orderRequest.Payment.ToUpper();
@@ -102,10 +87,10 @@ public class OrderService : IOrderService
             order.OrderCode = orderCode;
             order.WorkerId = userId;
             order.OrderStatus = OrderStatus.Pending;
-            order.DailyOrder = dailyOrder;
+            order.DailyOrderId = dailyOrder.Id;
             order.TotalPrice = totalPrice;
             order.OrderDetails = orderDetails!;
-            order.PaymentMethodId = (await _unitOfWork.PaymentMethodRepository.FindSingleAsync(x => x.Name == paymentMethod)).Id;
+            order.PaymentMethodId = (await _unitOfWork.PaymentMethodRepository.FindSingleAsync(x => x.Name == paymentMethod))?.Id;
             var entity = await _unitOfWork.OrderRepository.AddAsync(order);
             
             switch (paymentMethod)
@@ -117,21 +102,10 @@ public class OrderService : IOrderService
                     {
                         result.Payload = paymentResponse;
                     }
-
-                    // không chơi tạo link thanh toán nữa test cho dễ
-                    /*result.Payload = new PaymentResponse
+                    else
                     {
-                        IsSuccess = true,
-                        DeepLink = null,
-                        PaymentUrl = "thành công rồi mà không trả link",
-                        QrCode = "QRcode"
-                    };
-                    entity.OrderStatus = OrderStatus.Paid;*/
-
-                     else
-                     {
-                         throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng");
-                     }
+                         throw new Exception("xảy ra lỗi khi tạo link thanh toán Ngân hàng"); 
+                    }
                     break;
 
                 case ConstantPaymentMethod.MOMO:
@@ -154,10 +128,10 @@ public class OrderService : IOrderService
 
             // tạo job check sau 15p chưa thanh toán thì sẽ cancel order
             var timeToCancel = DateTime.UtcNow.AddMinutes(ConstantTime.JOB_DELAY_BEFORE_START_MINUTES);
-            string id = BackgroundJob.Schedule<IManagementService>(
+            var id = _backgroundJobClient.Schedule<IManagementService>(
                 x => x.AutoCancelOrderWhenOverTime(entity.Id), timeToCancel);
         }
-        catch (NotFoundIdException e)
+        catch (NotFoundIdException)
         {
             result.AddError(ErrorCode.NotFound, "UserId is not exist");
         }
@@ -499,55 +473,9 @@ public class OrderService : IOrderService
             result.Payload = isSuccess;
             
             // Chạy 1 job khi giao xong một đơn sẽ check xem là đã hết chưa hết thì sẽ tự complete DailyOrder và ShippingOrder
-            BackgroundJob.Enqueue<IManagementService>(d => 
+            _backgroundJobClient.Enqueue<IManagementService>(d => 
                 d.CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(order.DailyOrderId!.Value));
             
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly fromDate, DateOnly toDate)
-    {
-        var result = new OperationResult<OrderStatisticResponse>();
-        try
-        {
-            if (fromDate >= toDate || toDate.AddDays(-2) <= fromDate)
-            {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn ít nhất 2 ngày so với 'đến ngày'");
-            }
-            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
-            var completeOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.Complete).ToList();
-
-            // Tính toán số lần xuất hiện của mỗi ComboId trong tất cả các OrderDetail
-            var comboIdOccurrences = completeOrders
-                .SelectMany(order => order.OrderDetails) // Lấy tất cả các OrderDetail từ mỗi CompleteOrder
-                .GroupBy(detail => detail.ComboId) // Nhóm theo ComboId
-                .Select(group => new
-                {
-                    ComboId = group.Key,
-                    Count = group.Count() // Đếm số lần xuất hiện của mỗi ComboId
-                })
-                .OrderByDescending(combo => combo.Count) // Sắp xếp giảm dần theo số lần xuất hiện
-                .FirstOrDefault(); // Lấy ComboId xuất hiện nhiều nhất
-
-            // Trả về ComboId phổ biến nhất, hoặc null nếu không tìm thấy
-            var comboPopularId = comboIdOccurrences?.ComboId;
-
-            //Lấy food name trong combo
-            var combo = await _unitOfWork.ComboRepository.GetComboFoodByIdAsync(comboPopularId);
-            var comboPopular = "Không có món hoàn thành";
-            if (combo != null)
-            {
-                var foodEntities = combo.ComboFoods.Select(cf => cf.Food).ToList();
-                comboPopular = $"{string.Join(", ", foodEntities.Select(food => food.Name))}";
-            }
-            var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, comboPopular);
-            result.Payload = orderStatistic;
         }
         catch (Exception e)
         {
@@ -580,7 +508,7 @@ public class OrderService : IOrderService
             };
             var comboInclude = new IncludeInfo<DailyOrder>
             {
-                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete),
+                NavigationProperty = x => x.Orders.Where(o => o.OrderStatus == OrderStatus.Paid || o.OrderStatus == OrderStatus.Complete || o.OrderStatus == OrderStatus.CancelledForOverdue),
                 ThenIncludes = new List<Expression<Func<object, object>>>
                 {
                     sp => ((Order)sp).OrderDetails,

@@ -2,8 +2,8 @@ namespace PerfectBreakfast.Domain.Entities;
 
 public class MealSubscription : BaseEntity
 {
-    public TimeOnly? StartTime { get; set; }
-    public TimeOnly? EndTime { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
     
     // Relationship
     public Guid? MealId { get; set; }

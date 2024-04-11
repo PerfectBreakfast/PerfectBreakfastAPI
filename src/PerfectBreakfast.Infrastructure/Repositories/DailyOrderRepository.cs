@@ -26,17 +26,30 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<string?>> FindPartnerAdminEmailsByBookingDateAndStatusProcess(DateTime dateTime)
+        public async Task<List<string?>> FindPartnerAndDeliveryAdminEmailsByBookingDateAndStatus(DateTime dateTime)
         {
-            return await _dbSet
+            // Lưu ý: Ta không thực hiện async/await ở đây vì chưa thực sự truy vấn database
+            var partnerEmailsQuery = _dbSet
                 .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
                             d.Status == DailyOrderStatus.Processing)
                 .SelectMany(d => d.MealSubscription!.Company!.Partner!.Users)
-                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN)) // Giả sử có trường `Name` trong `Role`
-                .Select(u => u.Email)
-                .AsNoTracking()
-                .Distinct() // Loại bỏ email trùng lặp nếu cần
-                .ToListAsync();
+                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN))
+                .Select(u => u.Email);
+
+            var deliveryEmailsQuery = _dbSet
+                .Where(d => d.BookingDate == DateOnly.FromDateTime(dateTime).AddDays(1) &&
+                            d.Status == DailyOrderStatus.Processing)
+                .SelectMany(d => d.MealSubscription!.Company!.Delivery!.Users)
+                .Where(u => u.UserRoles.Any(ur => ur.Role.Name == ConstantRole.DELIVERY_ADMIN))
+                .Select(u => u.Email);
+
+            // Kết hợp hai truy vấn và thực hiện một lần async/await với ToListAsync
+            var combinedEmails = partnerEmailsQuery.Concat(deliveryEmailsQuery)
+                .Distinct() // Loại bỏ email trùng lặp
+                .AsNoTracking();
+
+            // await chỉ áp dụng cho ToListAsync() - thực hiện truy vấn và trả về kết quả
+            return await combinedEmails.ToListAsync();
         }
 
         public async Task<bool> IsDailyOrderCreated(DateTime date)
@@ -49,23 +62,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
 
             // Trả về kết quả kiểm tra
             return existingDailyOrder;
-        }
-
-        public async Task<DailyOrder> FindByMealSubscription(Guid? mealSubscriptionId)
-        {
-            var a = await _dbSet.Where(d => d.MealSubscriptionId == mealSubscriptionId)
-                .OrderByDescending(d => d.CreationDate)
-                .Include(d => d.Orders)
-                .FirstOrDefaultAsync();
-            return a;
-        }
-
-        public async Task<DailyOrder?> GetById(Guid id)
-        {
-            return await _dbSet.AsNoTracking().Where(d => d.Id == id)
-                .Include(d => d.MealSubscription)
-                .FirstOrDefaultAsync();
-             
         }
 
         public async Task<Pagination<DailyOrder>> ToPaginationProcessingForPartner(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
@@ -232,15 +228,25 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
         }
 
-        public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds, int pageNumber = 0, int pageSize = 10)
+        public async Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds,DailyOrderStatus? status = null, int pageNumber = 0, int pageSize = 10)
         {
             // Bắt đầu bằng việc tạo một IQueryable cho phép bạn xây dựng truy vấn một cách linh hoạt
             var query = _dbSet.AsQueryable();
 
             // Lọc dựa trên mealSubscriptionIds và điều kiện khác
-            query = query
-                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
-                .Where(d => d.OrderQuantity > 0);
+            // nếu k có status thì lấy bth
+            if (status is null)
+            {
+                query = query
+                    .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null &&
+                                d.MealSubscription.Company != null && d.OrderQuantity > 0);
+            }
+            else
+            {
+                query = query
+                    .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null &&
+                                d.MealSubscription.Company != null && d.OrderQuantity > 0 && d.Status == status);
+            }
 
             // Sử dụng AsNoTracking() để tối ưu hiệu suất vì dữ liệu không cần được theo dõi cho mục đích cập nhật
             query = query.AsNoTracking();
@@ -273,12 +279,20 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             };
         }
 
-        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds)
+        public async Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds, DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) && d.MealSubscription != null && d.MealSubscription.Company != null)
+                .Where(d => mealSubscriptionIds.Contains(d.MealSubscriptionId.Value) 
+                            && d.MealSubscription != null 
+                            && d.MealSubscription.Company != null
+                            && d.BookingDate <= toDate 
+                            && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
                 .Include(d => d.MealSubscription)
                     .ThenInclude(ms => ms.Meal)
                 .Include(d => d.Orders)
@@ -286,14 +300,19 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<DailyOrder>> GetForStatistic()
+        public async Task<List<DailyOrder>> GetForStatistic(DateOnly? fromDate, DateOnly? toDate)
         {
             return await _dbSet
-                .Where(d => d.OrderQuantity > 0)
+                .Where(d => d.OrderQuantity > 0 && d.BookingDate <= toDate && d.BookingDate >= fromDate)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Company)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Partner)
                 .Include(d => d.MealSubscription)
-                .ThenInclude(ms => ms.Meal)
+                    .ThenInclude(ms => ms.Company)
+                        .ThenInclude(ms => ms.Delivery)
+                .Include(d => d.MealSubscription)
+                    .ThenInclude(ms => ms.Meal)
+                .Include(d => d.Orders)
                 .OrderByDescending(d => d.BookingDate)
                 .AsSplitQuery()
                 .ToListAsync();
