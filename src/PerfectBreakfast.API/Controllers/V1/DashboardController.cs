@@ -36,7 +36,7 @@ public class DashboardController : BaseController
     /// <param name="fromDate"></param>
     /// <param name="toDate"></param>
     /// <returns></returns>
-    [HttpGet("top-company/from-date-to-date"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
+    [HttpGet("top-company/from-date-to-date"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetTopCompany(DateOnly? fromDate, DateOnly? toDate)
     {
         var response = await _dashboardService.GetTop10CompanyOrder(fromDate, toDate);
