@@ -55,6 +55,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             return filteredAssignments;
         }
 
+        public Task<List<SupplierFoodAssignment>> GetByPackages(Guid packageId, Guid supplierId)
+        {
+            return _dbSet.Where(s => s.PackageId == packageId && s.SupplierCommissionRate.SupplierId == supplierId).ToListAsync();
+        }
         public Task<List<SupplierFoodAssignment>> GetByPackage(Guid packageId)
         {
             return _dbSet.Where(s => s.PackageId == packageId).ToListAsync();

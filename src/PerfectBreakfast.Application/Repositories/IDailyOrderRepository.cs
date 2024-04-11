@@ -16,5 +16,6 @@ namespace PerfectBreakfast.Application.Repositories
         Task<Pagination<DailyOrder>> ToPagination(List<Guid> mealSubscriptionIds ,int pageNumber = 0, int pageSize = 10);
         public Task<List<DailyOrder>> GetByMeal(List<Guid> mealSubscriptionIds);
         public Task<List<DailyOrder>> GetForStatistic();
+        
     }
 }
