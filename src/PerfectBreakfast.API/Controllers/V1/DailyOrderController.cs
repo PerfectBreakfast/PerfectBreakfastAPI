@@ -53,7 +53,7 @@ public class DailyOrderController : BaseController
     ///  0- Initial 1-Processing 2-Divided 3-Cooking 4-Waiting 5-Delivering 6-Complete  7&8 không cần
     /// </remarks> 
     [HttpGet("pagination"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetDailyOrderPagination(DailyOrderStatus? status = null, int pageIndex = 0, int pageSize = 10)
+    public async Task<IActionResult> GetDailyOrderPagination(int pageIndex = 0, int pageSize = 10,DailyOrderStatus? status = null)
     {
         var response = await _dailyOrderService.GetDailyOrderPaginationAsync(status,pageIndex, pageSize);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
