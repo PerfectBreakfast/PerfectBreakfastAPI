@@ -207,48 +207,6 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<List<CompanyStatistic>>> GetTop10CompanyOrder(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var result = new OperationResult<List<CompanyStatistic>>();
-        try
-        {
-            var today = _currentTime.GetCurrentTime();
-            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
-            toDate ??= DateOnly.FromDateTime(today);
-            
-            if (fromDate >= toDate)
-            {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
-            }
-            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDateForCompany(fromDate, toDate);
-            var totalQuantityByDate = totalOrders
-                .GroupBy(order => (order.DailyOrder.MealSubscription.Company.Id, 
-                    order.DailyOrder.MealSubscription.Company.Name,
-                    order.DailyOrder.MealSubscription.Company.PhoneNumber,
-                    order.DailyOrder.MealSubscription.Company.Email,
-                    order.DailyOrder.MealSubscription.Company.Address))
-                .Select(group => new CompanyStatistic
-                (
-                    Id: group.Key.Id,
-                    Name:group.Key.Name,
-                    PhoneNumber: group.Key.PhoneNumber,
-                    Email: group.Key.Email,
-                    Address: group.Key.Address,
-                    OrderQuantity: group.Count() 
-                ))
-                .OrderByDescending(stat => stat.OrderQuantity)
-                .Take(10)
-                .ToList();
-            result.Payload = totalQuantityByDate;
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
     public async Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id)
     {
         var result = new OperationResult<CompanyResponse>();

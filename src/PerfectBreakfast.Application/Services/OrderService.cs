@@ -485,69 +485,6 @@ public class OrderService : IOrderService
         return result;
     }
 
-    public async Task<OperationResult<OrderStatisticResponse>> OrderStatistic(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var result = new OperationResult<OrderStatisticResponse>();
-        try
-        {
-            var today = _currentTime.GetCurrentTime();
-            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
-            toDate ??= DateOnly.FromDateTime(today);
-            
-            if (fromDate >= toDate)
-            {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
-            }
-            
-            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
-            var completeOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.Complete).ToList();
-            var cancelledForOverdueOrders = totalOrders.Where(o => o.OrderStatus == OrderStatus.CancelledForOverdue).ToList();
-            var completePercent = ((double)completeOrders.Count / totalOrders.Count) * 100;
-            var cancelledForOverduePercent = ((double)cancelledForOverdueOrders.Count / totalOrders.Count) * 100;
-            var orderStatistic = new OrderStatisticResponse(fromDate, toDate, totalOrders.Count, completeOrders.Count, Math.Round(completePercent, 2), cancelledForOverdueOrders.Count, Math.Round(cancelledForOverduePercent, 2));
-            result.Payload = orderStatistic;
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
-    public async Task<OperationResult<List<OrderByDateStatistic>>> OrderAmountByDateStatistic(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var result = new OperationResult<List<OrderByDateStatistic>>();
-        try
-        {
-            var today = _currentTime.GetCurrentTime();
-            fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
-            toDate ??= DateOnly.FromDateTime(today);
-            
-            if (fromDate >= toDate)
-            {
-                result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
-            }
-            
-            var totalOrders = await _unitOfWork.OrderRepository.GetOrderByDate(fromDate, toDate);
-            var totalQuantityByDate = totalOrders
-                .GroupBy(order => order.CreationDate.Date) // Nhóm theo ngày tạo.
-                .Select(group => new OrderByDateStatistic
-                (
-                    Date: DateOnly.FromDateTime(group.Key),
-                    OrderAmount: group.Count() 
-                ))
-                .ToList();
-            result.Payload = totalQuantityByDate;
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
-
     public async Task<OperationResult<List<OrderResponse>>> GetOrderByDailyOrder(Guid dailyOrderId)
     {
         var result = new OperationResult<List<OrderResponse>>();
