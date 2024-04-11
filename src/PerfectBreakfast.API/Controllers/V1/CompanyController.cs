@@ -142,17 +142,4 @@ public class CompanyController : BaseController
         var response = await _companyService.SearchCompany(searchTerm);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    /// <summary>
-    /// API for Super Admin - Trả về 10 công ty có số lượng đơn đặt cao nhất
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("from-date-to-date"), Authorize(Policy = ConstantRole.RequireDeliveryAdminRole)]
-    public async Task<IActionResult> GetTopCompany(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var response = await _companyService.GetTop10CompanyOrder(fromDate, toDate);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
 }

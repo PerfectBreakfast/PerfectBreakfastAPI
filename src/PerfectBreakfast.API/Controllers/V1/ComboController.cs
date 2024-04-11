@@ -90,17 +90,4 @@ public class ComboController : BaseController
         var response = await _comboService.DeleteCombo(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    /// <summary>
-    /// API for Super Admin - Lấy Top 10 Combo/món ăn theo ngày
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("from-date-to-date"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> TopComboAndFood(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var response = await _comboService.GetTopComboAndFood(fromDate, toDate);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
 }

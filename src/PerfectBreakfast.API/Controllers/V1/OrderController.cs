@@ -152,33 +152,6 @@ public class OrderController : BaseController
         var response = await _orderService.CompleteOrder(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
-
-    /// <summary>
-    /// API for Super Admin (thống kê trạng thái đơn hàng theo ngày) 
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("statistic"), Authorize(policy: ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetOrderStatistic(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var response = await _orderService.OrderStatistic(fromDate, toDate);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-    
-    /// <summary>
-    /// API for Super Admin (thống kê số lượng đơn hàng theo ngày)
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <param name="toDate"></param>
-    /// <returns></returns>
-    [HttpGet("from-date-to-date"), Authorize(policy: ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> GetOrderByDateStatistic(DateOnly? fromDate, DateOnly? toDate)
-    {
-        var response = await _orderService.OrderAmountByDateStatistic(fromDate, toDate);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-    
     
     /// <summary>
     /// Api For All login 
