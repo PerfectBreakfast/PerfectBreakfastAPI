@@ -3,6 +3,7 @@ using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Repositories;
 using PerfectBreakfast.Domain.Entities;
 using System.Linq.Expressions;
+using PerfectBreakfast.Application.Utils;
 
 namespace PerfectBreakfast.Infrastructure.Repositories;
 
@@ -84,28 +85,6 @@ public class UserRepository : BaseRepository<User>,IUserRepository
         return supplierCode + 1;
     }
 
-    public async Task<List<User>?> GetUserByPartnerId(Guid managementUnitId)
-    {
-        /*var users = await _userManager.Users
-            .Where(u => u.ManagementUnitId == managementUnitId)
-            .ToListAsync();
-        if (users != null && users.Any())
-        {
-            var usersWithRole = new List<User>();
-
-            foreach (var user in users)
-            {
-                if (await _userManager.IsInRoleAsync(user, "MANAGEMENT UNIT ADMIN"))
-                {
-                    usersWithRole.Add(user);
-                }
-            }
-
-            return usersWithRole;
-        }*/
-        return null;
-    }
-
     public async Task<List<User>?> GetUserByCompanyId(Guid companyId)
     {
         return await _dbSet
@@ -159,20 +138,11 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .SingleOrDefaultAsync();
     }
 
-
-    public async Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId)
+    public async Task<List<User?>> GetUserBySupplierIds(List<Guid> supplierIds)
     {
-        var deliveryUnit = await _dbSet
-            .Where(x => x.Id == deliveryId)
-            .Include(x=>x.DeliveryId)
-            .SingleOrDefaultAsync();
-        return deliveryUnit;
+        return await _dbSet.Where(x =>
+                supplierIds.Contains(x.SupplierId!.Value) && x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN))
+            .AsNoTracking()
+            .ToListAsync();
     }
-
-    //public async Task<User> CheckDeliveryStaff(Guid shipperId)
-    //{
-    //    //var id = await _dbSet
-    //    //    .Where(x => x.Id == shipperId);
-    //    //return id;
-    //}
 }

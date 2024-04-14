@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.MailModels;
 using PerfectBreakfast.Domain.Entities;
@@ -13,14 +14,17 @@ public class ManagementService : IManagementService
     private readonly ICurrentTime _currentTime;
     private readonly IMailService _mailService;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly AppConfiguration _appConfiguration;
 
     public ManagementService(IUnitOfWork unitOfWork, ICurrentTime currentTime,
-        IMailService mailService,IBackgroundJobClient backgroundJobClient)
+        IMailService mailService,IBackgroundJobClient backgroundJobClient,
+        AppConfiguration appConfiguration)
     {
         _unitOfWork = unitOfWork;
         _currentTime = currentTime;
         _mailService = mailService;
         _backgroundJobClient = backgroundJobClient;
+        _appConfiguration = appConfiguration;
     }
 
     // Có nghĩa là cứ khi nào hàm này được gọi nó sẽ chuyển status và create DailyOrder mới
@@ -109,12 +113,23 @@ public class ManagementService : IManagementService
         }
     }
 
-    public async Task SendMailToSupplierWhenPartnerAssignFood(MailDataViewModel model)
+    public async Task SendMailToSupplierWhenPartnerAssignFood(List<Guid> supplierIds,string partnerName)
     {
         try
         {
+            var users = await _unitOfWork.UserRepository.GetUserBySupplierIds(supplierIds);
+            var emails = users.Select(x => x.Email).ToList();
+            
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: emails,
+                subject: $"Yêu cầu món ăn từ {partnerName}",
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xác nhận yêu cầu." +
+                      $"truy cập {_appConfiguration.Host}/management/login"
+            );
+            
             // Gửi email và xử lý kết quả
-            var sendResult = await _mailService.SendAsync(model, new CancellationToken());
+            var sendResult = await _mailService.SendAsync(mailData, new CancellationToken());
             if (sendResult == false)
             {
                 Console.WriteLine("Gửi mail thất bại");

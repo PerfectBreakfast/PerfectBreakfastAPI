@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using Hangfire;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -18,7 +19,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     private readonly ICurrentTime _currentTime;
     private readonly IFoodService _foodService;
     private readonly IClaimsService _claimsService;
-    private readonly IMailService _mailService;
+    private IBackgroundJobClient _backgroundJobClient;
 
     //Constant
     private const int Pending = 0;
@@ -27,14 +28,14 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     private const int Complete = 3;
 
     public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime,
-        IFoodService foodService, IClaimsService claimsService, IMailService mailService)
+        IFoodService foodService, IClaimsService claimsService, IBackgroundJobClient backgroundJobClient)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _currentTime = currentTime;
         _foodService = foodService;
         _claimsService = claimsService;
-        _mailService = mailService;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     public async Task<OperationResult<bool>> CreateSupplierFoodAssignment(SupplierFoodAssignmentsRequest request)
@@ -111,8 +112,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                     {
                         SupplierId = group.Key.SupplierId, // Lấy SupplierId từ Key của mỗi nhóm
                         FoodId = group.Key.FoodId, // Lấy FoodId từ Key của mỗi nhóm
-                        AmountCooked =
-                            group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
+                        AmountCooked = group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
                     }).ToList();
 
                 // Xử lý mỗi trường hợp riêng lẻ
@@ -208,6 +208,10 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             {
                 //Trả kết quả về API
                 result.Payload = true;
+                // lấy ra các supplier được phân công
+                var ids = request.SupplierFoodAssignmentRequest.Select(x => x.SupplierId).Distinct().ToList();
+                // chạy job gửi mail 
+                _backgroundJobClient.Enqueue<IManagementService>(x => x.SendMailToSupplierWhenPartnerAssignFood(ids,user.Partner.Name));
             }
             else
             {
