@@ -1,7 +1,9 @@
 ﻿using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.MailModels;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PerfectBreakfast.Domain.Enums;
 
@@ -123,8 +125,73 @@ public class ManagementService : IManagementService
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
-                subject: $"Yêu cầu món ăn từ {partnerName}",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xác nhận yêu cầu." +
+                subject: "Thông Báo",
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                      $"truy cập {_appConfiguration.Host}/management/login"
+            );
+            
+            // Gửi email và xử lý kết quả
+            var sendResult = await _mailService.SendAsync(mailData, new CancellationToken());
+            if (sendResult == false)
+            {
+                Console.WriteLine("Gửi mail thất bại");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task SendMailToSupplierWhenPartnerReassignFood(Guid supplierId, string partnerName)
+    {
+        try
+        {
+            var users = await _unitOfWork.UserRepository
+                .FindAll(x => x.SupplierId == supplierId &&
+                              x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN)).ToListAsync();
+            var emails = users.Select(x => x.Email).ToList();
+            
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: emails,
+                subject: "Thông báo",
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                      $"truy cập {_appConfiguration.Host}/management/login"
+            );
+            
+            // Gửi email và xử lý kết quả
+            var sendResult = await _mailService.SendAsync(mailData, new CancellationToken());
+            if (sendResult == false)
+            {
+                Console.WriteLine("Gửi mail thất bại");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task SendMailToPartnerWhenSupplierDeclined(Guid partnerId, Guid supplierFoodAssignmentId)
+    {
+        try
+        {
+            var users = await _unitOfWork.UserRepository
+                .FindAll(x => x.PartnerId == partnerId &&
+                              x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN)).ToListAsync();
+            var emails = users.Select(x => x.Email).ToList();
+
+            var sup = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(supplierFoodAssignmentId,
+                x => x.Food, x => x.SupplierCommissionRate.Supplier);
+            
+            // Tạo dữ liệu email, sử dụng token trong nội dung email
+            var mailData = new MailDataViewModel(
+                to: emails,
+                subject: "Thông báo",
+                body: $"Nhà cung cấp {sup.SupplierCommissionRate.Supplier.Name} đã từ chối yêu cầu nấu {sup.Food.Name} số lượng {sup.AmountCooked} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                       $"truy cập {_appConfiguration.Host}/management/login"
             );
             

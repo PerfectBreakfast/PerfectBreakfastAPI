@@ -19,7 +19,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     private readonly ICurrentTime _currentTime;
     private readonly IFoodService _foodService;
     private readonly IClaimsService _claimsService;
-    private IBackgroundJobClient _backgroundJobClient;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
     //Constant
     private const int Pending = 0;
@@ -485,11 +485,9 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 }
             }
 
-            supplierFoodAssignment.Status =
-                status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
+            supplierFoodAssignment.Status = status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
-            var supplierFoodAssignments =
-                await _unitOfWork.SupplierFoodAssignmentRepository
+            var supplierFoodAssignments = await _unitOfWork.SupplierFoodAssignmentRepository
                     .GetByPackage((Guid)supplierFoodAssignment.PackageId);
             var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
             if (allConfirmed)
@@ -497,10 +495,14 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 dailyOrder.Status = DailyOrderStatus.Cooking;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
-
             await _unitOfWork.SaveChangeAsync();
-            var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
-            result.Payload = foodAssignment;
+            result.Payload = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
+            
+            // gửi mail cho partner nếu supplier từ chối không nấu
+            if (status == 0)
+            {
+                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value,id));
+            }
         }
         catch (NotFoundIdException)
         {
@@ -594,11 +596,12 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
     {
         var result = new OperationResult<SupplierFoodAssignmentResponse>();
+        var userId= _claimsService.GetCurrentUserId;
         try
         {
             var supplierFoodAssignment =
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(updateSupplierFoodAssignment
-                    .SupplierFoodAssignmentId);
+                    .SupplierFoodAssignmentId, x => x.Package);
             if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
             {
                 result.AddError(ErrorCode.BadRequest, "Đơn hàng này phải bị từ chối");
@@ -621,9 +624,14 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
             supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
-            await _unitOfWork.SaveChangeAsync();
-
-            //Gửi mail thông báo đến các nhà cung cấp
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (isSuccess)
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner!);
+                //Gửi mail thông báo đến các nhà cung cấp
+                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToSupplierWhenPartnerReassignFood(updateSupplierFoodAssignment.SupplierId,user.Partner!.Name));
+            }
+            
         }
         catch (NotFoundIdException)
         {
