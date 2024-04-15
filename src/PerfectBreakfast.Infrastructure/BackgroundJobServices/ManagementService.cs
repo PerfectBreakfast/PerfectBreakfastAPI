@@ -126,7 +126,7 @@ public class ManagementService : IManagementService
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông Báo",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                       $"truy cập {_appConfiguration.Host}/management/login"
             );
             
@@ -157,7 +157,7 @@ public class ManagementService : IManagementService
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                       $"truy cập {_appConfiguration.Host}/management/login"
             );
             
@@ -179,9 +179,7 @@ public class ManagementService : IManagementService
     {
         try
         {
-            var users = await _unitOfWork.UserRepository
-                .FindAll(x => x.PartnerId == partnerId &&
-                              x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN)).ToListAsync();
+            var users = await _unitOfWork.UserRepository.GetPartnerAdminByPartnerId(partnerId);
             var emails = users.Select(x => x.Email).ToList();
 
             var sup = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(supplierFoodAssignmentId,
@@ -191,7 +189,7 @@ public class ManagementService : IManagementService
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Nhà cung cấp {sup.SupplierCommissionRate.Supplier.Name} đã từ chối yêu cầu nấu {sup.Food.Name} số lượng {sup.AmountCooked} vào lúc {_currentTime.GetCurrentTime().ToString("dd/MM/yyyy")} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                body: $"Nhà cung cấp {sup.SupplierCommissionRate.Supplier.Name} đã từ chối yêu cầu nấu {sup.Food.Name} số lượng {sup.AmountCooked} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                       $"truy cập {_appConfiguration.Host}/management/login"
             );
             

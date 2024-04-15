@@ -17,4 +17,5 @@ public interface IUserRepository : IBaseRepository<User>
     Task<User?> GetInfoCurrentUserById(Guid id);
     Task<User?> GetUserByEmail(string email);
     Task<List<User?>> GetUserBySupplierIds(List<Guid> supplierIds);
+    Task<List<User?>> GetPartnerAdminByPartnerId(Guid partnerId);
 }

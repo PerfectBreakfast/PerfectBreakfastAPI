@@ -145,4 +145,12 @@ public class UserRepository : BaseRepository<User>,IUserRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<List<User?>> GetPartnerAdminByPartnerId(Guid partnerId)
+    {
+        return await _dbSet.Where(x =>
+                x.PartnerId == partnerId && x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.PARTNER_ADMIN))
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

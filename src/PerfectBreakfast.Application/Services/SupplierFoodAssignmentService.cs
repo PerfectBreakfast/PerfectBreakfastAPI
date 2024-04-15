@@ -501,7 +501,8 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             // gửi mail cho partner nếu supplier từ chối không nấu
             if (status == 0)
             {
-                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value,id));
+                _backgroundJobClient.Enqueue<IManagementService>(d =>
+                    d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value, id));
             }
         }
         catch (NotFoundIdException)
