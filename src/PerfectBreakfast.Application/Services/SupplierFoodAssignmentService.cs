@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using Hangfire;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using PerfectBreakfast.Application.Commons;
 using PerfectBreakfast.Application.CustomExceptions;
@@ -18,7 +19,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     private readonly ICurrentTime _currentTime;
     private readonly IFoodService _foodService;
     private readonly IClaimsService _claimsService;
-    private readonly IMailService _mailService;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
     //Constant
     private const int Pending = 0;
@@ -27,14 +28,14 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
     private const int Complete = 3;
 
     public SupplierFoodAssignmentService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentTime currentTime,
-        IFoodService foodService, IClaimsService claimsService, IMailService mailService)
+        IFoodService foodService, IClaimsService claimsService, IBackgroundJobClient backgroundJobClient)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _currentTime = currentTime;
         _foodService = foodService;
         _claimsService = claimsService;
-        _mailService = mailService;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     public async Task<OperationResult<bool>> CreateSupplierFoodAssignment(SupplierFoodAssignmentsRequest request)
@@ -111,8 +112,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                     {
                         SupplierId = group.Key.SupplierId, // Lấy SupplierId từ Key của mỗi nhóm
                         FoodId = group.Key.FoodId, // Lấy FoodId từ Key của mỗi nhóm
-                        AmountCooked =
-                            group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
+                        AmountCooked = group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
                     }).ToList();
 
                 // Xử lý mỗi trường hợp riêng lẻ
@@ -208,6 +208,10 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             {
                 //Trả kết quả về API
                 result.Payload = true;
+                // lấy ra các supplier được phân công
+                var ids = request.SupplierFoodAssignmentRequest.Select(x => x.SupplierId).Distinct().ToList();
+                // chạy job gửi mail 
+                _backgroundJobClient.Enqueue<IManagementService>(x => x.SendMailToSupplierWhenPartnerAssignFood(ids,user.Partner.Name));
             }
             else
             {
@@ -481,11 +485,9 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 }
             }
 
-            supplierFoodAssignment.Status =
-                status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
+            supplierFoodAssignment.Status = status == 1 ? SupplierFoodAssignmentStatus.Confirmed : SupplierFoodAssignmentStatus.Declined;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
-            var supplierFoodAssignments =
-                await _unitOfWork.SupplierFoodAssignmentRepository
+            var supplierFoodAssignments = await _unitOfWork.SupplierFoodAssignmentRepository
                     .GetByPackage((Guid)supplierFoodAssignment.PackageId);
             var allConfirmed = supplierFoodAssignments.All(a => a.Status == SupplierFoodAssignmentStatus.Confirmed);
             if (allConfirmed)
@@ -493,10 +495,15 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 dailyOrder.Status = DailyOrderStatus.Cooking;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
-
             await _unitOfWork.SaveChangeAsync();
-            var foodAssignment = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
-            result.Payload = foodAssignment;
+            result.Payload = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
+            
+            // gửi mail cho partner nếu supplier từ chối không nấu
+            if (status == 0)
+            {
+                _backgroundJobClient.Enqueue<IManagementService>(d =>
+                    d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value, id));
+            }
         }
         catch (NotFoundIdException)
         {
@@ -590,11 +597,12 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
     {
         var result = new OperationResult<SupplierFoodAssignmentResponse>();
+        var userId= _claimsService.GetCurrentUserId;
         try
         {
             var supplierFoodAssignment =
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(updateSupplierFoodAssignment
-                    .SupplierFoodAssignmentId);
+                    .SupplierFoodAssignmentId, x => x.Package);
             if (supplierFoodAssignment.Status != SupplierFoodAssignmentStatus.Declined)
             {
                 result.AddError(ErrorCode.BadRequest, "Đơn hàng này phải bị từ chối");
@@ -605,6 +613,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             var supplierCommissionRates =
                 await _unitOfWork.SupplierCommissionRateRepository
                     .GetBySupplierId(updateSupplierFoodAssignment.SupplierId);
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(supplierFoodAssignment.FoodId.Value);
             var supplierCommissionRate =
                 supplierCommissionRates.SingleOrDefault(s => s.FoodId == supplierFoodAssignment.FoodId);
             if (supplierCommissionRate == null)
@@ -612,13 +621,18 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 result.AddError(ErrorCode.BadRequest, "Nhà cung cấp này chưa đăng kí món");
                 return result;
             }
-
+            supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
             supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
             supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
-            await _unitOfWork.SaveChangeAsync();
-
-            //Gửi mail thông báo đến các nhà cung cấp
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (isSuccess)
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner!);
+                //Gửi mail thông báo đến các nhà cung cấp
+                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToSupplierWhenPartnerReassignFood(updateSupplierFoodAssignment.SupplierId,user.Partner!.Name));
+            }
+            
         }
         catch (NotFoundIdException)
         {
