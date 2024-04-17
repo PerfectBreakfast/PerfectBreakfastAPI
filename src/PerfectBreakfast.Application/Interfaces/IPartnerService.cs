@@ -7,7 +7,7 @@ namespace PerfectBreakfast.Application.Interfaces;
 public interface IPartnerService
 {
     public Task<OperationResult<List<PartnerResponseModel>>> GetPartners();
-    public Task<OperationResult<PartnerDetailResponse>> GetPartnerId(Guid id);
+    public Task<OperationResult<PartnerDetailResponse>> GetPartnerById(Guid id);
     public Task<OperationResult<PartnerResponseModel>> CreatePartner(CreatePartnerRequest requestModel);
     public Task<OperationResult<PartnerResponseModel>> UpdatePartner(Guid managementUnitId, UpdatePartnerRequest requestModel);
     public Task<OperationResult<PartnerResponseModel>> RemovePartner(Guid managementUnitIdId);

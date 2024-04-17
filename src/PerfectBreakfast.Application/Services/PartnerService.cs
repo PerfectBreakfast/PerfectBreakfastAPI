@@ -39,7 +39,7 @@ public class PartnerService : IPartnerService
         return result;
     }
 
-    public async Task<OperationResult<PartnerDetailResponse>> GetPartnerId(Guid id)
+    public async Task<OperationResult<PartnerDetailResponse>> GetPartnerById(Guid id)
     {
         var result = new OperationResult<PartnerDetailResponse>();
         try

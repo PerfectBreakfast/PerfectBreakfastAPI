@@ -367,7 +367,7 @@ public class ExportExcelService : IExportExcelService
                 // Ghi giá trị Date và các dữ liệu cụ thể
                 worksheet.Cells[dataStartRow2, 18].Value = supplierFood.CreationDate;
                 worksheet.Cells[dataStartRow2, 19].Value = supplierFood.BookingDate;
-                var fillColor = colorFlip ? Color.LightGreen : Color.White;
+                var fillColor = colorFlip ? Color.LightGray : Color.White;
                 foreach (var foodAssignmentGroup in supplierFood.FoodAssignmentGroupBySuppliers)
                 {
                     worksheet.Cells[dataStartRow2, 20].Value = foodAssignmentGroup.SupplierName;
@@ -384,7 +384,9 @@ public class ExportExcelService : IExportExcelService
                         worksheet.Cells[dataStartRow2, 24].Value = foodAssignmentResponse.CommissionRate;
                         worksheet.Cells[dataStartRow2, 25].Value = foodAssignmentResponse.ReceivedAmount;
                         worksheet.Cells[dataStartRow2, 26].Value = foodAssignmentResponse.Status;
-                        worksheet.Cells[dataStartRow2, 22].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        
+                        worksheet.Cells[dataStartRow2, 23].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells[dataStartRow2, 24].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                         
                         // Áp dụng màu nền
                         worksheet.Cells[dataStartRow2, 18, dataStartRow2, 26].Style.Fill.PatternType = ExcelFillStyle.Solid;
