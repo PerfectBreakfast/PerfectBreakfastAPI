@@ -13,7 +13,6 @@ namespace PerfectBreakfast.Application.Repositories
             int pageSize = 10);
         public Task<Pagination<SupplierFoodAssignment>> ToPaginationBySupplier(List<Guid> packageId, int pageNumber = 0,
             int pageSize = 10);
-        public Task<List<SupplierFoodAssignment>> GetByBookingDateForSupplier();
         public Task<List<SupplierFoodAssignment>> GetByForSuperAdmin(DateOnly? fromDate, DateOnly? toDate);
     }
 }
