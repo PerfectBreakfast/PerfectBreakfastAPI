@@ -272,3 +272,9 @@ Hangfire1.db
 # Hangfire SQLite temporary files
 Hangfire.db-shm
 Hangfire.db-wal
+
+# unit test
+PrefectBreakfast.API.Test/
+PrefectBreakfast.Application.Test/
+PrefectBreakfast.Domain.Test/
+PrefectBreakfast.Infrastructure.Test/
