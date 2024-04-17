@@ -19,5 +19,6 @@ namespace PerfectBreakfast.Application.Interfaces
         public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailBySupplier(List<Guid> packageIds);
         public Task<OperationResult<List<FoodAssignmentGroupByCompany>>> GetSupplierFoodAssignmentDetailByPartner(FoodAssignmentByPartnerRequest request);
         public Task<OperationResult<bool>> ConfirmAllFoodAssignments(Guid packageId); // New method added
+        public Task<OperationResult<bool>> AcceptAllCompleteFoodAssignments(FoodAssignmentForPartner request);
     }
 }
