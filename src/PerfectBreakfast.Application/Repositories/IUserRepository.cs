@@ -12,11 +12,10 @@ public interface IUserRepository : IBaseRepository<User>
     public Task<int> CalculateDeliveryCode(Guid deliveryId);
     public Task<int> CalculatePartnerCode(Guid partnerId);
     public Task<int> CalculateSupplierCode(Guid supplierId);
-    Task<List<User>?> GetUserByPartnerId(Guid partnerId);
     Task<List<User>?> GetUserByCompanyId(Guid companyId);
     Task<User> GetUserByIdAsync(Guid id,params IncludeInfo<User>[]? includeProperties);
     Task<User?> GetInfoCurrentUserById(Guid id);
     Task<User?> GetUserByEmail(string email);
-    Task<User> GetDeliveryStaffByDeliveryAdmin(Guid deliveryId);//get ds nhân viên của đơn vị đó
-    //Task<User> CheckDeliveryStaff(Guid shipperId);
+    Task<List<User?>> GetUserBySupplierIds(List<Guid> supplierIds);
+    Task<List<User?>> GetPartnerAdminByPartnerId(Guid partnerId);
 }

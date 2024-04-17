@@ -95,7 +95,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query
                 .OrderByDescending(d => d.Package.DailyOrder.BookingDate)
-                    .ThenBy(d => d.DeliveryDeadline)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
                 .AsSplitQuery()
@@ -142,7 +141,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query
                 .OrderByDescending(d => d.Package.DailyOrder.BookingDate)
-                    .ThenBy(d => d.DeliveryDeadline)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
                 .AsSplitQuery()
@@ -156,18 +154,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 TotalItemsCount = totalItemsCount,
                 Items = items,
             };
-        }
-
-        public async Task<List<SupplierFoodAssignment>> GetByBookingDateForSupplier()
-        {
-            // return await _dbSet.Where(s => s.Status == SupplierFoodAssignmentStatus.Confirmed)
-            //     .Include(s => s.Partner)
-            //     .Include(s => s.Food)
-            //     .Include(s => s.SupplierCommissionRate)
-            //     .Include(s => s.DailyOrder)
-            //         .ThenInclude(s => s.MealSubscription)
-            //     .ToListAsync();
-            throw new NotImplementedException();
         }
 
         public async Task<List<SupplierFoodAssignment>> GetByForSuperAdmin(DateOnly? fromDate, DateOnly? toDate)

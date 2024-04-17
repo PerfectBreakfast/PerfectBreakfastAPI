@@ -68,7 +68,7 @@ public class PartnerController : BaseController
     [HttpGet("{id}"),Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
     public async Task<IActionResult> GetPartnerId(Guid id)
     {
-        var response = await _partnerService.GetPartnerId(id);
+        var response = await _partnerService.GetPartnerById(id);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
     }
     
