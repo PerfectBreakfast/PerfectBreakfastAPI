@@ -976,20 +976,13 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             
             _unitOfWork.SupplierFoodAssignmentRepository.UpdateRange(foodAssignments);
             _unitOfWork.PackageRepository.Update(package);
-
-            var foodAssignmentByPackage = await _unitOfWork.SupplierFoodAssignmentRepository
-                .FindAll(x => x.PackageId == request.PackageId).ToListAsync();
+            
             if (package.SuccessfulQuantity ==
                 package.TotalFoodAssignQuantity)
             {
                 dailyOrder.Status = DailyOrderStatus.Waiting;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
-            // if (foodAssignmentByPackage.All(a => a.Status == SupplierFoodAssignmentStatus.Complete))
-            // {
-            //     dailyOrder.Status = DailyOrderStatus.Waiting;
-            //     _unitOfWork.DailyOrderRepository.Update(dailyOrder);
-            // }
             
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             
