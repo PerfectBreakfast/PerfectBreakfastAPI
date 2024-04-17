@@ -11,6 +11,7 @@
 
     <ItemGroup>
         <PackageReference Include="AutoFixture" Version="5.0.0-preview0011" />
+        <PackageReference Include="FluentAssertions" Version="7.0.0-alpha.3" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
         <PackageReference Include="Moq" Version="4.20.70" />
         <PackageReference Include="xunit" Version="2.7.1" />
@@ -26,6 +27,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\src\PerfectBreakfast.Application\PerfectBreakfast.Application.csproj" />
+      <ProjectReference Include="..\src\PerfectBreakfast.Infrastructure\PerfectBreakfast.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
