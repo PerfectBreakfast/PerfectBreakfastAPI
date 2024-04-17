@@ -619,7 +619,9 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 result.AddError(ErrorCode.BadRequest, "Nhà cung cấp này chưa đăng kí món");
                 return result;
             }
-            supplierFoodAssignment.ReceivedAmount = (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
+
+            supplierFoodAssignment.ReceivedAmount =
+                (food.Price * supplierCommissionRate.CommissionRate * supplierFoodAssignment.AmountCooked) / 100;
             supplierFoodAssignment.SupplierCommissionRateId = supplierCommissionRate.Id;
             supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
@@ -677,7 +679,8 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         return result;
     }
 
-    public async Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>> GetSupplierFoodAssignmentsForPartnerDownload(List<Guid> packageIds, Guid supplierId)
+    public async Task<OperationResult<List<FoodAssignmentDownloadForSupplier>>>
+        GetSupplierFoodAssignmentsForPartnerDownload(List<Guid> packageIds, Guid supplierId)
     {
         var result = new OperationResult<List<FoodAssignmentDownloadForSupplier>>();
         var userId = _claimsService.GetCurrentUserId;
@@ -695,15 +698,16 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetForPartnerByPackage(packageIds,
                     user.PartnerId!.Value, supplierId);
             var foodAssignmentForCompany = supplierAssignment
-                .GroupBy(x => 
-                    (
-                         x.Package.Id, 
-                         x.Package.DailyOrder.MealSubscription.Company.Name,
-                         x.SupplierCommissionRate.Supplier.Name,
-                         x.Package.DailyOrder.MealSubscription.Meal.MealType
-                    ))
-                .ToDictionary(x => x.Key, g => g.ToList()); ;
-            
+                .GroupBy(x =>
+                (
+                    x.Package.Id,
+                    x.Package.DailyOrder.MealSubscription.Company.Name,
+                    x.SupplierCommissionRate.Supplier.Name,
+                    x.Package.DailyOrder.MealSubscription.Meal.MealType
+                ))
+                .ToDictionary(x => x.Key, g => g.ToList());
+            ;
+
             var foodAssignmentForCompanyResponse = foodAssignmentForCompany.Select(x =>
             {
                 var id = x.Key.Id;
@@ -731,24 +735,26 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             var today = _currentTime.GetCurrentTime();
             fromDate ??= DateOnly.FromDateTime(today).AddDays(-7);
             toDate ??= DateOnly.FromDateTime(today);
-            
+
             if (fromDate >= toDate)
             {
                 result.AddError(ErrorCode.BadRequest, "'Từ ngày' phải nhỏ hơn với 'đến ngày'");
             }
-            
+
             var supplierFoodAssignments =
                 await _unitOfWork.SupplierFoodAssignmentRepository.GetByForSuperAdmin(fromDate, toDate);
-            
-            
+
+
             if (supplierFoodAssignments.Count == 0)
             {
                 result.AddError(ErrorCode.BadRequest, "Ngày này không có món được phân chia");
                 return result;
             }
-            var supplierFoodAssignmentByDates = supplierFoodAssignments.GroupBy(x => new { x.Package.DailyOrder.CreationDate, x.Package.DailyOrder.BookingDate })
+
+            var supplierFoodAssignmentByDates = supplierFoodAssignments.GroupBy(x =>
+                    new { x.Package.DailyOrder.CreationDate, x.Package.DailyOrder.BookingDate })
                 .ToDictionary(x => x.Key, g => g.ToList());
-            
+
             // custom output
             var supplierFoodAssignmentResponse = supplierFoodAssignmentByDates.Select(x =>
             {
@@ -756,11 +762,11 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 var bookingDate = x.Key.BookingDate;
                 var foodAssignmentsGroupByPartner = x.Value.GroupBy(y => y.SupplierCommissionRate.Supplier.Name)
                     .ToDictionary(y => y.Key, g => g.ToList());
-                
+
                 var foodAssignmentGroupByPartnerResponse = foodAssignmentsGroupByPartner.Select(x =>
                 {
                     var supplierName = x.Key;
-                    
+
                     // Tạo danh sách FoodAssignmentResponse cho mỗi SupplierFoodAssignment trong x.Value
                     var foodAssignmentResponses = x.Value.Select(supplierFoodAssignment =>
                     {
@@ -773,6 +779,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                         {
                             foodName += " - khẩu phần đơn lẻ";
                         }
+
                         // Tạo một FoodAssignmentResponse mới từ SupplierFoodAssignment
                         return new FoodAssignmentResponse
                         {
@@ -786,13 +793,13 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                         };
                     }).ToList();
                     return new FoodAssignmentGroupForSupplier(supplierName, foodAssignmentResponses);
-                    
                 }).ToList();
-                
+
                 // Tạo một SupplierFoodAssignmentForSupplier mới với thông tin đầy đủ
-                return new SupplierFoodAssignmentForSuperAdmin(DateOnly.FromDateTime(creationDate), bookingDate, foodAssignmentGroupByPartnerResponse);
+                return new SupplierFoodAssignmentForSuperAdmin(DateOnly.FromDateTime(creationDate), bookingDate,
+                    foodAssignmentGroupByPartnerResponse);
             }).ToList();
-            
+
             result.Payload = supplierFoodAssignmentResponse;
         }
         catch (Exception e)
@@ -881,7 +888,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         try
         {
             var user = await _unitOfWork.UserRepository.GetUserByIdAsync(userId);
-            
+
             var dailyOrder = await _unitOfWork.PackageRepository.FindAll(x => x.Id == packageId)
                 .Select(x => x.DailyOrder).SingleOrDefaultAsync();
             if (dailyOrder is not { Status: DailyOrderStatus.Divided })
@@ -911,10 +918,11 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                         return result;
                 }
             }
-            
+
             // Retrieve all supplier food assignments related to the packages
-            var assignments = await _unitOfWork.SupplierFoodAssignmentRepository.GetByPackages(packageId, user.SupplierId.Value);
-            
+            var assignments =
+                await _unitOfWork.SupplierFoodAssignmentRepository.GetByPackages(packageId, user.SupplierId.Value);
+
             // Confirm all assignments if possible
             foreach (var assignment in assignments)
             {
@@ -923,9 +931,9 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                     assignment.Status = SupplierFoodAssignmentStatus.Confirmed;
                 }
             }
-            
+
             _unitOfWork.SupplierFoodAssignmentRepository.UpdateRange(assignments);
-            
+
             var supplierFoodAssignments =
                 await _unitOfWork.SupplierFoodAssignmentRepository
                     .GetByPackage(packageId);
@@ -935,14 +943,65 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 dailyOrder.Status = DailyOrderStatus.Cooking;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
-            
+
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
             result.Payload = isSuccess; // Set the payload to the status of all confirmations
-            
         }
         catch (Exception ex)
         {
             result.AddUnknownError(ex.Message);
+        }
+
+        return result;
+    }
+    
+    public async Task<OperationResult<bool>> AcceptAllCompleteFoodAssignments(FoodAssignmentForPartner request)
+    {
+        var result = new OperationResult<bool>();
+        try
+        {
+            var package = await _unitOfWork.PackageRepository.GetByIdAsync(request.PackageId);
+            
+            var foodAssignments = await _unitOfWork.SupplierFoodAssignmentRepository.FindAll(x=>request.foodAssignmentIds.Contains(x.Id)).ToListAsync();
+            
+            var dailyOrder = await _unitOfWork.DailyOrderRepository.GetDailyOrderByPackageId(request.PackageId);
+           
+            if (dailyOrder == null)
+            {
+                result.AddError(ErrorCode.NotFound, "Không tìm thấy đơn hàng liên quan.");
+                return result;
+            }
+            
+            if (foodAssignments.Any(a => a.Status != SupplierFoodAssignmentStatus.Confirmed))
+            {
+                result.AddError(ErrorCode.BadRequest, "Tất cả các phần giao phải ở trạng thái đã xác nhận trước khi hoàn thành.");
+                return result;
+            }
+
+            foreach (var assignment in foodAssignments)
+            {
+                assignment.Status = SupplierFoodAssignmentStatus.Complete;
+                package.MissingQuantity--;
+                package.SuccessfulQuantity++;
+            }
+            
+            _unitOfWork.SupplierFoodAssignmentRepository.UpdateRange(foodAssignments);
+            _unitOfWork.PackageRepository.Update(package);
+            
+            if (package.SuccessfulQuantity ==
+                package.TotalFoodAssignQuantity)
+            {
+                dailyOrder.Status = DailyOrderStatus.Waiting;
+                _unitOfWork.DailyOrderRepository.Update(dailyOrder);
+            }
+            
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            
+            result.Payload = isSuccess;  // Chỉ ra rằng quá trình hoàn thành đã thành công
+        }
+        catch (Exception ex)
+        {
+            result.AddUnknownError("Đã xảy ra lỗi không mong muốn: " + ex.Message);
         }
 
         return result;

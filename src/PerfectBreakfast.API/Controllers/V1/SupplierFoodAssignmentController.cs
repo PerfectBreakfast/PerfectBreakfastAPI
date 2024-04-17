@@ -181,6 +181,18 @@ public class SupplierFoodAssignmentController : BaseController
     {
         var response = await _supplierFoodAssignmentService.ConfirmAllFoodAssignments(packageId);
         return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    } 
+    }
+    /// <summary>
+    /// Api For Partner (Xác nhận tất cả đơn hàng)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPut("status-confirmations-all-partner")]
+    [Authorize(Roles = ConstantRole.PARTNER_ADMIN)]
+    public async Task<IActionResult> AcceptAndCompleteAllFoodAssignments(FoodAssignmentForPartner request)
+    {
+        var response = await _supplierFoodAssignmentService.AcceptAllCompleteFoodAssignments(request);
+        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
+    }
 
 }

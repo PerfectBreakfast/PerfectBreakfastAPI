@@ -318,6 +318,10 @@ namespace PerfectBreakfast.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        
+        public async Task<DailyOrder?> GetDailyOrderByPackageId(Guid packageId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(s => s.PackageId == packageId);
+        }
+
     }
 }
