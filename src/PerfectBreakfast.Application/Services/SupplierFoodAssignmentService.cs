@@ -430,9 +430,9 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         return result;
     }
 
-    public async Task<OperationResult<FoodAssignmentResponse>> ChangeStatusFoodAssignment(Guid id, int status)
+    public async Task<OperationResult<bool>> ChangeStatusFoodAssignment(Guid id, int status)
     {
-        var result = new OperationResult<FoodAssignmentResponse>();
+        var result = new OperationResult<bool>();
         try
         {
             var supplierFoodAssignment =
@@ -495,15 +495,14 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 dailyOrder.Status = DailyOrderStatus.Cooking;
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
-            await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<FoodAssignmentResponse>(supplierFoodAssignment);
-            
-            // gửi mail cho partner nếu supplier từ chối không nấu
-            if (status == 0)
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            if (isSuccess && status == 0)
             {
+                // gửi mail cho partner nếu supplier từ chối không nấu
                 _backgroundJobClient.Enqueue<IManagementService>(d =>
                     d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value, id));
             }
+            result.Payload = isSuccess;
         }
         catch (NotFoundIdException)
         {
@@ -513,7 +512,6 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         {
             result.AddUnknownError(e.Message);
         }
-
         return result;
     }
 
