@@ -514,7 +514,7 @@ public class DailyOrderService : IDailyOrderService
                         return new MealForDailyOrder(meal, time, totalOrderQuantity, completeQuantity, cancelQuantity, totalPrice, foodForDailyOrder);
                     }).ToList(); 
                     
-                    return new CompanyForDailyOrder(company, partner, delivery, mealForDailyOrder);
+                    return new CompanyForDailyOrder(company, delivery, partner, mealForDailyOrder);
                 }).ToList();
 
                 return new DailyOrderStatisticResponse(creationDate, bookingDate, companyForDailyOrder);

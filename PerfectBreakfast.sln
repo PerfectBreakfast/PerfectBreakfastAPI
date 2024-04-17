@@ -18,6 +18,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{829F2808-CA54-4E28-A772-5C57A867CDAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrefectBreakfast.Domain.Test", "PrefectBreakfast.Domain.Test\PrefectBreakfast.Domain.Test.csproj", "{B25C588F-C46C-4239-87EC-3B5953F1942E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrefectBreakfast.API.Test", "PrefectBreakfast.API.Test\PrefectBreakfast.API.Test.csproj", "{5082DAF4-01B8-4765-916B-C569C8FA41C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrefectBreakfast.Application.Test", "PrefectBreakfast.Application.Test\PrefectBreakfast.Application.Test.csproj", "{96097A3D-144C-4A79-8EAE-D751CBE14D8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrefectBreakfast.Infrastructure.Test", "PrefectBreakfast.Infrastructure.Test\PrefectBreakfast.Infrastructure.Test.csproj", "{031C321B-035C-42B9-8DDE-29B64F470753}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +50,22 @@ Global
 		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B25C588F-C46C-4239-87EC-3B5953F1942E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B25C588F-C46C-4239-87EC-3B5953F1942E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B25C588F-C46C-4239-87EC-3B5953F1942E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B25C588F-C46C-4239-87EC-3B5953F1942E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5082DAF4-01B8-4765-916B-C569C8FA41C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5082DAF4-01B8-4765-916B-C569C8FA41C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5082DAF4-01B8-4765-916B-C569C8FA41C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5082DAF4-01B8-4765-916B-C569C8FA41C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96097A3D-144C-4A79-8EAE-D751CBE14D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96097A3D-144C-4A79-8EAE-D751CBE14D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96097A3D-144C-4A79-8EAE-D751CBE14D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96097A3D-144C-4A79-8EAE-D751CBE14D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{031C321B-035C-42B9-8DDE-29B64F470753}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{031C321B-035C-42B9-8DDE-29B64F470753}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{031C321B-035C-42B9-8DDE-29B64F470753}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{031C321B-035C-42B9-8DDE-29B64F470753}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +75,10 @@ Global
 		{DCBB6DED-A726-45CD-BA3F-85C498CDA8BA} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
 		{FB8E7100-EABF-4C20-B427-7032D1F5F726} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
 		{0A9F19BC-4F39-49BA-B187-A5B83F8A51CB} = {E0DA3C9D-B0B9-4EF7-9F4E-92DBB0364D8D}
+		{B25C588F-C46C-4239-87EC-3B5953F1942E} = {829F2808-CA54-4E28-A772-5C57A867CDAA}
+		{5082DAF4-01B8-4765-916B-C569C8FA41C6} = {829F2808-CA54-4E28-A772-5C57A867CDAA}
+		{96097A3D-144C-4A79-8EAE-D751CBE14D8E} = {829F2808-CA54-4E28-A772-5C57A867CDAA}
+		{031C321B-035C-42B9-8DDE-29B64F470753} = {829F2808-CA54-4E28-A772-5C57A867CDAA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CDEE646A-F461-4AE2-90AE-2C1EBF7FC847}
