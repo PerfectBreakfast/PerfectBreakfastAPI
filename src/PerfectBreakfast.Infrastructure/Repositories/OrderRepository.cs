@@ -17,8 +17,7 @@ namespace PerfectBreakfast.Infrastructure.Repositories
         {
             return _dbSet.Where(o => o.DailyOrderId == dailyOrderId 
                                      && o.OrderStatus != OrderStatus.Pending 
-                                     &&  o.OrderStatus != OrderStatus.Cancel 
-                                     && o.OrderStatus != OrderStatus.Paid)
+                                     &&  o.OrderStatus != OrderStatus.Cancel)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Combo)
                 .Include(o => o.OrderDetails)
