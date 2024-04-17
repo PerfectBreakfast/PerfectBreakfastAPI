@@ -95,7 +95,6 @@ namespace PerfectBreakfast.Infrastructure.Repositories
             // Thêm sắp xếp, phân trang và chia tách truy vấn
             var items = await query
                 .OrderByDescending(d => d.Package.DailyOrder.BookingDate)
-                    .ThenBy(d => d.DeliveryDeadline)
                 .Skip(pageNumber * pageSize)
                 .Take(pageSize)
                 .AsSplitQuery()
