@@ -7,7 +7,7 @@ public class Combo : BaseEntity
     public string? Image { get; set; }
     
     // relationship
-    public ICollection<ComboFood?> ComboFoods { get; set; }
+    public List<ComboFood> ComboFoods { get; set; }
     public ICollection<MenuFood?> MenuFoods { get; set; }
     public ICollection<OrderDetail?> OrderDetails { get; set; }
 }

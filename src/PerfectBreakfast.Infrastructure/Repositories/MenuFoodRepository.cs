@@ -11,15 +11,15 @@ public class MenuFoodRepository : GenericRepository<MenuFood>, IMenuFoodReposito
     {
     }
 
-    public async Task<bool> IsFoodExistInMenu(Guid foodId)
+    public Task<bool> IsFoodExistInMenu(Guid foodId)
     {
-        return _dbSet.AsNoTracking()
-            .Any(x => x.FoodId == foodId);
+        return Task.FromResult(_dbSet.AsNoTracking()
+            .Any(x => x.FoodId == foodId));
     }
 
-    public async Task<bool> IsComboExistInMenu(Guid comboId)
+    public Task<bool> IsComboExistInMenu(Guid comboId)
     {
-        return _dbSet.AsNoTracking()
-            .Any(x => x.ComboId == comboId);
+        return Task.FromResult(_dbSet.AsNoTracking()
+            .Any(x => x.ComboId == comboId));
     }
 }

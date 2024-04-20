@@ -30,9 +30,9 @@ public class PartnerRepository : GenericRepository<Partner>, IPartnerRepository
         return await FindAll(includeProperties).SingleOrDefaultAsync(x => x.Id.Equals(id));
     }
 
-    public async Task<List<Partner>> GetPartnersByToday(DateTime dateTime)
-    {
-        return await _dbSet.Include(mu => mu.Companies)
-            .ToListAsync();
-    }
+    // public async Task<List<Partner>> GetPartnersByToday(DateTime dateTime)
+    // {
+    //     return await _dbSet.Include(mu => mu.Companies)
+    //         .ToListAsync();
+    // }
 }

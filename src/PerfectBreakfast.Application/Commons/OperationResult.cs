@@ -5,7 +5,6 @@ public class OperationResult<T>
     public T? Payload { get; set; }
     public bool IsError { get; set; }
     public List<Error> Errors { get; set; } = new List<Error>();
-    public bool Success { get; set; }
 
 
     public void AddError(ErrorCode code, string message)

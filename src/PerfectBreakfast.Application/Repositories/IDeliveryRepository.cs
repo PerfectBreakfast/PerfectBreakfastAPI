@@ -6,5 +6,4 @@ namespace PerfectBreakfast.Application.Repositories;
 public interface IDeliveryRepository : IGenericRepository<Delivery>
 {
     Task<Delivery?> GetDeliveryById(Guid id, params Expression<Func<Delivery, object>>[] includeProperties);
-    public Task<List<Delivery>> GetDeliveriesByToday(DateTime dateTime);
 }
