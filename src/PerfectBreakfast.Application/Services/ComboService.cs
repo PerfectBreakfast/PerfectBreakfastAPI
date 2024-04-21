@@ -58,12 +58,7 @@ public class ComboService : IComboService
             combo.ComboFoods = comboFoods;
             combo.Image = await _imgurService.UploadImageAsync(createComboRequest.Image);
             await _unitOfWork.ComboRepository.AddAsync(combo);
-            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
-            if (!isSuccess)
-            {
-                result.AddError(ErrorCode.ServerError, "Food is not exist");
-                return result;
-            }
+            await _unitOfWork.SaveChangeAsync();
         }
         catch (Exception e)
         {
