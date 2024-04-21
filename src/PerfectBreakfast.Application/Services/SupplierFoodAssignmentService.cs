@@ -987,7 +987,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             
             _unitOfWork.SupplierFoodAssignmentRepository.UpdateRange(foodAssignments);
             _unitOfWork.PackageRepository.Update(package);
-            
+                
             if (package.SuccessfulQuantity ==
                 package.TotalFoodAssignQuantity)
             {
