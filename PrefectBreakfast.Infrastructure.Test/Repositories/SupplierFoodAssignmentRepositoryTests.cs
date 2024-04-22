@@ -189,12 +189,6 @@ public class SupplierFoodAssignmentRepositoryTests : SetupTest
         result.PageIndex.Should().Be(0);
     }
     
-    [Fact]
-    public async Task GetByBookingDateForSupplier_NotImplemented()
-    {
-        // Since the method is not implemented, we are checking for the NotImplementedException to be thrown
-        await Assert.ThrowsAsync<NotImplementedException>(() => _supplierFoodAssignmentRepository.GetByBookingDateForSupplier());
-    }
     
     [Fact]
     public async Task GetByForSuperAdmin_FiltersCorrectly()
