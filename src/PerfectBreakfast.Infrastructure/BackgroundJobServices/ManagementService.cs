@@ -144,7 +144,7 @@ public class ManagementService : IManagementService
         }
     }
 
-    public async Task SendMailToSupplierWhenPartnerReassignFood(Guid supplierId, string partnerName)
+    public async Task SendMailToSupplierWhenPartnerReassignFood(Guid supplierId, Guid userId)
     {
         try
         {
@@ -152,12 +152,14 @@ public class ManagementService : IManagementService
                 .FindAll(x => x.SupplierId == supplierId &&
                               x.UserRoles!.Any(ur => ur.Role.Name == ConstantRole.SUPPLIER_ADMIN)).ToListAsync();
             var emails = users.Select(x => x.Email).ToList();
+
+            var userPartner = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner);
             
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                body: $"Bạn đã nhận được yêu cầu món ăn từ {userPartner.Partner.Name} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                       $"truy cập {_appConfiguration.Host}/management/login"
             );
             

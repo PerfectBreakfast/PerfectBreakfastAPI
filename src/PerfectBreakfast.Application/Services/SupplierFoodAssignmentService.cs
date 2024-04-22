@@ -593,10 +593,10 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
         return result;
     }
 
-    public async Task<OperationResult<SupplierFoodAssignmentResponse>> UpdateSupplierFoodAssignment(
+    public async Task<OperationResult<bool>> UpdateSupplierFoodAssignment(
         UpdateSupplierFoodAssignment updateSupplierFoodAssignment)
     {
-        var result = new OperationResult<SupplierFoodAssignmentResponse>();
+        var result = new OperationResult<bool>();
         var userId= _claimsService.GetCurrentUserId;
         try
         {
@@ -628,11 +628,12 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
             supplierFoodAssignment.Status = SupplierFoodAssignmentStatus.Pending;
             _unitOfWork.SupplierFoodAssignmentRepository.Update(supplierFoodAssignment);
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
             if (isSuccess)
             {
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner!);
+                //var user = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner!);
                 //Gửi mail thông báo đến các nhà cung cấp
-                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToSupplierWhenPartnerReassignFood(updateSupplierFoodAssignment.SupplierId,user.Partner!.Name));
+                _backgroundJobClient.Enqueue<IManagementService>(d => d.SendMailToSupplierWhenPartnerReassignFood(updateSupplierFoodAssignment.SupplierId,userId));
             }
             
         }

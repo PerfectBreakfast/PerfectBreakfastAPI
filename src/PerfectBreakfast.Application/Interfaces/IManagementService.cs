@@ -5,7 +5,7 @@ public interface IManagementService
     public Task AutoUpdateAndCreateDailyOrder();
     public Task AutoCancelOrderWhenOverTime(Guid orderId);
     public Task SendMailToSupplierWhenPartnerAssignFood(List<Guid> supplierIds, string partnerName); // hàm gửi mail cho các supplier khi partner phân món cho họ
-    public Task SendMailToSupplierWhenPartnerReassignFood(Guid supplierId, string partnerName); // hàm gửi mail cho các supplier khi partner phân món lại cho họ
+    public Task SendMailToSupplierWhenPartnerReassignFood(Guid supplierId, Guid userId); // hàm gửi mail cho các supplier khi partner phân món lại cho họ
     public Task SendMailToPartnerWhenSupplierDeclined(Guid partnerId, Guid supplierFoodAssignmentId); // hàm gửi mail cho các supplier khi partner phân món lại cho họ
     public Task CheckOrderInDailyOrderCompletedAndCompleteDailyOrderShippingOrder(Guid dailyOrderId);
     public Task AutoSendMailForAllPartnerAdminAndDeliveryAdminWhenDailyOrderProcessing(DateTime time);
