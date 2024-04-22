@@ -1,4 +1,5 @@
 using AutoFixture;
+using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ public class SetupTest : IDisposable
     protected readonly Mock<IUnitOfWork> _unitOfWorkMock;
     protected readonly IMapper _mapper;  
     protected readonly Mock<IServiceProvider> _serviceProviderMock;
+    protected readonly Mock<IRecurringJobManager> _recurringJobManagerMock;
 
     
     // Add new mocks for Identity
@@ -70,6 +72,7 @@ public class SetupTest : IDisposable
         // Mock the IServiceProvider
         _serviceProviderMock = new Mock<IServiceProvider>();
         _mapper = new ServiceMapper(_serviceProviderMock.Object,config); // Assuming ServiceMapper is your IMapper implementation
+        _recurringJobManagerMock = new Mock<IRecurringJobManager>();
 
         
         // Mocking UserManager

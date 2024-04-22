@@ -98,13 +98,6 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         {
             // Assuming there's a method to get food items by supplierId
             var supp = await _unitOfWork.SupplierCommissionRateRepository.GetBySupplierId(supplierId);
-
-            if (supp == null)
-            {
-                result.AddValidationError("ID is null");
-
-                return result;
-            }
             result.Payload = _mapper.Map<List<FoodResponse>>(supp.Select(x => x.Food)); 
         }
         catch (Exception ex)
@@ -114,30 +107,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
 
         return result;
     }
-
     
-
-
-
-    // public async Task<OperationResult<SupplierCommissionRateRespone>> DeleteCSupplierCommissionRate(Guid id)
-    // {
-    //     var result = new OperationResult<SupplierCommissionRateRespone>();
-    //     try
-    //     {
-    //         var supplierCommissionRate = await _unitOfWork.SupplierCommissionRateRepository.GetByIdAsync(id);
-    //         _unitOfWork.SupplierCommissionRateRepository.Remove(supplierCommissionRate);
-    //         await _unitOfWork.SaveChangeAsync();
-    //     }
-    //     catch (NotFoundIdException)
-    //     {
-    //         result.AddUnknownError("Id is not exsit");
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         result.AddUnknownError(e.Message);
-    //     }
-    //     return result;
-    // }
 
     public async Task<OperationResult<SupplierCommissionRateRespone>> UpdateSupplierCommissionRate(Guid id, UpdateSupplierCommissionRateRequest supplierCommissionRateRequest)
     {
@@ -176,7 +146,7 @@ public class SupplierCommissionRateService : ISupplierCommissionRateService
         }
         catch (NotFoundIdException)
         {
-            result.AddUnknownError("Id is not exsit");
+            result.AddUnknownError("Id is not exist");
         }
         catch (Exception e)
         {

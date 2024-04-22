@@ -496,13 +496,15 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 _unitOfWork.DailyOrderRepository.Update(dailyOrder);
             }
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
+            
+            
             if (isSuccess && status == 0)
             {
                 // gửi mail cho partner nếu supplier từ chối không nấu
                 _backgroundJobClient.Enqueue<IManagementService>(d =>
                     d.SendMailToPartnerWhenSupplierDeclined(supplierFoodAssignment.Package!.PartnerId!.Value, id));
             }
-            result.Payload = isSuccess;
         }
         catch (NotFoundIdException)
         {
