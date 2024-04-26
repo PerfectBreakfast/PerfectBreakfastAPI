@@ -35,7 +35,7 @@ public class MomoService : IMomoService
         var momoOneTimePayRequest = new MomoOneTimePaymentRequest(_appConfiguration.MomoConfig.PartnerCode,
             _currentTime.GetCurrentTime().Ticks.ToString() + order.OrderCode,
             (long)order.TotalPrice!,
-            order.Id!.ToString(),
+            order.OrderCode.ToString(),
             "Thanh toán",
             _appConfiguration.Host+_appConfiguration.MomoConfig.ReturnUrl,
             _appConfiguration.MomoConfig.IpnUrl,
