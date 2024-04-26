@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
 using PerfectBreakfast.Application.Interfaces;
+using PerfectBreakfast.Application.Models.MomoModels.Request;
 using PerfectBreakfast.Application.Models.PaymentModels.Request;
 
 namespace PerfectBreakfast.API.Controllers.V1;
@@ -12,11 +13,15 @@ public class PaymentController : ControllerBase
 {
     private readonly ILogger<PaymentController> _logger;
     private readonly IPayOsService _payOsService;
+    private readonly IMomoService _momoService;
 
-    public PaymentController(ILogger<PaymentController> logger,IPayOsService payOsService)
+    public PaymentController(ILogger<PaymentController> logger,
+        IPayOsService payOsService, 
+        IMomoService momoService)
     {
         _logger = logger;
         _payOsService = payOsService;
+        _momoService = momoService;
     }
     
     /// <summary>
@@ -31,6 +36,14 @@ public class PaymentController : ControllerBase
         _logger.LogInformation(body.ToString());
         var response = await _payOsService.HandleWebhook(body);
         return Ok(response);
+    }
+    
+    [HttpPost("momo-ipn-return")]
+    public async Task<IActionResult> MomoIpnReturn([FromBody]MomoOneTimePaymentResultRequest request)
+    {
+        _logger.LogInformation("Receive data from Momo");
+        var response = await _momoService.HandleIpnMomo(request);
+        return NoContent();
     }
 
     [HttpPost("confirm-webhook")]

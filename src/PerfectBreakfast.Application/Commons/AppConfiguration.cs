@@ -9,6 +9,7 @@ public class AppConfiguration
     public JwtSettings JwtSettings { get; set; }
     public MailSetting MailSetting { get; set; }
     public PayOSSettings PayOSSettings { get; set; }
-    public Google Google {get;set;}
+    public Google Google { get; set;}
+    public MomoConfig MomoConfig { get; set; }
 
 }

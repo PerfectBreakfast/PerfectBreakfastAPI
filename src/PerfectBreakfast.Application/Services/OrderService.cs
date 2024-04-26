@@ -27,10 +27,11 @@ public class OrderService : IOrderService
     private readonly IDistributedCache _cache;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly ICurrentTime _currentTime;
+    private readonly IMomoService _momoService;
 
     public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService,
         IPayOsService payOsService,IDistributedCache cache,IBackgroundJobClient backgroundJobClient,
-        ICurrentTime currentTime)
+        ICurrentTime currentTime,IMomoService momoService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -39,6 +40,7 @@ public class OrderService : IOrderService
         _cache = cache;
         _backgroundJobClient = backgroundJobClient;
         _currentTime = currentTime;
+        _momoService = momoService;
     }
 
     public async Task<OperationResult<PaymentResponse>> CreateOrder(OrderRequest orderRequest)
@@ -109,7 +111,15 @@ public class OrderService : IOrderService
                     break;
 
                 case ConstantPaymentMethod.MOMO:
-                    // Gọi tạo PaymentLink MoMO
+                    paymentResponse = await _momoService.CreateMomoPaymentLink(entity);
+                    if (paymentResponse.IsSuccess)
+                    {
+                        result.Payload = paymentResponse;
+                    }
+                    else
+                    {
+                        throw new Exception("xảy ra lỗi khi tạo link thanh toán Momo"); 
+                    }
                     break;
             }
             var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;

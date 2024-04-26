@@ -26,6 +26,7 @@ public static class DenpendencyInjection
         services.AddScoped<IManagementService, ManagementService>();
         services.AddScoped<IImgurService, ImgurService>();
         services.AddScoped<IExportExcelService, ExportExcelService>();
+        services.AddScoped<IMomoService, MomoService>();
 
         // ATTENTION: if you do migration please check file README.md
         services.AddDbContext<AppDbContext>(options =>
