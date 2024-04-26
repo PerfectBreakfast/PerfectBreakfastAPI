@@ -54,7 +54,7 @@ public class MomoService : IMomoService
         {
             if (request.resultCode == 0)
             {
-                var order = await _unitOfWork.OrderRepository.GetByIdAsync(Guid.Parse(request.orderId));
+                var order = await _unitOfWork.OrderRepository.GetOrderByOrderCode(long.Parse(request.orderId));
                 if (order.OrderStatus == OrderStatus.Pending && (long)order.TotalPrice == request.amount)
                 {
                     var dailyOrder = await _unitOfWork.DailyOrderRepository.GetByIdAsync(order.DailyOrderId!.Value);
@@ -75,7 +75,7 @@ public class MomoService : IMomoService
             // Tạo dữ liệu email
             var mailData = new MailDataViewModel(
                 to: ["hnv2311@gmail.com"],
-                subject: "Thông báo lỗi webhook PayOs",
+                subject: "Thông báo lỗi ipn Momo",
                 body: $"{e.Message}"
             );
             Console.WriteLine(e.Message);
