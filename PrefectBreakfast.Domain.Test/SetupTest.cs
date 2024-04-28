@@ -5,6 +5,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Domain.Entities;
@@ -20,6 +21,7 @@ public class SetupTest : IDisposable
     protected readonly IMapper _mapper;  
     protected readonly Mock<IServiceProvider> _serviceProviderMock;
     protected readonly Mock<IRecurringJobManager> _recurringJobManagerMock;
+    protected readonly Mock<IMemoryCache> _caheMock;
 
     
     // Add new mocks for Identity
@@ -87,7 +89,7 @@ public class SetupTest : IDisposable
         var contextAccessorMock = new Mock<IHttpContextAccessor>();
         var userPrincipalFactoryMock = new Mock<IUserClaimsPrincipalFactory<User>>();
         _signInManagerMock = new Mock<SignInManager<User>>(_userManagerMock.Object, contextAccessorMock.Object, userPrincipalFactoryMock.Object, null, null, null, null);
-
+        _caheMock = new Mock<IMemoryCache>();
         
         // Services
     _categoryServiceMock = new Mock<ICategoryService>();

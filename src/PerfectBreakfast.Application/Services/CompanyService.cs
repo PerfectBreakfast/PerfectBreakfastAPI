@@ -30,9 +30,9 @@ public class CompanyService : ICompanyService
         _currentTime = currentTime;
     }
 
-    public async Task<OperationResult<CompanyResponse>> CreateCompany(CompanyRequest companyRequest)
+    public async Task<OperationResult<bool>> CreateCompany(CompanyRequest companyRequest)
     {
-        var result = new OperationResult<CompanyResponse>();
+        var result = new OperationResult<bool>();
         try
         {
             if (companyRequest.Meals.Any(meal => meal.StartTime > meal.EndTime))
@@ -60,7 +60,7 @@ public class CompanyService : ICompanyService
                 return result;
             }
 
-            result.Payload = _mapper.Map<CompanyResponse>(company);
+            result.Payload = isSuccess;
         }
         catch (Exception e)
         {

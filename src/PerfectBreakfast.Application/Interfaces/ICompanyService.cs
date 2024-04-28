@@ -9,7 +9,7 @@ public interface ICompanyService
 {
     public Task<OperationResult<List<CompanyResponse>>> GetAllCompanies();
     public Task<OperationResult<CompanyResponse>> GetCompany(Guid companyId);
-    public Task<OperationResult<CompanyResponse>> CreateCompany(CompanyRequest companyRequest);
+    public Task<OperationResult<bool>> CreateCompany(CompanyRequest companyRequest);
     public Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id);
     public Task<OperationResult<CompanyResponse>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest);
     public Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
