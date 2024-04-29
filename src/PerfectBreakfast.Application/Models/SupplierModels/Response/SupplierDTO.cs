@@ -1,6 +1,6 @@
 ﻿namespace PerfectBreakfast.Application.Models.SupplierModels.Response;
 
-public record SupplierDTO()
+public record SupplierDTO
 {
     public Guid Id { get; set; }
     public string Name { get; set; } 

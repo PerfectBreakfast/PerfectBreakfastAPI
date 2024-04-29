@@ -23,7 +23,7 @@ public class DeliveryServiceTests : SetupTest
     {
         _deliveryService = new DeliveryService(_unitOfWorkMock.Object, _mapper);
     }
-    
+
     [Fact]
     public async Task GetDeliveries_ReturnsAllNonDeletedDeliveries()
     {
@@ -48,7 +48,7 @@ public class DeliveryServiceTests : SetupTest
             d.Id, d.Name, d.Address, d.PhoneNumber, d.CommissionRate, d.Longitude, d.Latitude,
             new List<string>(), // Assume no owners
             new List<string>(), // Assume no assigned companies
-            0  // Assume zero members
+            0 // Assume zero members
         )).ToList();
 
         _unitOfWorkMock.Setup(x => x.DeliveryRepository.FindAll(It.IsAny<Expression<Func<Delivery, bool>>>()))
@@ -63,7 +63,7 @@ public class DeliveryServiceTests : SetupTest
         Assert.Equal(deliveryResponses.Count, result.Payload.Count);
         //result.Payload.Should().BeEquivalentTo(deliveryResponses, options => options.ComparingByMembers<DeliveryResponseModel>());
     }
-    
+
     [Fact]
     public async Task GetDeliveries_HandlesException_ReturnsUnknownError()
     {
@@ -76,9 +76,10 @@ public class DeliveryServiceTests : SetupTest
 
         // Assert
         result.Should().NotBeNull();
-        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
+        result.Errors.Should()
+            .ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
     }
-    
+
     [Fact]
     public async Task CreateDelivery_CreatesAndReturnsDelivery_WhenRequestIsValid()
     {
@@ -109,7 +110,7 @@ public class DeliveryServiceTests : SetupTest
 
         _mapper.Map<Delivery>(requestModel);
         _mapper.Map<DeliveryResponseModel>(delivery);
-        
+
         // Act
         var result = await _deliveryService.CreateDelivery(requestModel);
 
@@ -120,7 +121,7 @@ public class DeliveryServiceTests : SetupTest
         _unitOfWorkMock.Verify(u => u.DeliveryRepository.AddAsync(It.IsAny<Delivery>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Once);
     }
-    
+
     [Fact]
     public async Task CreateDelivery_HandlesException_ReturnsUnknownError()
     {
@@ -136,14 +137,15 @@ public class DeliveryServiceTests : SetupTest
 
         _unitOfWorkMock.Setup(u => u.DeliveryRepository.AddAsync(It.IsAny<Delivery>()))
             .ThrowsAsync(new Exception("Database error"));
-    
+
         // Act
         var result = await _deliveryService.CreateDelivery(requestModel);
 
         // Assert
-        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
+        result.Errors.Should()
+            .ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
     }
-    
+
     [Fact]
     public async Task RemoveDelivery_RemovesDeliverySuccessfully_WhenDeliveryExists()
     {
@@ -165,7 +167,7 @@ public class DeliveryServiceTests : SetupTest
         _mapper.Map<DeliveryResponseModel>(delivery);
         /*_mapper.Setup(m => m.Map<DeliveryResponseModel>(It.IsAny<Delivery>()))
             .Returns(new DeliveryResponseModel(
-                delivery.Id, delivery.Name, delivery.Address, delivery.PhoneNumber, 
+                delivery.Id, delivery.Name, delivery.Address, delivery.PhoneNumber,
                 delivery.CommissionRate, null, null, new List<string>(), new List<string>(), 0));*/
 
         // Act
@@ -178,7 +180,7 @@ public class DeliveryServiceTests : SetupTest
         _unitOfWorkMock.Verify(u => u.DeliveryRepository.SoftRemove(delivery), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Once);
     }
-   
+
     [Fact]
     public async Task RemoveDelivery_HandlesException_WhenDatabaseOperationFails()
     {
@@ -196,7 +198,7 @@ public class DeliveryServiceTests : SetupTest
         _unitOfWorkMock.Verify(u => u.DeliveryRepository.SoftRemove(It.IsAny<Delivery>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Never);
     }
-    
+
     [Fact]
     public async Task UpdateDelivery_UpdatesAndReturnsUpdatedDelivery_WhenValidRequest()
     {
@@ -240,7 +242,7 @@ public class DeliveryServiceTests : SetupTest
         _unitOfWorkMock.Verify(u => u.DeliveryRepository.Update(It.IsAny<Delivery>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Once);
     }
-    
+
     [Fact]
     public async Task UpdateDelivery_HandlesException_WhenUpdateFails()
     {
@@ -263,8 +265,8 @@ public class DeliveryServiceTests : SetupTest
         _unitOfWorkMock.Verify(u => u.DeliveryRepository.Update(It.IsAny<Delivery>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Never);
     }
-    
-    
+
+
     [Fact]
     public async Task GetDeliveryId_ReturnsNotFound_WhenDeliveryDoesNotExist()
     {
@@ -278,9 +280,8 @@ public class DeliveryServiceTests : SetupTest
 
         // Assert
         result.Should().NotBeNull();
-        
     }
-    
+
     [Fact]
     public async Task GetDeliveryId_HandlesException_WhenDatabaseErrorOccurs()
     {
@@ -295,59 +296,73 @@ public class DeliveryServiceTests : SetupTest
         // Assert
         result.Should().NotBeNull();
     }
+
+    /*[Fact]
+    public async Task GetDeliveryUnitPaginationAsync_Success_ReturnsDeliveryUnitsWithSearchTerm()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var adminUser = new User
+        {
+            Id = userId, Name = "Admin User",
+            UserRoles = new List<UserRole>() { new UserRole { Role = new Role { Name = ConstantRole.DELIVERY_ADMIN } } }
+        };
+        var company = new Company
+        {
+            Id = Guid.NewGuid(),
+            Name = "Company A",
+            PhoneNumber = "null",
+            Email = "null",
+            Address = "null"
+        };
+        var deliveryUnit1 = new Delivery
+        {
+            Id = Guid.NewGuid(),
+            Name = "Delivery Unit A",
+            Address = "Address A",
+            Users = new List<User>()
+            {
+                adminUser
+            },
+            Companies = new List<Company>()
+            {
+                company
+            },
+            PhoneNumber = "",
+            CommissionRate = 0
+        };
+        var deliveries = new List<Delivery>() { deliveryUnit1 };
+
+        var userInclude = new IncludeInfo<Delivery>
+        {
+            NavigationProperty = c => c.Users,
+            ThenIncludes = new List<Expression<Func<object, object>>>
+            {
+                sp => ((User)sp).UserRoles,
+                sp => ((UserRole)sp).Role
+            }
+        };
+
+        var companyInclude = new IncludeInfo<Delivery>
+        {
+            NavigationProperty = c => c.Companies
+        };
+
+        _unitOfWorkMock.Setup(u => u.DeliveryRepository.ToPagination(It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<Expression<Func<Delivery, bool>>>(), userInclude, companyInclude))
+            .ReturnsAsync(new Pagination<Delivery>()
+                { Items = deliveries, TotalItemsCount = 2, PageIndex = 0, PageSize = 10 });
+
+        // Act
+        var result = await _deliveryService.GetDeliveryUnitPaginationAsync("Delivery Unit A", 0, 10);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Payload.Should().NotBeNull();
+        result.Payload.PageIndex.Should().Be(0);
+        result.Payload.PageSize.Should().Be(10);
+        result.Payload.TotalItemsCount.Should().Be(2);
+        result.Payload.Items.Should().HaveCount(1); // Only delivery unit matching search term should be returned
+    }*/
     
-    // [Fact]
-    // public async Task GetDeliveryUnitPaginationAsync_ReturnsPaginatedResultsSuccessfully()
-    // {
-    //     // Arrange
-    //     var pageIndex = 0;
-    //     var pageSize = 2;
-    //     var searchTerm = "delivery";
-    //     var deliveries = new List<Delivery>
-    //     {
-    //         new Delivery
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             Name = "Delivery One",
-    //             IsDeleted = false,
-    //             Address = "",
-    //             PhoneNumber = "",
-    //             CommissionRate = 0
-    //         },
-    //         new Delivery
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             Name = "Delivery Two",
-    //             IsDeleted = false,
-    //             Address = "",
-    //             PhoneNumber = "",
-    //             CommissionRate = 0
-    //         }
-    //     };
-    //
-    //     var paginationResult = new Pagination<Delivery>
-    //     {
-    //         PageIndex = pageIndex,
-    //         PageSize = pageSize,
-    //         TotalItemsCount = 2,
-    //         Items = deliveries
-    //     };
-    //
-    //     _unitOfWorkMock.Setup(x => x.DeliveryRepository.ToPagination(
-    //             pageIndex, pageSize, It.IsAny<Expression<Func<Delivery, bool>>>(), It.IsAny<IncludeInfo<Delivery>>(), It.IsAny<IncludeInfo<Delivery>>()))
-    //         .ReturnsAsync(paginationResult);
-    //
-    //     // _mapper.Setup(m => m.Map<List<DeliveryResponseModel>>(It.IsAny<List<Delivery>>()))
-    //     //     .Returns(deliveries.Select(d => new DeliveryResponseModel(d.Id, d.Name, null, null, 0, null, null, new List<string>(), new List<string>(), 0)).ToList());
-    //
-    //     // Act
-    //     var result = await _deliveryService.GetDeliveryUnitPaginationAsync(searchTerm, pageIndex, pageSize);
-    //
-    //     // Assert
-    //     Assert.NotNull(result.Payload);
-    //     Assert.Equal(2, result.Payload.Items.Count);
-    //     Assert.Equal(pageIndex, result.Payload.PageIndex);
-    //     Assert.Equal(pageSize, result.Payload.PageSize);
-    //     _unitOfWorkMock.VerifyAll();
-    // }
 }

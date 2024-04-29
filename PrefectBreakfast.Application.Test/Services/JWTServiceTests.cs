@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using PerfectBreakfast.Application.Commons;
@@ -20,6 +22,5 @@ public class JWTServiceTests : SetupTest
     {
         _jwtService = new JWTService(_appConfiguration, _unitOfWorkMock.Object);
     }
-
     
 }

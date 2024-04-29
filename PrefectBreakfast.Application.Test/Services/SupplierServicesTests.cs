@@ -4,10 +4,12 @@ using Mapster;
 using MockQueryable.Moq;
 using Moq;
 using PerfectBreakfast.Application.Commons;
+using PerfectBreakfast.Application.CustomExceptions;
 using PerfectBreakfast.Application.Interfaces;
 using PerfectBreakfast.Application.Models.SupplierModels.Request;
 using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Services;
+using PerfectBreakfast.Application.Utils;
 using PerfectBreakfast.Domain.Entities;
 using PrefectBreakfast.Domain.Test;
 
@@ -96,7 +98,7 @@ public class SupplierServicesTests : SetupTest
         Assert.NotNull(result.Errors);
         Assert.Contains(result.Errors, e => e.Message.Contains("An error occurred"));
     }
-    
+
     [Fact]
     public async Task RemoveSupplier_Successful()
     {
@@ -122,14 +124,15 @@ public class SupplierServicesTests : SetupTest
         _unitOfWorkMock.Verify(u => u.SupplierRepository.SoftRemove(supplier), Times.Once());
         _unitOfWorkMock.Verify(u => u.SaveChangeAsync(), Times.Once());
     }
-    
-    
+
+
     [Fact]
     public async Task RemoveSupplier_Exception_ReturnsUnknownError()
     {
         // Arrange
         var supplierId = Guid.NewGuid();
-        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetByIdAsync(supplierId)).ThrowsAsync(new Exception("Database error"));
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetByIdAsync(supplierId))
+            .ThrowsAsync(new Exception("Database error"));
 
         // Act
         var result = await _supplierService.RemoveSupplier(supplierId);
@@ -137,7 +140,7 @@ public class SupplierServicesTests : SetupTest
         // Assert
         Assert.Contains(result.Errors, e => e.Message.Contains("Database error"));
     }
-    
+
     [Fact]
     public async Task UpdateSupplier_Successful()
     {
@@ -178,7 +181,8 @@ public class SupplierServicesTests : SetupTest
         // Arrange
         var supplierId = Guid.NewGuid();
         var requestModel = new UpdateSupplierRequestModel { Name = "New Name" };
-        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetByIdAsync(supplierId)).ThrowsAsync(new Exception("Database error"));
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetByIdAsync(supplierId))
+            .ThrowsAsync(new Exception("Database error"));
 
         // Act
         var result = await _supplierService.UpdateSupplier(supplierId, requestModel);
@@ -186,7 +190,7 @@ public class SupplierServicesTests : SetupTest
         // Assert
         Assert.Contains(result.Errors, e => e.Message.Contains("Database error"));
     }
-    
+
     [Fact]
     public async Task GetSupplierByFood_ReturnsSuppliers_WhenSuppliersExistForFood()
     {
@@ -213,9 +217,10 @@ public class SupplierServicesTests : SetupTest
                 PhoneNumber = ""
             }
         };
-        
+
         _unitOfWorkMock.Setup(u => u.UserRepository.GetUserByIdAsync(userId)).ReturnsAsync(user);
-        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value)).ReturnsAsync(suppliers);
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value))
+            .ReturnsAsync(suppliers);
 
         //_mapper.Setup(m => m.Map<List<SupplierDTO>>(It.IsAny<List<Supplier>>())).Returns(new List<SupplierDTO>());
 
@@ -226,7 +231,7 @@ public class SupplierServicesTests : SetupTest
         //Assert.True(result.IsSuccess);
         Assert.NotEmpty(result.Payload);
     }
-    
+
     [Fact]
     public async Task GetSupplierByFood_ReturnsError_WhenNoSuppliersRegisteredForFood()
     {
@@ -247,9 +252,10 @@ public class SupplierServicesTests : SetupTest
                 PhoneNumber = ""
             }
         };
-        
+
         _unitOfWorkMock.Setup(u => u.UserRepository.GetUserByIdAsync(userId)).ReturnsAsync(user);
-        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value)).ReturnsAsync(suppliers);
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierByPartner(user.PartnerId.Value))
+            .ReturnsAsync(suppliers);
 
         // Act
         var result = await _supplierService.GetSupplierByFood(foodId);
@@ -257,7 +263,7 @@ public class SupplierServicesTests : SetupTest
         // Assert
         Assert.Contains(result.Errors, e => e.Code == ErrorCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task GetSupplierByFood_ThrowsException_ReturnsError()
     {
@@ -273,9 +279,10 @@ public class SupplierServicesTests : SetupTest
         var result = await _supplierService.GetSupplierByFood(foodId);
 
         // Assert
-        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
+        result.Errors.Should()
+            .ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
     }
-    
+
     [Fact]
     public async Task GetAllSupplierByPartner_ReturnsSuppliers_WhenSuppliersExist()
     {
@@ -317,7 +324,7 @@ public class SupplierServicesTests : SetupTest
         // Assert
         Assert.NotEmpty(result.Payload);
     }
-    
+
 
     [Fact]
     public async Task GetAllSupplierByPartner_ThrowsException_WhenUserRepositoryFails()
@@ -332,7 +339,333 @@ public class SupplierServicesTests : SetupTest
         var result = await _supplierService.GetAllSupplierByPartner();
 
         // Assert
-        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
+        result.Errors.Should()
+            .ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message.Contains("Database error"));
     }
-    
+
+    [Fact]
+    public async Task GetSupplierId_Success_ReturnsSupplierDetailsWithRelatedData()
+    {
+        // Arrange
+        var supplierId = Guid.NewGuid();
+        var partnerId = Guid.NewGuid();
+        var foodId = Guid.NewGuid();
+        var supplier = new Supplier
+        {
+            Id = supplierId,
+            Name = "Supplier A",
+            Address = "Supplier Address",
+            SupplyAssignments = new List<SupplyAssignment>()
+            {
+                new SupplyAssignment
+                {
+                    PartnerId = partnerId,
+                    Partner = new Partner
+                    {
+                        Id = partnerId,
+                        Name = "Partner Name",
+                        Address = "null",
+                        PhoneNumber = "null",
+                        CommissionRate = 0
+                    }
+                }
+            },
+            SupplierCommissionRates = new List<SupplierCommissionRate>()
+            {
+                new SupplierCommissionRate
+                {
+                    FoodId = foodId,
+                    Food = new Food
+                    {
+                        Id = foodId,
+                        Name = "Food Name"
+                    }
+                }
+            },
+            PhoneNumber = ""
+        };
+
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierDetail(supplierId))
+            .ReturnsAsync(supplier);
+
+        // Act
+        var result = await _supplierService.GetSupplierId(supplierId);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Payload.Should().NotBeNull();
+
+        result.Payload.Id.Should().Be(supplierId);
+        result.Payload.Name.Should().Be("Supplier A");
+        result.Payload.Address.Should().Be("Supplier Address");
+
+        result.Payload.ManagementUnitDtos.Should().HaveCount(1);
+        var managementUnitDto = result.Payload.ManagementUnitDtos.First();
+        managementUnitDto.Id.Should().Be(partnerId);
+        managementUnitDto.Name.Should().Be("Partner Name");
+
+        result.Payload.CommissionRates.Should().HaveCount(1);
+        var commissionRate = result.Payload.CommissionRates.First();
+    }
+
+    [Fact]
+    public async Task GetSupplierId_NotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var supplierId = Guid.NewGuid();
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierDetail(supplierId))
+            .ReturnsAsync((Supplier?)null);
+
+        // Act
+        var result = await _supplierService.GetSupplierId(supplierId);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.NotFound && e.Message == "Id does not exist");
+    }
+
+    [Fact]
+    public async Task GetSupplierId_ExceptionDuringRetrieval_ReturnsUnknownError()
+    {
+        // Arrange
+        var supplierId = Guid.NewGuid();
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.GetSupplierDetail(supplierId))
+            .ThrowsAsync(new Exception("Test Exception"));
+
+        // Act
+        var result = await _supplierService.GetSupplierId(supplierId);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message == "Test Exception");
+    }
+
+    [Fact]
+    public async Task GetSupplierByPartner_Success_ReturnsSuppliersWithSearchTerm()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var partnerId = Guid.NewGuid();
+        var supplier1 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier A",
+            Address = "null",
+            PhoneNumber = "null"
+        };
+        var supplier2 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier B",
+            Address = "null",
+            PhoneNumber = "null"
+        };
+        var partner = new Partner
+        {
+            Id = partnerId,
+            SupplyAssignments = new List<SupplyAssignment>()
+            {
+                new SupplyAssignment
+                {
+                    SupplierId = supplier1.Id
+                },
+                new SupplyAssignment
+                {
+                    SupplierId = supplier2.Id
+                }
+            },
+            Name = "null",
+            Address = "null",
+            PhoneNumber = "null",
+            CommissionRate = 0
+        };
+        var user = new User { Id = userId, Partner = partner };
+        var supplierDto1 = new SupplierDTO { Id = supplier1.Id, Name = "Supplier A" };
+        var supplierDto2 = new SupplierDTO { Id = supplier2.Id, Name = "Supplier B" };
+
+        _claimServiceMock.Setup(s => s.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(u => u.UserRepository.GetUserByIdAsync(userId, It.IsAny<IncludeInfo<User>>()))
+            .ReturnsAsync(user);
+        _unitOfWorkMock.Setup(u =>
+                u.SupplierRepository.ToPagination(It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Expression<Func<Supplier, bool>>>()))
+            .ReturnsAsync(
+                new Pagination<Supplier>
+                    { Items = new List<Supplier>() { supplier1 }, TotalItemsCount = 1, PageIndex = 0, PageSize = 10 });
+        //mockMapper.Setup(m => m.Map<SupplierDTO>(supplier1)).Returns(supplierDto1);
+
+
+        // Act
+        var result = await _supplierService.GetSupplierByPartner("Supplier A", 0, 10);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Payload.Should().NotBeNull();
+        result.Payload.PageIndex.Should().Be(0);
+        result.Payload.PageSize.Should().Be(10);
+        result.Payload.TotalItemsCount.Should().Be(1);
+        result.Payload.Items.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetSupplierByPartner_UserNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var mockUnitOfWork = new Mock<IUnitOfWork>();
+        var mockClaimsService = new Mock<IClaimsService>();
+        var userId = Guid.NewGuid();
+        mockClaimsService.Setup(s => s.GetCurrentUserId).Returns(userId);
+        mockUnitOfWork.Setup(u => u.UserRepository.GetUserByIdAsync(userId, It.IsAny<IncludeInfo<User>>()))
+            .ThrowsAsync(new NotFoundIdException());
+
+        var service = new SupplierService(mockUnitOfWork.Object, null, mockClaimsService.Object);
+
+        // Act
+        var result = await service.GetSupplierByPartner(null, 0, 10);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.NotFound && e.Message == "User is not exist");
+    }
+
+    [Fact]
+    public async Task GetSupplierByPartner_ExceptionDuringRetrieval_ReturnsUnknownError()
+    {
+        // Arrange
+        var mockUnitOfWork = new Mock<IUnitOfWork>();
+        var mockClaimsService = new Mock<IClaimsService>();
+        var userId = Guid.NewGuid();
+        var partnerId = Guid.NewGuid();
+        var supplier1 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier A",
+            Address = "null",
+            PhoneNumber = "null"
+        };
+        var supplier2 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier B",
+            Address = "null",
+            PhoneNumber = "null"
+        };
+        var partner = new Partner
+        {
+            Id = partnerId,
+            SupplyAssignments = new List<SupplyAssignment>()
+            {
+                new SupplyAssignment
+                {
+                    SupplierId = supplier1.Id
+                },
+                new SupplyAssignment
+                {
+                    SupplierId = supplier2.Id
+                }
+            },
+            Name = "null",
+            Address = "null",
+            PhoneNumber = "null",
+            CommissionRate = 0
+        };
+        var user = new User { Id = userId, Partner = partner };
+        mockClaimsService.Setup(s => s.GetCurrentUserId).Returns(userId);
+        mockUnitOfWork.Setup(u => u.UserRepository.GetUserByIdAsync(userId, It.IsAny<IncludeInfo<User>>()))
+            .ReturnsAsync(user);
+        mockUnitOfWork.Setup(u =>
+                u.SupplierRepository.ToPagination(It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Expression<Func<Supplier, bool>>>()))
+            .ThrowsAsync(new Exception("Test Exception"));
+
+        var service = new SupplierService(mockUnitOfWork.Object, null, mockClaimsService.Object);
+
+        // Act
+        var result = await service.GetSupplierByPartner(null, 0, 10);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Code == ErrorCode.UnknownError && e.Message == "Test Exception");
+    }
+
+    [Fact]
+    public async Task GetPaginationAsync_Success_ReturnsSuppliersWithSearchTerm()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var partnerId = Guid.NewGuid();
+        var adminUser = new User
+        {
+            Id = Guid.NewGuid(), Name = "Admin User",
+            UserRoles = new List<UserRole>() { new UserRole { Role = new Role { Name = ConstantRole.SUPPLIER_ADMIN } } }
+        };
+        var supplier1 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier A",
+            Address = "Address A",
+            Users = new List<User>()
+            {
+                adminUser
+            },
+            SupplyAssignments = new List<SupplyAssignment>()
+            {
+                new SupplyAssignment
+                {
+                    Partner = new Partner
+                    {
+                        Name = "Partner A",
+                        Address = "null",
+                        PhoneNumber = "null",
+                        CommissionRate = 0
+                    }
+                }
+            },
+            PhoneNumber = "null"
+        };
+        var supplier2 = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            Name = "Supplier B",
+            Address = "Address B",
+            PhoneNumber = "null",
+            Users = new List<User>()
+            {
+                new User
+                {
+                    Id = Guid.NewGuid(), Name = "Admin User 1",
+                    UserRoles = new List<UserRole>() { new UserRole { Role = new Role { Name = ConstantRole.SUPPLIER_ADMIN } } }
+                }
+            },
+            SupplyAssignments = new List<SupplyAssignment>()
+            {
+                new SupplyAssignment
+                {
+                    Partner = new Partner
+                    {
+                        Name = "Partner 1",
+                        Address = "null",
+                        PhoneNumber = "null",
+                        CommissionRate = 0
+                    }
+                }
+            },
+        };
+        var suppliers = new List<Supplier>() { supplier1, supplier2 };
+
+        _unitOfWorkMock.Setup(u => u.SupplierRepository.ToPagination(It.IsAny<int>(), It.IsAny<int>(),
+                It.IsAny<Expression<Func<Supplier, bool>>>(), It.IsAny<IncludeInfo<Supplier>>(),
+                It.IsAny<IncludeInfo<Supplier>>()))
+            .ReturnsAsync(new Pagination<Supplier>() { Items = suppliers, TotalItemsCount = 2,PageSize = 10,PageIndex = 0});
+
+        // Act
+        var result = await _supplierService.GetPaginationAsync("Supplier A", 0, 10);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Payload.Should().NotBeNull();
+        result.Payload.PageIndex.Should().Be(0);
+        result.Payload.PageSize.Should().Be(10);
+        result.Payload.TotalItemsCount.Should().Be(2);
+    }
 }

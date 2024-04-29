@@ -1,6 +1,6 @@
 ﻿namespace PerfectBreakfast.Application.Models.PartnerModels.Response;
 
-public record PartnerDTO()
+public record PartnerDTO
 {
     public Guid? Id { get; set; } 
     public string Name { get; set; } = string.Empty;

@@ -11,7 +11,7 @@ public interface ICompanyService
     public Task<OperationResult<CompanyResponse>> GetCompany(Guid companyId);
     public Task<OperationResult<bool>> CreateCompany(CompanyRequest companyRequest);
     public Task<OperationResult<CompanyResponse>> DeleteCompany(Guid id);
-    public Task<OperationResult<CompanyResponse>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest);
+    public Task<OperationResult<bool>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest);
     public Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyPaginationAsync(string? searchTerm, int pageIndex = 0, int pageSize = 10);
     public Task<OperationResult<List<UserModelResponse>>> GetUsersByCompanyId(Guid id);
     public Task<OperationResult<Pagination<CompanyResponsePaging>>> GetCompanyByPartner(string? searchTerm, int pageIndex = 0, int pageSize = 10);

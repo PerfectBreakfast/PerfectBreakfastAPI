@@ -339,9 +339,9 @@ public class CompanyService : ICompanyService
         return result;
     }
 
-    public async Task<OperationResult<CompanyResponse>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest)
+    public async Task<OperationResult<bool>> UpdateCompany(Guid id, UpdateCompanyRequest companyRequest)
     {
-        var result = new OperationResult<CompanyResponse>();
+        var result = new OperationResult<bool>();
         try
         {
             if (companyRequest.Meals.Any(meal => meal.StartTime > meal.EndTime))
@@ -405,8 +405,8 @@ public class CompanyService : ICompanyService
             // Sau khi cập nhật, gán lại danh sách MealSubscriptions cho company
             company.MealSubscriptions = existingMealSubscriptions;
             _unitOfWork.CompanyRepository.Update(company);
-            await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<CompanyResponse>(company);
+            var isSuccess = await _unitOfWork.SaveChangeAsync() > 0;
+            result.Payload = isSuccess;
         }
         catch (NotFoundIdException)
         {

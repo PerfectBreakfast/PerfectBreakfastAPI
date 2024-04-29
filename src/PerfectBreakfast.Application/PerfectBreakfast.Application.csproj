@@ -33,6 +33,7 @@
     </PackageReference>
     <PackageReference Include="MongoDB.Bson" Version="2.23.1" />
     <PackageReference Include="payOS" Version="1.0.4" />
+    <PackageReference Include="RazorEngineCore" Version="2023.11.2" />
   </ItemGroup>
 
 </Project>
