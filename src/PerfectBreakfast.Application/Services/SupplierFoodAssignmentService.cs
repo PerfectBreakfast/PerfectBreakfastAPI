@@ -980,6 +980,34 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                 result.AddError(ErrorCode.BadRequest, "Tất cả các phần giao phải ở trạng thái đã xác nhận trước khi hoàn thành.");
                 return result;
             }
+            
+            if (dailyOrder.Status != DailyOrderStatus.Cooking)
+            {
+                switch (dailyOrder.Status)
+                {
+                    case DailyOrderStatus.Complete:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đã hoàn thành rồi nhé");
+                        return result;
+                    case DailyOrderStatus.Initial:
+                        result.AddError(ErrorCode.BadRequest, "Đơn chưa sẵn sàng");
+                        return result;
+                    case DailyOrderStatus.Processing:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá xử lý");
+                        return result;
+                    case DailyOrderStatus.Divided:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình chờ xác nhận");
+                        return result;
+                    case DailyOrderStatus.Waiting:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đang trong quá trình nấu");
+                        return result;
+                    case DailyOrderStatus.Delivering:
+                        result.AddError(ErrorCode.BadRequest, "Đơn đã đang trong quá trình giao");
+                        return result;
+                    default:
+                        result.AddError(ErrorCode.BadRequest, "Không thể xác nhận đơn hàng lúc này");
+                        return result;
+                }
+            }
 
             foreach (var assignment in foodAssignments)
             {
