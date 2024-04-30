@@ -339,12 +339,12 @@ public class UserService : IUserService
             {
                 var clientHost = _appConfiguration.Host;
                 var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
-
+                var body = await _mailService.GetEmailTemplateForgotPassword("ForgotPasswordTemplate",clientHost,token, user, email);
                 // Tạo dữ liệu email, sử dụng token trong nội dung email
                 var mailData = new MailDataViewModel(
-                    to: [email],
-                    subject: "Reset Password",
-                    body: $"Bấm để đổi mật khẩu: {clientHost}/reset-password?token={token}&email={email}"
+                    [email],
+                    "WELCOME TO PERFECT BREAKFAST PROJECT", 
+                    body
                 );
                 var ct = new CancellationToken();
 

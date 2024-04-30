@@ -121,13 +121,15 @@ public class ManagementService : IManagementService
         {
             var users = await _unitOfWork.UserRepository.GetUserBySupplierIds(supplierIds);
             var emails = users.Select(x => x.Email).ToList();
-            
+            var script =
+                $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                $"truy cập {_appConfiguration.Host}/management/login";
+            var body = await _mailService.GetEmailTemplateNotification("SendNotification", _appConfiguration.Host,script , users, emails);
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông Báo",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {partnerName} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
-                      $"truy cập {_appConfiguration.Host}/management/login"
+                body
             );
             
             // Gửi email và xử lý kết quả
@@ -154,13 +156,17 @@ public class ManagementService : IManagementService
             var emails = users.Select(x => x.Email).ToList();
 
             var userPartner = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner);
+            var partner = await _unitOfWork.PartnerRepository.GetPartnerById(userPartner.PartnerId.Value);
+            var script =
+                $"Bạn đã nhận được yêu cầu món ăn từ {partner.Name} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                $"truy cập {_appConfiguration.Host}/management/login";
+            var body = await _mailService.GetEmailTemplateNotification("SendNotification", _appConfiguration.Host,script , users, emails);
             
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Bạn đã nhận được yêu cầu món ăn từ {userPartner.Partner.Name} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
-                      $"truy cập {_appConfiguration.Host}/management/login"
+                body
             );
             
             // Gửi email và xử lý kết quả
@@ -186,13 +192,16 @@ public class ManagementService : IManagementService
 
             var sup = await _unitOfWork.SupplierFoodAssignmentRepository.GetByIdAsync(supplierFoodAssignmentId,
                 x => x.Food, x => x.SupplierCommissionRate.Supplier);
-            
+            var script =
+                $"Nhà cung cấp {sup.SupplierCommissionRate.Supplier.Name} đã từ chối yêu cầu nấu {sup.Food.Name} số lượng {sup.AmountCooked} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                $"truy cập {_appConfiguration.Host}/management/login";
+            var body = await _mailService.GetEmailTemplateNotification("SendNotification", _appConfiguration.Host,script , users, emails);
+
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Nhà cung cấp {sup.SupplierCommissionRate.Supplier.Name} đã từ chối yêu cầu nấu {sup.Food.Name} số lượng {sup.AmountCooked} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
-                      $"truy cập {_appConfiguration.Host}/management/login"
+                body
             );
             
             // Gửi email và xử lý kết quả
@@ -253,14 +262,17 @@ public class ManagementService : IManagementService
     {
         try
         {
+            List <User> users= null;
             var emails =
                 await _unitOfWork.DailyOrderRepository.FindPartnerAndDeliveryAdminEmailsByBookingDateAndStatus(time);
-            
+            var script = $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác và Đơn vị vận chuyển có thể thực hiện phân chia cho nhà cung cấp";
+            var body = await _mailService.GetEmailTemplateNotification("SendNotification", _appConfiguration.Host,script , users, emails);
+
             // Tạo dữ liệu email, sử dụng token trong nội dung email
             var mailData = new MailDataViewModel(
                 to: emails,
                 subject: "Thông báo",
-                body: $"Đơn hàng hôm nay đã được tổng hợp. Các đối tác và Đơn vị vận chuyển có thể thực hiện phân chia cho nhà cung cấp"
+                body
             );
             
             // Gửi email và xử lý kết quả
