@@ -39,6 +39,12 @@
     <Content Include="..\..\.dockerignore">
       <Link>.dockerignore</Link>
     </Content>
+    <Content Update="Template\ForgotPasswordTemplate.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Template\SendNotification.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
