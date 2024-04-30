@@ -39,12 +39,17 @@
     <Content Include="..\..\.dockerignore">
       <Link>.dockerignore</Link>
     </Content>
-    <Content Update="Template\ForgotPasswordTemplate.cshtml">
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Template\ForgotPasswordTemplate.cshtml" />
+    <EmbeddedResource Include="Template\ForgotPasswordTemplate.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Template\SendNotification.cshtml">
+    </EmbeddedResource>
+    <Content Remove="Template\SendNotification.cshtml" />
+    <EmbeddedResource Include="Template\SendNotification.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
