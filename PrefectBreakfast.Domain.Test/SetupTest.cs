@@ -5,6 +5,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using PerfectBreakfast.Application.Interfaces;
@@ -22,6 +23,8 @@ public class SetupTest : IDisposable
     protected readonly Mock<IServiceProvider> _serviceProviderMock;
     protected readonly Mock<IRecurringJobManager> _recurringJobManagerMock;
     protected readonly Mock<IMemoryCache> _caheMock;
+    protected readonly Mock<IDistributedCache> _distributedCacheMock;
+    protected readonly Mock<IBackgroundJobClient> _backgroundJobClientMock;
 
     
     // Add new mocks for Identity
@@ -59,6 +62,7 @@ public class SetupTest : IDisposable
     protected readonly Mock<ISupplierService> _supplierServiceMock;
     protected readonly Mock<ISupplyAssigmentService> _supplyAssigmentServiceMock;
     protected readonly Mock<IUserService> _userServiceMock;
+    protected readonly Mock<IMomoService> _MomoServiceMock;
     
     protected readonly AppDbContext _dbContext;
 
@@ -90,6 +94,8 @@ public class SetupTest : IDisposable
         var userPrincipalFactoryMock = new Mock<IUserClaimsPrincipalFactory<User>>();
         _signInManagerMock = new Mock<SignInManager<User>>(_userManagerMock.Object, contextAccessorMock.Object, userPrincipalFactoryMock.Object, null, null, null, null);
         _caheMock = new Mock<IMemoryCache>();
+        _distributedCacheMock = new Mock<IDistributedCache>();
+        _backgroundJobClientMock = new Mock<IBackgroundJobClient>();
         
         // Services
     _categoryServiceMock = new Mock<ICategoryService>();
@@ -121,6 +127,7 @@ public class SetupTest : IDisposable
     _supplierServiceMock = new Mock<ISupplierService>();
     _supplyAssigmentServiceMock = new Mock<ISupplyAssigmentService>();
     _userServiceMock = new Mock<IUserService>();
+    _MomoServiceMock = new Mock<IMomoService>();
     
     var options = new DbContextOptionsBuilder<AppDbContext>()
         .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
