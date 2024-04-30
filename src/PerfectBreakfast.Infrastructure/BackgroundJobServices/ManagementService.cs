@@ -156,8 +156,9 @@ public class ManagementService : IManagementService
             var emails = users.Select(x => x.Email).ToList();
 
             var userPartner = await _unitOfWork.UserRepository.GetByIdAsync(userId, x => x.Partner);
+            var partner = await _unitOfWork.PartnerRepository.GetPartnerById(userPartner.PartnerId.Value);
             var script =
-                $"Bạn đã nhận được yêu cầu món ăn từ {userPartner.Partner.Name} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
+                $"Bạn đã nhận được yêu cầu món ăn từ {partner.Name} vào lúc {_currentTime.GetCurrentTime():HH:mm dd/MM/yyyy} . Hãy truy cập hệ thống để tiến hành xử lý yêu cầu." +
                 $"truy cập {_appConfiguration.Host}/management/login";
             var body = await _mailService.GetEmailTemplateNotification("SendNotification", _appConfiguration.Host,script , users, emails);
             
