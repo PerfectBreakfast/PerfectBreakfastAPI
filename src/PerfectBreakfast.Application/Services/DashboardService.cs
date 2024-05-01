@@ -11,15 +11,11 @@ namespace PerfectBreakfast.Application.Services;
 public class DashboardService : IDashboardService
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    private readonly IClaimsService _claimsService;
     private readonly ICurrentTime _currentTime;
 
-    public DashboardService(IUnitOfWork unitOfWork, IMapper mapper, IClaimsService claimsService, ICurrentTime currentTime)
+    public DashboardService(IUnitOfWork unitOfWork, ICurrentTime currentTime)
     {
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
-        _claimsService = claimsService;
         _currentTime = currentTime;
         
     }

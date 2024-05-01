@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Hangfire;
@@ -464,5 +465,334 @@ public class OrderServiceTests : SetupTest
         // Assert
         Assert.True(result.IsError);
         Assert.Contains("Unexpected error", result.Errors.First().Message);
+    }
+    
+    [Fact]
+    public async Task GetOrderHistory_ReturnsOrdersWithDetailsSuccessfully()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var userId = Guid.NewGuid();
+        var orders = new List<Order>
+        {
+            new Order {
+                Id = Guid.NewGuid(), 
+                TotalPrice = 100.00m, 
+                OrderStatus = OrderStatus.Paid, 
+                OrderCode = 12345,
+                Worker = new User { Name = "Worker1" },
+                OrderDetails = new List<OrderDetail>
+                {
+                    new OrderDetail { Combo = new Combo { Name = "Combo1" } },
+                    new OrderDetail { Food = new Food { Name = "Food1" } }
+                },
+                DailyOrder = new DailyOrder {
+                    MealSubscription = new MealSubscription { Meal = new Meal { MealType = "Lunch" } }
+                }
+            }
+        };
+
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(u => u.OrderRepository.GetOrderHistory(userId, pageNumber * 5, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+            .ReturnsAsync(orders);
+        //_mapper.Map<List<OrderHistoryResponse>>(orders).Returns(orders.Select(o => new OrderHistoryResponse(o.Id, o.Note, o.TotalPrice, o.OrderStatus.ToString(), o.OrderCode, o.CreationDate, o.OrderDetails.Count, o.Worker?.Company?.Name ?? "", DateOnly.FromDateTime(o.CreationDate), o.DailyOrder.MealSubscription.Meal.MealType)).ToList());
+
+        // Act
+        var result = await _orderService.GetOrderHistory(pageNumber);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.NotNull(result.Payload);
+        Assert.Equal(orders.Count, result.Payload.Count);
+        Assert.All(result.Payload, item => Assert.NotEmpty(item.Meal));  // Checking that Meal data is loaded
+    }
+
+    [Fact]
+    public async Task GetOrderHistory_HandlesException()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var userId = Guid.NewGuid();
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(u => u.OrderRepository.GetOrderHistory(userId, pageNumber * 5, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _orderService.GetOrderHistory(pageNumber);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Message.Contains("Database error"));
+    }
+    
+    [Fact]
+    public async Task GetOrderHistoryByDeliveryStaff_ReturnsOrdersSuccessfully()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var expectedPageNumber = pageNumber * 5; // since pageNumber *= 5;
+        var userId = Guid.NewGuid();
+        var orders = new List<Order>
+        {
+            new Order {
+                Id = Guid.NewGuid(), 
+                TotalPrice = 200.00m, 
+                OrderStatus = OrderStatus.Paid, 
+                OrderCode = 67890,
+                DailyOrder = new DailyOrder {
+                    MealSubscription = new MealSubscription {
+                        Meal = new Meal { MealType = "Dinner" }
+                    }
+                },
+                Worker = new User { Name = "Delivery Staff", Company = new Company
+                    {
+                        Name = "Delivery Co.",
+                        PhoneNumber = "null",
+                        Email = "null",
+                        Address = "null"
+                    }
+                },
+                OrderDetails = new List<OrderDetail> {
+                    new OrderDetail { Combo = new Combo { Name = "Combo Special" } }
+                }
+            }
+        };
+
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(u => u.OrderRepository.GetOrderHistoryByDeliveryStaff(userId, expectedPageNumber, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+            .ReturnsAsync(orders);
+        //_mapper.Map<List<OrderHistoryResponse>>(orders).Returns(orders.Select(o => new OrderHistoryResponse(o.Id, o.Note, o.TotalPrice, o.OrderStatus.ToString(), o.OrderCode, o.CreationDate, o.OrderDetails.Count, o.Worker.Company.Name, DateOnly.FromDateTime(o.CreationDate), o.DailyOrder.MealSubscription.Meal.MealType)).ToList());
+
+        // Act
+        var result = await _orderService.GetOrderHistoryByDeliveryStaff(pageNumber);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.NotNull(result.Payload);
+        Assert.Single(result.Payload);
+        Assert.Equal("Delivery Co.", result.Payload.First().CompanyName);
+        //Assert.Equal("Combo Special", result.Payload.First().OrderDetails.First()?.Name);
+    }
+
+    [Fact]
+    public async Task GetOrderHistoryByDeliveryStaff_HandlesException()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var userId = Guid.NewGuid();
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(u => u.OrderRepository.GetOrderHistoryByDeliveryStaff(userId, pageNumber * 5, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _orderService.GetOrderHistoryByDeliveryStaff(pageNumber);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Message.Contains("Database error"));
+    }
+    
+    
+    [Fact]
+    public async Task CompleteOrder_FailsIfOrderNotPaidOrNotDelivering()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var order = new Order
+        {
+            Id = orderId,
+            OrderStatus = OrderStatus.Pending, // Not paid
+            DailyOrder = new DailyOrder
+            {
+                Status = DailyOrderStatus.Waiting  // Not delivering
+            }
+        };
+
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(x => x.OrderRepository.GetByIdAsync(orderId, It.IsAny<Expression<Func<Order, object>>>()))
+            .ReturnsAsync(order);
+
+        // Act
+        var result = await _orderService.CompleteOrder(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("Thời gian giao hàng không phù hợp! Waiting", result.Errors.First().Message);
+    }
+
+    [Fact]
+    public async Task CompleteOrder_FailsIfUserNotAssignedToOrder()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var order = new Order
+        {
+            Id = orderId,
+            OrderStatus = OrderStatus.Paid,
+            DailyOrder = new DailyOrder
+            {
+                Status = DailyOrderStatus.Delivering
+            }
+        };
+
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(x => x.OrderRepository.GetByIdAsync(orderId, It.IsAny<Expression<Func<Order, object>>>()))
+            .ReturnsAsync(order);
+        _unitOfWorkMock.Setup(x => x.ShippingOrderRepository.GetShippingOrderByDailyOrderId(userId, order.DailyOrder.Id))
+            .ReturnsAsync((ShippingOrder)null); // User is not assigned
+
+        // Act
+        var result = await _orderService.CompleteOrder(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("Bạn không được giao nhiệm vụ cho đơn hàng này!", result.Errors.First().Message);
+    }
+
+    [Fact]
+    public async Task CompleteOrder_HandlesException()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+        _unitOfWorkMock.Setup(x => x.OrderRepository.GetByIdAsync(orderId, It.IsAny<Expression<Func<Order, object>>>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _orderService.CompleteOrder(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains("Database error", result.Errors.First().Message);
+    }
+    
+    // [Fact]
+    // public async Task GetOrder_ReturnsOrderWithDetailsSuccessfully()
+    // {
+    //     // Arrange
+    //     var orderId = Guid.NewGuid();
+    //     var userId = Guid.NewGuid();
+    //     var company = new Company
+    //     {
+    //         Id = Guid.NewGuid(),
+    //         Name = "Test Company",
+    //         PhoneNumber = "null",
+    //         Email = "null",
+    //         Address = "null"
+    //     };
+    //     var order = new Order
+    //     {
+    //         Id = orderId,
+    //         Worker = new User { Id = userId, Company = company },
+    //         WorkerId = userId,
+    //         DailyOrder = new DailyOrder {
+    //             BookingDate = DateOnly.FromDateTime(DateTime.UtcNow),
+    //             MealSubscription = new MealSubscription { Meal = new Meal { MealType = "Lunch" } }
+    //         },
+    //         PaymentMethod = new PaymentMethod { Name = "Credit Card" },
+    //         OrderDetails = new List<OrderDetail> {
+    //             new OrderDetail {
+    //                 Combo = new Combo { Name = "Lunch Special", Image = "image.jpg", ComboFoods = new List<ComboFood>() },
+    //                 Quantity = 2,
+    //                 UnitPrice = 15.00m
+    //             }
+    //         }
+    //     };
+    //
+    //     _claimServiceMock.Setup(x => x.GetCurrentUserId).Returns(userId);
+    //     _unitOfWorkMock.Setup(x => x.OrderRepository.GetByIdAndIncludeAsync(orderId, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+    //         .ReturnsAsync(order);
+    //     _unitOfWorkMock.Setup(x => x.CompanyRepository.GetByIdAsync(company.Id))
+    //         .ReturnsAsync(company);
+    //     //_mapper.Setup(m => m.Map<OrderResponse>(order)).Returns(new OrderResponse());
+    //
+    //     // Act
+    //     var result = await _orderService.GetOrder(orderId);
+    //
+    //     // Assert
+    //     Assert.False(result.IsError);
+    //     Assert.NotNull(result.Payload);
+    //     Assert.Equal("Test Company", result.Payload.Company.Name);
+    // }
+
+    [Fact]
+    public async Task GetOrder_HandlesException()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var exceptionMessage = "Database error";
+        _unitOfWorkMock.Setup(x => x.OrderRepository.GetByIdAndIncludeAsync(orderId, It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>(), It.IsAny<IncludeInfo<Order>>()))
+            .ThrowsAsync(new Exception(exceptionMessage));
+
+        // Act
+        var result = await _orderService.GetOrder(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Message.Contains(exceptionMessage));
+    }
+
+    [Fact]
+    public async Task GetLinkContinuePayment_ReturnsPaymentLinkSuccessfully()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var cachedData = JsonSerializer.Serialize(new PaymentResponse
+        {
+            PaymentUrl = "http://example.com/payment",
+            QrCode = "qrCodeData",
+            DeepLink = "myApp://payment",
+            IsSuccess = true
+        });
+
+        _distributedCacheMock.Setup(x => x.GetAsync($"order-{orderId}", default))
+            .ReturnsAsync(Encoding.UTF8.GetBytes(cachedData));
+
+        // Act
+        var result = await _orderService.GetLinkContinuePayment(orderId);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.NotNull(result.Payload);
+        Assert.Equal("http://example.com/payment", result.Payload.PaymentUrl);
+        Assert.Equal("qrCodeData", result.Payload.QrCode);
+        Assert.Equal("myApp://payment", result.Payload.DeepLink);
+        Assert.True(result.Payload.IsSuccess);
+    }
+
+    [Fact]
+    public async Task GetLinkContinuePayment_ReturnsNotFoundWhenNoData()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        _distributedCacheMock.Setup(x => x.GetAsync($"order-{orderId}", default))
+            .ReturnsAsync((byte[])null);
+
+        // Act
+        var result = await _orderService.GetLinkContinuePayment(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Message.Contains("Không tồn tại phương phức thanh toán"));
+    }
+
+    [Fact]
+    public async Task GetLinkContinuePayment_HandlesException()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var exceptionMessage = "Cache service failure";
+        _distributedCacheMock.Setup(x => x.GetAsync($"order-{orderId}", default))
+            .ThrowsAsync(new Exception(exceptionMessage));
+
+        // Act
+        var result = await _orderService.GetLinkContinuePayment(orderId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Message.Contains(exceptionMessage));
     }
 }
