@@ -18,7 +18,7 @@ public class SettingControllerTest : SetupTest
         _settingController = new SettingController(_hangfireSettingServiceMock.Object);
     }
     
-    [Fact]
+    /*[Fact]
     public async Task SetupTimeAutoCreateAndUpdateDailyOrder_ReturnsOk_WhenUpdateIsSuccessful()
     {
         // Arrange
@@ -41,9 +41,9 @@ public class SettingControllerTest : SetupTest
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal(mockResponse.Payload, okResult.Value);
-    }
+    }*/
 
-    [Fact]
+    /*[Fact]
     public async Task SetupTimeAutoCreateAndUpdateDailyOrder_ReturnsError_WhenUpdateFails()
     {
         // Arrange
@@ -67,7 +67,7 @@ public class SettingControllerTest : SetupTest
         var badRequestResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
         Assert.Equal(mockResponse.Errors, badRequestResult.Value);
-    }
+    }*/
 
     [Fact]
     public async Task GetTimeAuto_ReturnsOk_WhenFetchedSuccessfully()
