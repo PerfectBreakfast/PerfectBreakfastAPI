@@ -111,7 +111,7 @@ public class MailService : IMailService
             FirstName = user.Name,
             LastName = null,
             Email = user.Email,
-            URL = $"{clientHost}/reset-password?token={code}&email?={email}"
+            URL = $"{clientHost}/reset-password?token={code}&email={email}"
         };
         var razorEngine = new RazorEngine();
         var modifiledMailTemplate = razorEngine.Compile(mailTemplate);
