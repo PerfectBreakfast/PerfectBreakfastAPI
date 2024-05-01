@@ -74,18 +74,6 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Super Admin 
-    /// </summary>
-    /// <returns></returns>
-    [Authorize]
-    [HttpPut("{id}"), Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> UpdateDailyOrder(Guid id, UpdateDailyOrderRequest updateDailyOrderRequest)
-    {
-        var response = await _dailyOrderService.UpdateDailyOrder(id, updateDailyOrderRequest);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-
-    /// <summary>
     /// API For Partner Admin-API lấy danh sách daily order trong trạng thái chờ phân phối
     /// </summary>
     /// <returns></returns>

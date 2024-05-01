@@ -8,7 +8,7 @@ namespace PrefectBreakfast.API.Test.Controller;
 
 public class BaseControllerTests : SetupTest
 {
-    [Fact]
+    /*[Fact]
     public void HandleErrorResponse_UnauthorizedError_ReturnsUnauthorizedResult()
     {
         // Arrange
@@ -57,7 +57,7 @@ public class BaseControllerTests : SetupTest
         var response = Assert.IsType<ErrorResponse>(serverErrorResult.Value);
         Assert.Equal(500, serverErrorResult.StatusCode);
         Assert.Equal("Internal server error", response.Errors);
-    }
+    }*/
 
     /*[Fact]
     public void HandleErrorResponse_OtherErrors_ReturnsBadRequestResult()

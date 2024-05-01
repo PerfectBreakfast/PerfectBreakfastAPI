@@ -595,28 +595,5 @@ public class DailyOrderService : IDailyOrderService
 
         return result;
     }
-
-    public async Task<OperationResult<DailyOrderResponse>> UpdateDailyOrder(Guid id,
-        UpdateDailyOrderRequest updateDailyOrderRequest)
-    {
-        var result = new OperationResult<DailyOrderResponse>();
-        try
-        {
-            var dailyOrderEntity = await _unitOfWork.DailyOrderRepository.GetByIdAsync(id);
-            _mapper.Map(updateDailyOrderRequest, dailyOrderEntity);
-            _unitOfWork.DailyOrderRepository.Update(dailyOrderEntity);
-            await _unitOfWork.SaveChangeAsync();
-            result.Payload = _mapper.Map<DailyOrderResponse>(dailyOrderEntity);
-        }
-        catch (NotFoundIdException)
-        {
-            result.AddUnknownError("Id is not exsit");
-        }
-        catch (Exception e)
-        {
-            result.AddUnknownError(e.Message);
-        }
-
-        return result;
-    }
+    
 }

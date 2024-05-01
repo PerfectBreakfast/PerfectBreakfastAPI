@@ -110,7 +110,7 @@ public class SupplierFoodAssignmentService : ISupplierFoodAssignmentService
                     .GroupBy(request => new { request.SupplierId, request.FoodId }) // Nhóm theo SupplierId, FoodId
                     .Select(group => new SupplierFoodAssignmentRequest
                     {
-                        SupplierId = group.Key.SupplierId, // Lấy SupplierId từ Key của mỗi nhóm
+                        SupplierId = group.Key.SupplierId, // Lấy SupplierId từ Key của mỗi nhóm`
                         FoodId = group.Key.FoodId, // Lấy FoodId từ Key của mỗi nhóm
                         AmountCooked = group.Sum(request => request.AmountCooked) // Tính tổng AmountCooked trong mỗi nhóm
                     }).ToList();
