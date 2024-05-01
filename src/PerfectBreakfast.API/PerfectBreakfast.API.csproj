@@ -41,4 +41,15 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="Template\ForgotPasswordTemplate.cshtml" />
+    <EmbeddedResource Include="Template\ForgotPasswordTemplate.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Content Remove="Template\SendNotification.cshtml" />
+    <EmbeddedResource Include="Template\SendNotification.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

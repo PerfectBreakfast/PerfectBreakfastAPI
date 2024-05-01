@@ -272,3 +272,7 @@ Hangfire1.db
 # Hangfire SQLite temporary files
 Hangfire.db-shm
 Hangfire.db-wal
+
+Hangfire1.db-shm
+Hangfire1.db-wal
+
