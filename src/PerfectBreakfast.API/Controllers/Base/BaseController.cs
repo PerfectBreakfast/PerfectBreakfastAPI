@@ -7,7 +7,7 @@ namespace PerfectBreakfast.API.Controllers.Base;
 [ApiController]
 public class BaseController : ControllerBase
 {
-    protected IActionResult HandleErrorResponse(List<Error> errors)
+    public IActionResult HandleErrorResponse(List<Error> errors)
     {
         if (errors.Any(e => e.Code == ErrorCode.UnAuthorize))
         {
