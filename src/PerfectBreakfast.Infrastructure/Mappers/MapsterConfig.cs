@@ -17,6 +17,7 @@ using PerfectBreakfast.Application.Models.SupplierModels.Response;
 using PerfectBreakfast.Application.Models.SupplyAssigmentModels.Response;
 using PerfectBreakfast.Application.Models.UserModels.Response;
 using PerfectBreakfast.Domain.Entities;
+using PerfectBreakfast.Domain.Enums;
 using ComboAndFoodResponse = PerfectBreakfast.Application.Models.MenuModels.Response.ComboAndFoodResponse;
 
 namespace PerffectBreakfast.Infrastructure.Mappers;
@@ -78,7 +79,11 @@ public class MapsterConfig : IRegister
         
         // Supplier Food Assignment
         config.NewConfig<SupplierFoodAssignment, FoodAssignmentResponse>()
-            .Map(dest => dest.FoodName, src => src.Food.Name)
+            .Map(dest => dest.FoodName, 
+                src => src.Food == null ? "Unknown" : 
+                    src.Food.FoodStatus == FoodStatus.Combo ? $"{src.Food.Name} - combo" :
+                    src.Food.FoodStatus == FoodStatus.Retail ? $"{src.Food.Name} - đơn lẻ" : 
+                    src.Food.Name)
             .Map(dest => dest.CommissionRate, src => src.SupplierCommissionRate.CommissionRate);
         config.NewConfig<SupplierFoodAssignment, FoodAssignmentForPackage>()
             .Map(dest => dest.FoodName, src => src.Food.Name)
