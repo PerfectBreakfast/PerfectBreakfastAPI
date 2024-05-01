@@ -333,7 +333,7 @@ public class UserService : IUserService
         var result = new OperationResult<string>();
         try
         {
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(email);
+            var user = await _unitOfWork.UserRepository.GetUserByEmail(email);
 
             if (user is not null)
             {

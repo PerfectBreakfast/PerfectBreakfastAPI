@@ -34,17 +34,6 @@ public class DailyOrderController : BaseController
     }
 
     /// <summary>
-    /// API For Super Admin
-    /// </summary>
-    /// <returns></returns>
-    [HttpPost, Authorize(Policy = ConstantRole.RequireSuperAdminRole)]
-    public async Task<IActionResult> CreateDailyOrder(DailyOrderRequest dailyOrderRequest)
-    {
-        var response = await _dailyOrderService.CreateDailyOrder(dailyOrderRequest);
-        return response.IsError ? HandleErrorResponse(response.Errors) : Ok(response.Payload);
-    }
-
-    /// <summary>
     /// Api for Super Admin
     /// </summary>
     /// <param name="status"></param>
